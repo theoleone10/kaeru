@@ -1,0 +1,102 @@
+import { memo, type ReactNode } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { clusters, parseFurigana, splitCloze, takeLeadingPunctuation, type RubyToken } from '../content/furigana';
+import type { Example } from '../content/types';
+import { useApp } from '../state/AppProvider';
+
+interface Sizing {
+  size: number;
+}
+
+function RubyUnits({ tokens, showFurigana, size, color, mutedColor }: { tokens: RubyToken[]; showFurigana: boolean; size: number; color: string; mutedColor: string }) {
+  const rubySize = Math.round(size * 0.5);
+  const unit = (u: RubyToken, key: number) => (
+    <View key={key} style={styles.unit}>
+      {showFurigana && (
+        <Text style={{ fontSize: rubySize, lineHeight: rubySize + 3, color: mutedColor }} numberOfLines={1}>
+          {u.reading ?? ' '}
+        </Text>
+      )}
+      <Text style={{ fontSize: size, lineHeight: size * 1.35, color }}>{u.text}</Text>
+    </View>
+  );
+  return (
+    <>
+      {clusters(tokens).map((c, i) =>
+        c.length === 1 ? (
+          unit(c[0], i)
+        ) : (
+          <View key={i} style={styles.cluster}>
+            {c.map(unit)}
+          </View>
+        ),
+      )}
+    </>
+  );
+}
+
+/** A Japanese sentence with optional furigana above kanji. */
+export const FuriganaText = memo(function FuriganaText({ markup, size = 22, showFurigana }: { markup: string; showFurigana?: boolean } & Partial<Sizing>) {
+  const { colors, settings } = useApp();
+  const show = showFurigana ?? settings.furigana;
+  if (!show) {
+    return <Text style={{ fontSize: size, lineHeight: size * 1.45, color: colors.text }}>{parseFurigana(markup).map((t) => t.text).join('')}</Text>;
+  }
+  return (
+    <View style={styles.row}>
+      <RubyUnits tokens={parseFurigana(markup)} showFurigana size={size} color={colors.text} mutedColor={colors.textMuted} />
+    </View>
+  );
+});
+
+export type BlankState = 'empty' | 'correct' | 'wrong' | 'revealed';
+
+/**
+ * Cloze sentence. The blank shows a placeholder, or once answered, the target
+ * grammar highlighted as correct / wrong.
+ */
+export function ClozeSentence({ example, state, size = 24 }: { example: Example; state: BlankState; size?: number }) {
+  const { colors, settings } = useApp();
+  const split = splitCloze(parseFurigana(example.furigana), example.cloze_target, example.cloze_occurrence ?? 1);
+  if (!split) return <FuriganaText markup={example.furigana} size={size} />;
+
+  const show = settings.furigana;
+  const common = { showFurigana: show, size, mutedColor: colors.textMuted };
+  let blank: ReactNode;
+  if (state === 'empty') {
+    const width = Math.max(2, [...example.cloze_target].length) * size * 0.9;
+    blank = (
+      <View style={styles.unit}>
+        {show && <Text style={{ fontSize: size * 0.5, lineHeight: size * 0.5 + 3 }}> </Text>}
+        <View style={[styles.blank, { width, height: size * 1.35, borderBottomColor: colors.accent, backgroundColor: colors.accentSoft }]} />
+      </View>
+    );
+  } else {
+    const tint = state === 'correct' ? colors.correct : state === 'wrong' ? colors.wrong : colors.accent;
+    blank = (
+      <View style={[styles.row, { borderBottomWidth: 2, borderBottomColor: tint }]}>
+        <RubyUnits tokens={split.blank} {...common} color={tint} />
+      </View>
+    );
+  }
+
+  // Keep punctuation right after the blank on the same line as the blank.
+  const [lead, rest] = takeLeadingPunctuation(split.after);
+  return (
+    <View style={styles.row} accessibilityLabel={example.japanese.replace(example.cloze_target, '（　）')}>
+      <RubyUnits tokens={split.before} {...common} color={colors.text} />
+      <View style={styles.cluster}>
+        {blank}
+        <RubyUnits tokens={lead} {...common} color={colors.text} />
+      </View>
+      <RubyUnits tokens={rest} {...common} color={colors.text} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end' },
+  unit: { alignItems: 'center' },
+  cluster: { flexDirection: 'row', alignItems: 'flex-end' },
+  blank: { borderBottomWidth: 2, borderRadius: 4, marginHorizontal: 2 },
+});

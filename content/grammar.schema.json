@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JLPT grammar level file",
+  "type": "object",
+  "required": ["level", "points"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "level": { "enum": ["N5", "N4", "N3", "N2", "N1"] },
+    "points": {
+      "description": "Grammar points in curriculum order (simplest first).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/point" }
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "level", "title", "meaning", "structure", "explanation", "nuances", "common_mistakes", "related_ids", "examples"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$", "description": "Stable id, e.g. n5-mo. Never change it once you have reviews." },
+        "level": { "enum": ["N5", "N4", "N3", "N2", "N1"] },
+        "title": { "type": "string", "minLength": 1 },
+        "meaning": { "type": "string", "minLength": 1 },
+        "structure": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "formality": { "enum": ["casual", "neutral", "polite", "formal", "written"] },
+        "explanation": { "type": "string", "description": "Paragraphs separated by a blank line. *text* renders as emphasis." },
+        "nuances": { "type": "array", "items": { "type": "string" } },
+        "common_mistakes": { "type": "array", "items": { "type": "string" } },
+        "comparisons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "note"],
+            "properties": { "id": { "type": "string" }, "note": { "type": "string" } }
+          }
+        },
+        "related_ids": { "type": "array", "items": { "type": "string" } },
+        "examples": { "type": "array", "minItems": 4, "maxItems": 6, "items": { "$ref": "#/$defs/example" } }
+      }
+    },
+    "example": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "japanese", "furigana", "english", "cloze_target", "accepted_answers"],
+      "properties": {
+        "id": { "type": "string", "description": "Stable id, e.g. n5-mo-3. Keep it when editing the sentence." },
+        "japanese": { "type": "string" },
+        "furigana": { "type": "string", "description": "Same sentence with ruby markup: {漢字|かんじ}." },
+        "english": { "type": "string" },
+        "cloze_target": { "type": "string", "description": "Exact substring of `japanese` to blank out." },
+        "cloze_occurrence": { "type": "integer", "minimum": 1, "description": "Which occurrence to blank when cloze_target appears more than once." },
+        "accepted_answers": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "valid_alternatives": {
+          "type": "array",
+          "description": "Grammatical answers that are not the target: the user is told and may retry.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["answer", "note"],
+            "properties": { "answer": { "type": "string" }, "note": { "type": "string" } }
+          }
+        },
+        "hint": { "type": "string" }
+      }
+    }
+  }
+}
