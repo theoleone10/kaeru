@@ -92,3 +92,48 @@ export function splitCloze(tokens: RubyToken[], target: string, occurrence = 1):
   }
   return out;
 }
+
+// Characters that must not start a line / must not end one (kinsoku shori).
+const NO_LINE_START = /^[。、，．！？」』）〕】ー・…ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ]$/;
+const NO_LINE_END = /^[「『（〔【]$/;
+
+/**
+ * Break tokens into wrap clusters: ruby groups stay whole, plain text is split per
+ * character so lines can wrap anywhere, except that closing punctuation and small
+ * kana stay glued to the previous character and opening brackets to the next.
+ */
+export function clusters(tokens: RubyToken[]): RubyToken[][] {
+  const out: RubyToken[][] = [];
+  let pendingOpen: RubyToken[] = [];
+  for (const t of tokens.flatMap<RubyToken>((t) => (t.reading ? [t] : [...t.text].map((ch) => ({ text: ch }))))) {
+    if (!t.reading && NO_LINE_START.test(t.text) && out.length > 0 && pendingOpen.length === 0) {
+      out[out.length - 1].push(t);
+    } else if (!t.reading && NO_LINE_END.test(t.text)) {
+      pendingOpen.push(t);
+    } else {
+      out.push([...pendingOpen, t]);
+      pendingOpen = [];
+    }
+  }
+  if (pendingOpen.length) out.push(pendingOpen);
+  return out;
+}
+
+/** Split leading no-line-start punctuation off `tokens` so it can stay with a preceding blank. */
+export function takeLeadingPunctuation(tokens: RubyToken[]): [RubyToken[], RubyToken[]] {
+  const lead: RubyToken[] = [];
+  const rest = [...tokens];
+  while (rest.length && !rest[0].reading) {
+    const first = rest[0].text;
+    let i = 0;
+    while (i < first.length && NO_LINE_START.test(first[i])) i++;
+    if (i === 0) break;
+    lead.push({ text: first.slice(0, i) });
+    if (i < first.length) {
+      rest[0] = { text: first.slice(i) };
+      break;
+    }
+    rest.shift();
+  }
+  return [lead, rest];
+}

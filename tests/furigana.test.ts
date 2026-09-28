@@ -1,4 +1,4 @@
-import { countOccurrences, hasMalformedMarkup, parseFurigana, plainText, splitCloze } from '@/content/furigana';
+import { clusters, countOccurrences, hasMalformedMarkup, parseFurigana, plainText, splitCloze, takeLeadingPunctuation } from '@/content/furigana';
 
 describe('parseFurigana', () => {
   it('parses ruby groups and plain text', () => {
@@ -55,5 +55,25 @@ describe('splitCloze', () => {
 
   it('returns null when the target is missing', () => {
     expect(splitCloze(tokens, 'ます')).toBeNull();
+  });
+});
+
+describe('line-break clusters', () => {
+  const texts = (markup: string) => clusters(parseFurigana(markup)).map((c) => c.map((t) => t.text).join(''));
+
+  it('splits plain text per character and keeps ruby groups whole', () => {
+    expect(texts('{学生|がくせい}です')).toEqual(['学生', 'で', 'す']);
+  });
+  it('keeps closing punctuation and small kana with the previous character', () => {
+    expect(texts('{学生|がくせい}です。')).toEqual(['学生', 'で', 'す。']);
+    expect(texts('ちょっと、')).toEqual(['ちょっ', 'と、']);
+  });
+  it('keeps opening brackets with the next character', () => {
+    expect(texts('「はい」')).toEqual(['「は', 'い」']);
+  });
+  it('splits leading punctuation off for the cloze blank', () => {
+    const [lead, rest] = takeLeadingPunctuation(parseFurigana('。{私|わたし}'));
+    expect(lead).toEqual([{ text: '。' }]);
+    expect(rest).toEqual([{ text: '私', reading: 'わたし' }]);
   });
 });
