@@ -24,7 +24,7 @@ Everything used runs in Expo Go; no development build is needed yet. (Review rem
 
 ## Editing grammar content
 
-Content lives in `content/n5.json` … `content/n1.json`, one file per level, in curriculum order (simplest first). The shape is described by `content/grammar.schema.json`, so VS Code will autocomplete and flag mistakes. After editing, run `npm test` — the content test checks things like:
+Content lives in `content/n5.json` … `content/n1.json` (N5, N4 and N3 are filled in), one file per level, in curriculum order (simplest first). The shape is described by `content/grammar.schema.json`, so VS Code will autocomplete and flag mistakes. After editing, run `npm test` — the content test checks things like:
 
 - furigana markup `{漢字|かんじ}` matches the `japanese` sentence exactly
 - `cloze_target` occurs in the sentence (set `cloze_occurrence` if it appears more than once) and doesn't split a furigana group
