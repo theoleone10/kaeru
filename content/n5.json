@@ -1148,6 +1148,90 @@
       ]
     },
     {
+      "id": "n5-no-one",
+      "level": "N5",
+      "title": "〜の (the … one)",
+      "meaning": "the one — standing in for a noun",
+      "structure": [
+        "い-adjective + の (赤いの)",
+        "な-adjective + な + の (静かなの)",
+        "Noun + の (…'s one: 私の)"
+      ],
+      "formality": "neutral",
+      "explanation": "の can stand in for a noun you don't need to repeat, like English \"one\": 赤いのをください, \"The red one, please.\" With な-adjectives, keep な: もっと静かなのがいいです.\n\nAfter a noun it means \"…'s\": この傘は私のです, \"This umbrella is mine.\"",
+      "nuances": [
+        "It's extremely common when shopping and choosing.",
+        "Sometimes もの is used instead, a little more formally."
+      ],
+      "common_mistakes": [
+        "Dropping な: 静かのがいい ✗ → 静かなのがいい.",
+        "Adding の after これ／それ: これのをください ✗ → これをください."
+      ],
+      "related_ids": [
+        "n5-no-possessive",
+        "n5-i-adjectives"
+      ],
+      "examples": [
+        {
+          "id": "n5-no-one-1",
+          "japanese": "赤いのをください。",
+          "furigana": "{赤|あか}いのをください。",
+          "english": "The red one, please.",
+          "cloze_target": "の",
+          "accepted_answers": [
+            "の"
+          ],
+          "hint": "the … one"
+        },
+        {
+          "id": "n5-no-one-2",
+          "japanese": "もっと安いのはありませんか。",
+          "furigana": "もっと{安|やす}いのはありませんか。",
+          "english": "Don't you have a cheaper one?",
+          "cloze_target": "の",
+          "accepted_answers": [
+            "の"
+          ],
+          "hint": "the … one"
+        },
+        {
+          "id": "n5-no-one-3",
+          "japanese": "大きいのと小さいの、どちらがいいですか。",
+          "furigana": "{大|おお}きいのと{小|ちい}さいの、どちらがいいですか。",
+          "english": "Which do you want, the big one or the small one?",
+          "cloze_target": "の",
+          "cloze_occurrence": 1,
+          "accepted_answers": [
+            "の"
+          ],
+          "hint": "the … one"
+        },
+        {
+          "id": "n5-no-one-4",
+          "japanese": "もっと静かなのがいいです。",
+          "furigana": "もっと{静|しず}かなのがいいです。",
+          "english": "I'd prefer a quieter one.",
+          "cloze_target": "なの",
+          "accepted_answers": [
+            "なの"
+          ],
+          "hint": "な-adjective + one"
+        },
+        {
+          "id": "n5-no-one-5",
+          "japanese": "この傘は私のです。",
+          "furigana": "この{傘|かさ}は{私|わたし}のです。",
+          "english": "This umbrella is mine.",
+          "cloze_target": "の",
+          "cloze_occurrence": 2,
+          "accepted_answers": [
+            "の"
+          ],
+          "hint": "…'s (one)"
+        }
+      ]
+    },
+    {
       "id": "n5-ne",
       "level": "N5",
       "title": "ね",
@@ -1908,6 +1992,93 @@
       ]
     },
     {
+      "id": "n5-wo-motion",
+      "level": "N5",
+      "title": "を (through / out of)",
+      "meaning": "along, through, out of — a place you move through or leave",
+      "structure": [
+        "Place + を + 歩く / 走る / 渡る / 散歩する (through, along)",
+        "Place + を + 出る / 降りる / 卒業する (out of)"
+      ],
+      "formality": "neutral",
+      "explanation": "With movement verbs, を can mark the space you move through: 毎朝公園を散歩します, \"I take a walk in the park every morning.\" この橋を渡ってください, \"Please cross this bridge.\"\n\nWith verbs of leaving, it marks the place you leave: 七時に家を出ます, \"I leave home at seven.\" 電車を降ります, \"get off the train\".",
+      "nuances": [
+        "公園で走る is running as an activity at the park; 公園を走る is running through or around it.",
+        "卒業する takes を too: 大学を卒業しました."
+      ],
+      "common_mistakes": [
+        "Using に with 降りる: 電車に降ります ✗ → 電車を降ります.",
+        "家から出ます is possible, but 家を出ます is the natural everyday phrase."
+      ],
+      "comparisons": [
+        {
+          "id": "n5-wo",
+          "note": "Same particle: パンを食べる marks the object; 公園を歩く marks the path."
+        }
+      ],
+      "related_ids": [
+        "n5-wo",
+        "n5-e-ni-destination"
+      ],
+      "examples": [
+        {
+          "id": "n5-wo-motion-1",
+          "japanese": "毎朝公園を散歩します。",
+          "furigana": "{毎朝|まいあさ}{公園|こうえん}を{散歩|さんぽ}します。",
+          "english": "I take a walk in the park every morning.",
+          "cloze_target": "を",
+          "accepted_answers": [
+            "を"
+          ],
+          "hint": "through / around (a place)"
+        },
+        {
+          "id": "n5-wo-motion-2",
+          "japanese": "この橋を渡ってください。",
+          "furigana": "この{橋|はし}を{渡|わた}ってください。",
+          "english": "Please cross this bridge.",
+          "cloze_target": "を",
+          "accepted_answers": [
+            "を"
+          ],
+          "hint": "across (a place)"
+        },
+        {
+          "id": "n5-wo-motion-3",
+          "japanese": "七時に家を出ます。",
+          "furigana": "{七時|しちじ}に{家|いえ}を{出|で}ます。",
+          "english": "I leave home at seven.",
+          "cloze_target": "を",
+          "accepted_answers": [
+            "を"
+          ],
+          "hint": "out of (a place)"
+        },
+        {
+          "id": "n5-wo-motion-4",
+          "japanese": "次の駅で電車を降ります。",
+          "furigana": "{次|つぎ}の{駅|えき}で{電車|でんしゃ}を{降|お}ります。",
+          "english": "I'll get off the train at the next station.",
+          "cloze_target": "を",
+          "accepted_answers": [
+            "を"
+          ],
+          "hint": "off / out of"
+        },
+        {
+          "id": "n5-wo-motion-5",
+          "japanese": "去年、大学を卒業しました。",
+          "furigana": "{去年|きょねん}、{大学|だいがく}を{卒業|そつぎょう}しました。",
+          "english": "I graduated from university last year.",
+          "cloze_target": "を",
+          "accepted_answers": [
+            "を"
+          ],
+          "hint": "out of (graduating)"
+        }
+      ]
+    },
+    {
       "id": "n5-de-place",
       "level": "N5",
       "title": "で (place of action)",
@@ -2506,6 +2677,90 @@
             "で"
           ],
           "hint": "by (means of transport)"
+        }
+      ]
+    },
+    {
+      "id": "n5-de-total",
+      "level": "N5",
+      "title": "で (total / who together)",
+      "meaning": "for (a quantity), altogether, by oneself / together",
+      "structure": [
+        "Quantity + で + price (三つで五百円)",
+        "全部で (altogether)",
+        "一人で / みんなで / 二人で"
+      ],
+      "formality": "neutral",
+      "explanation": "で after a quantity marks the unit a price or result applies to: りんごは三つで五百円です, \"The apples are 500 yen for three.\" 全部でいくらですか, \"How much is it altogether?\"\n\nWith people, it says who does something — alone or together: 一人で行きました, みんなで写真を撮りましょう.",
+      "nuances": [
+        "一人で means \"by myself\"; 二人で means \"the two of us together\".",
+        "It's the same particle as で for place and means; context sorts it out."
+      ],
+      "common_mistakes": [
+        "Using に: 三つに五百円 ✗ → 三つで五百円.",
+        "Using と for \"altogether\": 全部と ✗ → 全部で."
+      ],
+      "related_ids": [
+        "n5-de-means",
+        "n5-de-place"
+      ],
+      "examples": [
+        {
+          "id": "n5-de-total-1",
+          "japanese": "りんごは三つで五百円です。",
+          "furigana": "りんごは{三|みっ}つで{五百円|ごひゃくえん}です。",
+          "english": "The apples are 500 yen for three.",
+          "cloze_target": "で",
+          "cloze_occurrence": 1,
+          "accepted_answers": [
+            "で"
+          ],
+          "hint": "for (a quantity)"
+        },
+        {
+          "id": "n5-de-total-2",
+          "japanese": "全部でいくらですか。",
+          "furigana": "{全部|ぜんぶ}でいくらですか。",
+          "english": "How much is it altogether?",
+          "cloze_target": "で",
+          "cloze_occurrence": 1,
+          "accepted_answers": [
+            "で"
+          ],
+          "hint": "altogether"
+        },
+        {
+          "id": "n5-de-total-3",
+          "japanese": "週末は一人で映画を見に行きました。",
+          "furigana": "{週末|しゅうまつ}は{一人|ひとり}で{映画|えいが}を{見|み}に{行|い}きました。",
+          "english": "At the weekend I went to see a movie by myself.",
+          "cloze_target": "で",
+          "accepted_answers": [
+            "で"
+          ],
+          "hint": "by (oneself)"
+        },
+        {
+          "id": "n5-de-total-4",
+          "japanese": "みんなで写真を撮りましょう。",
+          "furigana": "みんなで{写真|しゃしん}を{撮|と}りましょう。",
+          "english": "Let's all take a photo together.",
+          "cloze_target": "で",
+          "accepted_answers": [
+            "で"
+          ],
+          "hint": "(all) together"
+        },
+        {
+          "id": "n5-de-total-5",
+          "japanese": "家族四人で旅行しました。",
+          "furigana": "{家族|かぞく}{四人|よにん}で{旅行|りょこう}しました。",
+          "english": "The four of us in my family went on a trip together.",
+          "cloze_target": "で",
+          "accepted_answers": [
+            "で"
+          ],
+          "hint": "(as a group of)"
         }
       ]
     },
@@ -3383,6 +3638,91 @@
             "くらい"
           ],
           "hint": "about (an amount)"
+        }
+      ]
+    },
+    {
+      "id": "n5-chuu",
+      "level": "N5",
+      "title": "〜中 (ちゅう／じゅう)",
+      "meaning": "in the middle of (ちゅう) / all through (じゅう)",
+      "structure": [
+        "Noun + 中 (ちゅう): in progress (仕事中, 会議中)",
+        "Time / place + 中 (じゅう): all through (一日中, 世界中)"
+      ],
+      "formality": "neutral",
+      "explanation": "中 has two readings. As ちゅう, it means something is in progress: 父は今、仕事中です, \"My father's at work right now.\" As じゅう, it means \"all through\" a time or place: 一日中雨でした, \"It rained all day.\" 世界中で人気があります, \"It's popular all over the world.\"",
+      "nuances": [
+        "Signs use the ちゅう reading: 準備中 (getting ready), 営業中 (open).",
+        "今日中に (きょうじゅうに) means \"by the end of today\"."
+      ],
+      "common_mistakes": [
+        "Mixing up the readings: 一日中 is いちにちじゅう, not いちにちちゅう.",
+        "Using 中 for a single moment rather than an ongoing state."
+      ],
+      "related_ids": [
+        "n5-te-imasu"
+      ],
+      "examples": [
+        {
+          "id": "n5-chuu-1",
+          "japanese": "父は今、仕事中です。",
+          "furigana": "{父|ちち}は{今|いま}、{仕事|しごと}{中|ちゅう}です。",
+          "english": "My father's at work right now.",
+          "cloze_target": "中",
+          "accepted_answers": [
+            "中",
+            "ちゅう"
+          ],
+          "hint": "in the middle of (ちゅう)"
+        },
+        {
+          "id": "n5-chuu-2",
+          "japanese": "昨日は一日中雨でした。",
+          "furigana": "{昨日|きのう}は{一日|いちにち}{中|じゅう}{雨|あめ}でした。",
+          "english": "It rained all day yesterday.",
+          "cloze_target": "中",
+          "accepted_answers": [
+            "中",
+            "じゅう"
+          ],
+          "hint": "all through (じゅう)"
+        },
+        {
+          "id": "n5-chuu-3",
+          "japanese": "この歌は世界中で人気があります。",
+          "furigana": "この{歌|うた}は{世界|せかい}{中|じゅう}で{人気|にんき}があります。",
+          "english": "This song is popular all over the world.",
+          "cloze_target": "中",
+          "accepted_answers": [
+            "中",
+            "じゅう"
+          ],
+          "hint": "all through (じゅう)"
+        },
+        {
+          "id": "n5-chuu-4",
+          "japanese": "部長は会議中です。",
+          "furigana": "{部長|ぶちょう}は{会議|かいぎ}{中|ちゅう}です。",
+          "english": "The manager is in a meeting.",
+          "cloze_target": "中",
+          "accepted_answers": [
+            "中",
+            "ちゅう"
+          ],
+          "hint": "in the middle of (ちゅう)"
+        },
+        {
+          "id": "n5-chuu-5",
+          "japanese": "夏休み中に国へ帰ります。",
+          "furigana": "{夏休|なつやす}み{中|ちゅう}に{国|くに}へ{帰|かえ}ります。",
+          "english": "I'll go back to my country during the summer break.",
+          "cloze_target": "中",
+          "accepted_answers": [
+            "中",
+            "ちゅう"
+          ],
+          "hint": "during (ちゅう)"
         }
       ]
     },

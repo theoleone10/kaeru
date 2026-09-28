@@ -9,8 +9,8 @@ describe('bundled content', () => {
 
   it('has the full N5, N4 and N3 sets', () => {
     const count = (level: string) => curriculum.filter((p) => p.level === level).length;
-    expect(count('N5')).toBeGreaterThanOrEqual(80);
-    expect(count('N4')).toBeGreaterThanOrEqual(70);
+    expect(count('N5')).toBeGreaterThanOrEqual(88);
+    expect(count('N4')).toBeGreaterThanOrEqual(80);
     expect(count('N3')).toBeGreaterThanOrEqual(70);
   });
 

@@ -1911,6 +1911,90 @@
       ]
     },
     {
+      "id": "n4-te-yokatta",
+      "level": "N4",
+      "title": "〜てよかった／〜てすみません／〜てありがとう",
+      "meaning": "glad that… / sorry for… / thanks for…",
+      "structure": [
+        "Verb / adjective (て-form) + よかった",
+        "… (て-form) + すみません",
+        "… てくれて + ありがとう"
+      ],
+      "formality": "neutral",
+      "explanation": "The て-form can give the reason for a feeling: 会えてよかったです, \"I'm so glad I got to see you.\" 遅れてすみません, \"Sorry I'm late.\" 手伝ってくれてありがとう, \"Thanks for helping me.\"\n\nWhen thanking someone, use てくれて (or てくださって), since they did something for you.",
+      "nuances": [
+        "Polite thanks: 〜てくださってありがとうございます.",
+        "With a negative: 電話できなくてすみません."
+      ],
+      "common_mistakes": [
+        "Thanking without くれる: 手伝ってありがとう ✗ → 手伝ってくれてありがとう.",
+        "Using the dictionary form: 遅れるすみません ✗ → 遅れてすみません."
+      ],
+      "related_ids": [
+        "n5-te-form",
+        "n4-te-kureru"
+      ],
+      "examples": [
+        {
+          "id": "n4-te-yokatta-1",
+          "japanese": "会えてよかったです。",
+          "furigana": "{会|あ}えてよかったです。",
+          "english": "I'm so glad I got to see you.",
+          "cloze_target": "よかった",
+          "accepted_answers": [
+            "よかった",
+            "良かった"
+          ],
+          "hint": "glad that"
+        },
+        {
+          "id": "n4-te-yokatta-2",
+          "japanese": "遅れてすみません。",
+          "furigana": "{遅|おく}れてすみません。",
+          "english": "Sorry I'm late.",
+          "cloze_target": "すみません",
+          "accepted_answers": [
+            "すみません"
+          ],
+          "hint": "sorry for"
+        },
+        {
+          "id": "n4-te-yokatta-3",
+          "japanese": "手伝ってくれてありがとう。",
+          "furigana": "{手伝|てつだ}ってくれてありがとう。",
+          "english": "Thanks for helping me.",
+          "cloze_target": "くれて",
+          "accepted_answers": [
+            "くれて"
+          ],
+          "hint": "(someone did it for me)"
+        },
+        {
+          "id": "n4-te-yokatta-4",
+          "japanese": "日本に来てよかったです。",
+          "furigana": "{日本|にほん}に{来|き}てよかったです。",
+          "english": "I'm glad I came to Japan.",
+          "cloze_target": "よかった",
+          "accepted_answers": [
+            "よかった",
+            "良かった"
+          ],
+          "hint": "glad that"
+        },
+        {
+          "id": "n4-te-yokatta-5",
+          "japanese": "昨日は電話できなくてすみませんでした。",
+          "furigana": "{昨日|きのう}は{電話|でんわ}できなくてすみませんでした。",
+          "english": "Sorry I couldn't call you yesterday.",
+          "cloze_target": "すみませんでした",
+          "accepted_answers": [
+            "すみませんでした"
+          ],
+          "hint": "sorry for"
+        }
+      ]
+    },
+    {
       "id": "n4-tara",
       "level": "N4",
       "title": "〜たら",
@@ -2329,6 +2413,90 @@
       ]
     },
     {
+      "id": "n4-nai-to-ikenai",
+      "level": "N4",
+      "title": "〜ないといけない／〜なくてはいけない",
+      "meaning": "have to, must — everyday",
+      "structure": [
+        "Verb (ない-form) + といけない",
+        "Verb (ない-form, drop い) + くてはいけない / くてはならない",
+        "Short: 〜ないと"
+      ],
+      "formality": "neutral",
+      "explanation": "ないといけない is the most common everyday way to say \"have to\": もう帰らないといけません, \"I have to go home now.\" なくてはいけない means the same and is a little more formal.\n\nBoth mean the same as なければならない. In casual speech they shrink: 帰らないと, 帰らなくちゃ, 帰らなきゃ.",
+      "nuances": [
+        "ないと on its own is very common: もう行かないと.",
+        "ならない sounds like a general rule; いけない sounds more personal."
+      ],
+      "common_mistakes": [
+        "Using the dictionary form: 帰るといけない means \"it would be bad if I went home\".",
+        "Mixing it up with なくてもいい (don't have to)."
+      ],
+      "related_ids": [
+        "n5-nakereba",
+        "n3-nakucha"
+      ],
+      "examples": [
+        {
+          "id": "n4-nai-to-ikenai-1",
+          "japanese": "もう帰らないといけません。",
+          "furigana": "もう{帰|かえ}らないといけません。",
+          "english": "I have to go home now.",
+          "cloze_target": "ないといけません",
+          "accepted_answers": [
+            "ないといけません"
+          ],
+          "hint": "have to"
+        },
+        {
+          "id": "n4-nai-to-ikenai-2",
+          "japanese": "明日までにレポートを出さないといけない。",
+          "furigana": "{明日|あした}までにレポートを{出|だ}さないといけない。",
+          "english": "I have to hand in the report by tomorrow.",
+          "cloze_target": "ないといけない",
+          "accepted_answers": [
+            "ないといけない"
+          ],
+          "hint": "have to"
+        },
+        {
+          "id": "n4-nai-to-ikenai-3",
+          "japanese": "薬を毎日飲まなくてはいけません。",
+          "furigana": "{薬|くすり}を{毎日|まいにち}{飲|の}まなくてはいけません。",
+          "english": "I have to take the medicine every day.",
+          "cloze_target": "なくてはいけません",
+          "accepted_answers": [
+            "なくてはいけません",
+            "なくてはなりません"
+          ],
+          "hint": "have to"
+        },
+        {
+          "id": "n4-nai-to-ikenai-4",
+          "japanese": "早く寝ないと。",
+          "furigana": "{早|はや}く{寝|ね}ないと。",
+          "english": "I need to get to bed soon.",
+          "cloze_target": "ないと",
+          "accepted_answers": [
+            "ないと"
+          ],
+          "hint": "have to (shortened)"
+        },
+        {
+          "id": "n4-nai-to-ikenai-5",
+          "japanese": "パスポートを取らなくてはなりません。",
+          "furigana": "パスポートを{取|と}らなくてはなりません。",
+          "english": "I have to get a passport.",
+          "cloze_target": "なくてはなりません",
+          "accepted_answers": [
+            "なくてはなりません",
+            "なくてはいけません"
+          ],
+          "hint": "have to"
+        }
+      ]
+    },
+    {
       "id": "n4-temo",
       "level": "N4",
       "title": "〜ても",
@@ -2411,6 +2579,87 @@
             "でも"
           ],
           "hint": "even (Noun + ?)"
+        }
+      ]
+    },
+    {
+      "id": "n4-demo-suggestion",
+      "level": "N4",
+      "title": "〜でも (… or something)",
+      "meaning": "… or something — a soft suggestion",
+      "structure": [
+        "Noun + でも + verb",
+        "Question word + でも (何でも, いつでも, どこでも)"
+      ],
+      "formality": "neutral",
+      "explanation": "でも after a noun softens a suggestion by offering it as just one idea: お茶でも飲みませんか, \"How about some tea or something?\" It makes invitations sound relaxed and unpushy.\n\nWith a question word it means \"any\": 何でもいいですよ, \"Anything is fine.\"",
+      "nuances": [
+        "It replaces が and を.",
+        "いつでも (any time) and どこでも (anywhere) follow the same pattern."
+      ],
+      "common_mistakes": [
+        "Keeping を: お茶をでも ✗ → お茶でも.",
+        "Reading it as \"even\" — here there's no surprise, just softness."
+      ],
+      "related_ids": [
+        "n5-masenka",
+        "n4-temo"
+      ],
+      "examples": [
+        {
+          "id": "n4-demo-suggestion-1",
+          "japanese": "お茶でも飲みませんか。",
+          "furigana": "お{茶|ちゃ}でも{飲|の}みませんか。",
+          "english": "How about some tea or something?",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "… or something"
+        },
+        {
+          "id": "n4-demo-suggestion-2",
+          "japanese": "映画でも見に行きましょうか。",
+          "furigana": "{映画|えいが}でも{見|み}に{行|い}きましょうか。",
+          "english": "Shall we go see a movie or something?",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "… or something"
+        },
+        {
+          "id": "n4-demo-suggestion-3",
+          "japanese": "週末、食事でもどうですか。",
+          "furigana": "{週末|しゅうまつ}、{食事|しょくじ}でもどうですか。",
+          "english": "How about dinner or something this weekend?",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "… or something"
+        },
+        {
+          "id": "n4-demo-suggestion-4",
+          "japanese": "暇なら、本でも読んだら？",
+          "furigana": "{暇|ひま}なら、{本|ほん}でも{読|よ}んだら？",
+          "english": "If you're bored, why not read a book or something?",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "… or something"
+        },
+        {
+          "id": "n4-demo-suggestion-5",
+          "japanese": "何でもいいですよ。",
+          "furigana": "{何|なん}でもいいですよ。",
+          "english": "Anything is fine.",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "any (question word + でも)"
         }
       ]
     },
@@ -2932,6 +3181,92 @@
       ]
     },
     {
+      "id": "n4-no-ni-purpose",
+      "level": "N4",
+      "title": "〜のに (for doing)",
+      "meaning": "for (doing), to — with use, cost and time",
+      "structure": [
+        "Verb (dictionary form) + のに + 使う / 必要だ / 便利だ / かかる"
+      ],
+      "formality": "neutral",
+      "explanation": "Dictionary form + のに means \"for doing\", with words about usefulness, cost or time: このナイフはパンを切るのに使います, \"This knife is for cutting bread.\" 駅まで行くのに十分かかります, \"It takes ten minutes to get to the station.\"\n\nIt's a different のに from \"even though\".",
+      "nuances": [
+        "Nouns take に directly: 料理に使う.",
+        "ために is for general deliberate purposes; のに pairs with 使う, 必要, かかる, 便利 and similar words."
+      ],
+      "common_mistakes": [
+        "Confusing it with のに (even though) — words like 使う, かかる or 必要 after it signal purpose.",
+        "Using it for a general purpose: 日本に行くのに勉強する sounds odd → 行くために."
+      ],
+      "comparisons": [
+        {
+          "id": "n4-noni",
+          "note": "のに + 使う／かかる／必要: for doing. のに + unexpected result: even though."
+        }
+      ],
+      "related_ids": [
+        "n4-tame-ni",
+        "n4-noni"
+      ],
+      "examples": [
+        {
+          "id": "n4-no-ni-purpose-1",
+          "japanese": "このナイフはパンを切るのに使います。",
+          "furigana": "このナイフはパンを{切|き}るのに{使|つか}います。",
+          "english": "This knife is for cutting bread.",
+          "cloze_target": "のに",
+          "accepted_answers": [
+            "のに"
+          ],
+          "hint": "for (doing)"
+        },
+        {
+          "id": "n4-no-ni-purpose-2",
+          "japanese": "駅まで行くのに十分かかります。",
+          "furigana": "{駅|えき}まで{行|い}くのに{十分|じゅっぷん}かかります。",
+          "english": "It takes ten minutes to get to the station.",
+          "cloze_target": "のに",
+          "accepted_answers": [
+            "のに"
+          ],
+          "hint": "to (time taken)"
+        },
+        {
+          "id": "n4-no-ni-purpose-3",
+          "japanese": "家を買うのにお金がたくさん必要です。",
+          "furigana": "{家|いえ}を{買|か}うのにお{金|かね}がたくさん{必要|ひつよう}です。",
+          "english": "Buying a house takes a lot of money.",
+          "cloze_target": "のに",
+          "accepted_answers": [
+            "のに"
+          ],
+          "hint": "for (doing)"
+        },
+        {
+          "id": "n4-no-ni-purpose-4",
+          "japanese": "この辞書は漢字を調べるのに便利です。",
+          "furigana": "この{辞書|じしょ}は{漢字|かんじ}を{調|しら}べるのに{便利|べんり}です。",
+          "english": "This dictionary is handy for looking up kanji.",
+          "cloze_target": "のに",
+          "accepted_answers": [
+            "のに"
+          ],
+          "hint": "for (doing)"
+        },
+        {
+          "id": "n4-no-ni-purpose-5",
+          "japanese": "会社に通うのに一時間かかります。",
+          "furigana": "{会社|かいしゃ}に{通|かよ}うのに{一時間|いちじかん}かかります。",
+          "english": "My commute to work takes an hour.",
+          "cloze_target": "のに",
+          "accepted_answers": [
+            "のに"
+          ],
+          "hint": "to (time taken)"
+        }
+      ]
+    },
+    {
       "id": "n4-you-ni-naru",
       "level": "N4",
       "title": "〜ようになる",
@@ -3260,6 +3595,183 @@
             "ことになりました"
           ],
           "hint": "it's been decided"
+        }
+      ]
+    },
+    {
+      "id": "n4-yotei",
+      "level": "N4",
+      "title": "〜予定だ",
+      "meaning": "be scheduled to, plan to",
+      "structure": [
+        "Verb (dictionary form) + 予定だ",
+        "Noun + の + 予定だ"
+      ],
+      "formality": "neutral",
+      "explanation": "予定だ states a fixed plan or schedule: 来月、京都へ行く予定です, \"I'm scheduled to go to Kyoto next month.\" It sounds more settled and objective than つもり, which is about your intention.",
+      "nuances": [
+        "It's used for timetables and events: 会議は三時に始まる予定です.",
+        "予定でしたが… means the plan changed."
+      ],
+      "common_mistakes": [
+        "Using the ます form: 行きます予定 ✗ → 行く予定.",
+        "Dropping の after a noun: 出張予定 works as a compound, but 出張の予定 is the standard pattern."
+      ],
+      "comparisons": [
+        {
+          "id": "n5-tsumori",
+          "note": "つもり is your intention; 予定 is a fixed plan or schedule."
+        }
+      ],
+      "related_ids": [
+        "n5-tsumori"
+      ],
+      "examples": [
+        {
+          "id": "n4-yotei-1",
+          "japanese": "来月、京都へ行く予定です。",
+          "furigana": "{来月|らいげつ}、{京都|きょうと}へ{行|い}く{予定|よてい}です。",
+          "english": "I'm scheduled to go to Kyoto next month.",
+          "cloze_target": "予定",
+          "accepted_answers": [
+            "予定",
+            "よてい"
+          ],
+          "hint": "scheduled to"
+        },
+        {
+          "id": "n4-yotei-2",
+          "japanese": "会議は三時に始まる予定です。",
+          "furigana": "{会議|かいぎ}は{三時|さんじ}に{始|はじ}まる{予定|よてい}です。",
+          "english": "The meeting is scheduled to start at three.",
+          "cloze_target": "予定",
+          "accepted_answers": [
+            "予定",
+            "よてい"
+          ],
+          "hint": "scheduled to"
+        },
+        {
+          "id": "n4-yotei-3",
+          "japanese": "週末は何か予定がありますか。",
+          "furigana": "{週末|しゅうまつ}は{何|なに}か{予定|よてい}がありますか。",
+          "english": "Do you have any plans this weekend?",
+          "cloze_target": "予定",
+          "accepted_answers": [
+            "予定",
+            "よてい"
+          ],
+          "hint": "plans"
+        },
+        {
+          "id": "n4-yotei-4",
+          "japanese": "来週は出張の予定です。",
+          "furigana": "{来週|らいしゅう}は{出張|しゅっちょう}の{予定|よてい}です。",
+          "english": "I'm due to go on a business trip next week.",
+          "cloze_target": "予定",
+          "accepted_answers": [
+            "予定",
+            "よてい"
+          ],
+          "hint": "scheduled (Noun + の)"
+        },
+        {
+          "id": "n4-yotei-5",
+          "japanese": "明日帰る予定でしたが、一日延ばしました。",
+          "furigana": "{明日|あした}{帰|かえ}る{予定|よてい}でしたが、{一日|いちにち}{延|の}ばしました。",
+          "english": "I was supposed to go back tomorrow, but I've stayed an extra day.",
+          "cloze_target": "予定",
+          "accepted_answers": [
+            "予定",
+            "よてい"
+          ],
+          "hint": "was scheduled to"
+        }
+      ]
+    },
+    {
+      "id": "n4-koto-ga-aru",
+      "level": "N4",
+      "title": "〜ことがある (sometimes)",
+      "meaning": "sometimes, there are times when",
+      "structure": [
+        "Verb (dictionary / ない-form) + ことがある",
+        "〜こともある (also sometimes)"
+      ],
+      "formality": "neutral",
+      "explanation": "Dictionary form + ことがある means something happens occasionally: 忙しいときは、朝ご飯を食べないことがあります, \"When I'm busy, I sometimes skip breakfast.\" 時々 or たまに often come with it.\n\nDon't confuse it with た-form + ことがある (N5), which means you've done something before.",
+      "nuances": [
+        "ことはない means \"it never happens\" or \"there's no need\".",
+        "こともある adds \"also, at times\"."
+      ],
+      "common_mistakes": [
+        "Using the た-form: 遅れたことがある means \"I've been late before\", not \"I'm sometimes late\".",
+        "Using it for regular habits — it's for occasional things."
+      ],
+      "comparisons": [
+        {
+          "id": "n5-ta-koto-ga-aru",
+          "note": "Dictionary form + ことがある: sometimes. た-form + ことがある: have done before."
+        }
+      ],
+      "related_ids": [
+        "n5-ta-koto-ga-aru"
+      ],
+      "examples": [
+        {
+          "id": "n4-koto-ga-aru-1",
+          "japanese": "忙しいときは、朝ご飯を食べないことがあります。",
+          "furigana": "{忙|いそが}しいときは、{朝|あさ}ご{飯|はん}を{食|た}べないことがあります。",
+          "english": "When I'm busy, I sometimes skip breakfast.",
+          "cloze_target": "ことがあります",
+          "accepted_answers": [
+            "ことがあります"
+          ],
+          "hint": "sometimes"
+        },
+        {
+          "id": "n4-koto-ga-aru-2",
+          "japanese": "時々、電車が遅れることがあります。",
+          "furigana": "{時々|ときどき}、{電車|でんしゃ}が{遅|おく}れることがあります。",
+          "english": "The trains are sometimes late.",
+          "cloze_target": "ことがあります",
+          "accepted_answers": [
+            "ことがあります"
+          ],
+          "hint": "sometimes"
+        },
+        {
+          "id": "n4-koto-ga-aru-3",
+          "japanese": "日曜日でも会社に行くことがあります。",
+          "furigana": "{日曜日|にちようび}でも{会社|かいしゃ}に{行|い}くことがあります。",
+          "english": "I sometimes go to the office even on Sundays.",
+          "cloze_target": "ことがあります",
+          "accepted_answers": [
+            "ことがあります"
+          ],
+          "hint": "sometimes"
+        },
+        {
+          "id": "n4-koto-ga-aru-4",
+          "japanese": "母とけんかすることもあります。",
+          "furigana": "{母|はは}とけんかすることもあります。",
+          "english": "Sometimes I argue with my mother, too.",
+          "cloze_target": "こともあります",
+          "accepted_answers": [
+            "こともあります"
+          ],
+          "hint": "(also) sometimes"
+        },
+        {
+          "id": "n4-koto-ga-aru-5",
+          "japanese": "たまに自分で料理をすることがあります。",
+          "furigana": "たまに{自分|じぶん}で{料理|りょうり}をすることがあります。",
+          "english": "Once in a while I cook for myself.",
+          "cloze_target": "ことがあります",
+          "accepted_answers": [
+            "ことがあります"
+          ],
+          "hint": "sometimes"
         }
       ]
     },
@@ -3687,6 +4199,85 @@
             "ほど"
           ],
           "hint": "not that (much)"
+        }
+      ]
+    },
+    {
+      "id": "n4-zutsu",
+      "level": "N4",
+      "title": "〜ずつ",
+      "meaning": "each, at a time",
+      "structure": [
+        "Quantity + ずつ"
+      ],
+      "formality": "neutral",
+      "explanation": "ずつ after a number or amount means the same amount for each person or each time: 一人二つずつ取ってください, \"Please take two each.\" 少しずつ上手になっています, \"I'm getting better little by little.\"",
+      "nuances": [
+        "少しずつ (little by little) and 一つずつ (one at a time) are very common.",
+        "It follows quantities, not plain nouns."
+      ],
+      "common_mistakes": [
+        "Using it after a noun with no number: りんごずつ ✗.",
+        "Spelling it づつ — the standard spelling is ずつ."
+      ],
+      "related_ids": [
+        "n5-dake"
+      ],
+      "examples": [
+        {
+          "id": "n4-zutsu-1",
+          "japanese": "一人二つずつ取ってください。",
+          "furigana": "{一人|ひとり}{二|ふた}つずつ{取|と}ってください。",
+          "english": "Please take two each.",
+          "cloze_target": "ずつ",
+          "accepted_answers": [
+            "ずつ"
+          ],
+          "hint": "each"
+        },
+        {
+          "id": "n4-zutsu-2",
+          "japanese": "少しずつ日本語が上手になっています。",
+          "furigana": "{少|すこ}しずつ{日本語|にほんご}が{上手|じょうず}になっています。",
+          "english": "My Japanese is getting better little by little.",
+          "cloze_target": "ずつ",
+          "accepted_answers": [
+            "ずつ"
+          ],
+          "hint": "little by little"
+        },
+        {
+          "id": "n4-zutsu-3",
+          "japanese": "毎日漢字を五つずつ覚えます。",
+          "furigana": "{毎日|まいにち}{漢字|かんじ}を{五|いつ}つずつ{覚|おぼ}えます。",
+          "english": "I learn five kanji a day.",
+          "cloze_target": "ずつ",
+          "accepted_answers": [
+            "ずつ"
+          ],
+          "hint": "each (time)"
+        },
+        {
+          "id": "n4-zutsu-4",
+          "japanese": "一つずつ説明します。",
+          "furigana": "{一|ひと}つずつ{説明|せつめい}します。",
+          "english": "I'll explain them one at a time.",
+          "cloze_target": "ずつ",
+          "accepted_answers": [
+            "ずつ"
+          ],
+          "hint": "at a time"
+        },
+        {
+          "id": "n4-zutsu-5",
+          "japanese": "薬は一回に二錠ずつ飲んでください。",
+          "furigana": "{薬|くすり}は{一回|いっかい}に{二錠|にじょう}ずつ{飲|の}んでください。",
+          "english": "Take two tablets each time.",
+          "cloze_target": "ずつ",
+          "accepted_answers": [
+            "ずつ"
+          ],
+          "hint": "each (time)"
         }
       ]
     },
@@ -4522,6 +5113,87 @@
             "か"
           ],
           "hint": "embeds the question"
+        }
+      ]
+    },
+    {
+      "id": "n4-no-wa-cleft",
+      "level": "N4",
+      "title": "〜のは〜だ",
+      "meaning": "what … is / it's … that — highlighting one part",
+      "structure": [
+        "Plain form + のは + focus + だ",
+        "な-adjective + な + のは"
+      ],
+      "formality": "neutral",
+      "explanation": "のは〜だ moves the key information to the end, like English \"What I like is…\" or \"It was … who…\": 私が一番好きなのは寿司です, \"What I like most is sushi.\" 昨日来たのは田中さんです, \"It was Tanaka-san who came yesterday.\"\n\nIt's a natural way to emphasise or correct one detail.",
+      "nuances": [
+        "It's often used to give reasons: 遅れたのは電車が止まったからです.",
+        "Casual: 好きなのは寿司だ."
+      ],
+      "common_mistakes": [
+        "Using が: 好きなのが寿司です sounds odd here → 好きなのは.",
+        "Dropping な after a な-adjective: 好きのは ✗ → 好きなのは."
+      ],
+      "related_ids": [
+        "n5-no-nominalizer",
+        "n3-to-iu-no-wa"
+      ],
+      "examples": [
+        {
+          "id": "n4-no-wa-cleft-1",
+          "japanese": "私が一番好きなのは寿司です。",
+          "furigana": "{私|わたし}が{一番|いちばん}{好|す}きなのは{寿司|すし}です。",
+          "english": "What I like most is sushi.",
+          "cloze_target": "のは",
+          "accepted_answers": [
+            "のは"
+          ],
+          "hint": "what … is (highlight)"
+        },
+        {
+          "id": "n4-no-wa-cleft-2",
+          "japanese": "昨日来たのは田中さんです。",
+          "furigana": "{昨日|きのう}{来|き}たのは{田中|たなか}さんです。",
+          "english": "It was Tanaka-san who came yesterday.",
+          "cloze_target": "のは",
+          "accepted_answers": [
+            "のは"
+          ],
+          "hint": "it was … who"
+        },
+        {
+          "id": "n4-no-wa-cleft-3",
+          "japanese": "大切なのは毎日続けることです。",
+          "furigana": "{大切|たいせつ}なのは{毎日|まいにち}{続|つづ}けることです。",
+          "english": "What matters is keeping at it every day.",
+          "cloze_target": "のは",
+          "accepted_answers": [
+            "のは"
+          ],
+          "hint": "what … is (highlight)"
+        },
+        {
+          "id": "n4-no-wa-cleft-4",
+          "japanese": "私が生まれたのは大阪です。",
+          "furigana": "{私|わたし}が{生|う}まれたのは{大阪|おおさか}です。",
+          "english": "Osaka is where I was born.",
+          "cloze_target": "のは",
+          "accepted_answers": [
+            "のは"
+          ],
+          "hint": "where … is (highlight)"
+        },
+        {
+          "id": "n4-no-wa-cleft-5",
+          "japanese": "遅れたのは電車が止まったからです。",
+          "furigana": "{遅|おく}れたのは{電車|でんしゃ}が{止|と}まったからです。",
+          "english": "The reason I was late is that the train stopped.",
+          "cloze_target": "のは",
+          "accepted_answers": [
+            "のは"
+          ],
+          "hint": "the reason … is"
         }
       ]
     },
