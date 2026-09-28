@@ -7,8 +7,16 @@ describe('bundled content', () => {
     expect(validateContent(allLevelFiles)).toEqual([]);
   });
 
-  it('has the Phase 1 N5 seed', () => {
-    expect(curriculum.filter((p) => p.level === 'N5').length).toBeGreaterThanOrEqual(15);
+  it('has the full N5 set', () => {
+    expect(curriculum.filter((p) => p.level === 'N5').length).toBeGreaterThanOrEqual(80);
+  });
+
+  it('keeps the Phase 1 points so existing progress still matches', () => {
+    const ids = new Set(curriculum.map((p) => p.id));
+    for (const id of ['n5-desu', 'n5-wa-topic', 'n5-ka-question', 'n5-no-possessive', 'n5-mo', 'n5-ja-arimasen', 'n5-masu', 'n5-masen',
+      'n5-wo', 'n5-ni-time', 'n5-e-ni-destination', 'n5-de-place', 'n5-mashita', 'n5-ga-arimasu-imasu', 'n5-tai']) {
+      expect(ids.has(id)).toBe(true);
+    }
   });
 });
 
