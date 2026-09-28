@@ -1,0 +1,1079 @@
+{
+  "$schema": "./grammar.schema.json",
+  "level": "N5",
+  "points": [
+    {
+      "id": "n5-desu",
+      "level": "N5",
+      "title": "です",
+      "meaning": "to be (is / am / are), polite",
+      "structure": ["Noun + です", "な-adjective + です", "い-adjective + です"],
+      "formality": "polite",
+      "explanation": "です goes at the end of a sentence and turns it into a polite statement that something *is* something. It is the backbone of basic Japanese: 学生です means \"(I) am a student.\"\n\nです never changes for person or number: the same word covers I, you, she and they. After nouns and な-adjectives it does the work of English \"to be\". After an い-adjective (おいしいです) it only adds politeness, because the adjective already contains the meaning \"is\".",
+      "nuances": [
+        "です is the polite counterpart of だ. With strangers, teachers, coworkers and shop staff, です is the safe default.",
+        "The subject is usually dropped when it's obvious: 学生です alone can mean \"I'm a student.\"",
+        "です has no meaning of existence (\"there is\") — that job belongs to あります / います."
+      ],
+      "common_mistakes": [
+        "Adding です after a ます verb: 行きますです ✗. ます is already polite.",
+        "Using だ after an い-adjective: おいしいだ ✗. Say おいしい (casual) or おいしいです (polite).",
+        "Using です to say where something is located in the sense of \"exists\" (机の上に本です ✗ → 本があります)."
+      ],
+      "related_ids": ["n5-wa-topic", "n5-ja-arimasen", "n5-ga-arimasu-imasu"],
+      "examples": [
+        {
+          "id": "n5-desu-1",
+          "japanese": "学生です。",
+          "furigana": "{学生|がくせい}です。",
+          "english": "I'm a student.",
+          "cloze_target": "です",
+          "accepted_answers": ["です"],
+          "valid_alternatives": [{ "answer": "だ", "note": "だ is the casual form of です — grammatical, but this review wants the polite form." }]
+        },
+        {
+          "id": "n5-desu-2",
+          "japanese": "田中です。",
+          "furigana": "{田中|たなか}です。",
+          "english": "I'm Tanaka.",
+          "cloze_target": "です",
+          "accepted_answers": ["です"],
+          "valid_alternatives": [{ "answer": "だ", "note": "だ is the casual form of です — grammatical, but this review wants the polite form." }]
+        },
+        {
+          "id": "n5-desu-3",
+          "japanese": "いい天気です。",
+          "furigana": "いい{天気|てんき}です。",
+          "english": "It's a nice day.",
+          "cloze_target": "です",
+          "accepted_answers": ["です"],
+          "valid_alternatives": [{ "answer": "だ", "note": "だ is the casual form of です — grammatical, but this review wants the polite form." }]
+        },
+        {
+          "id": "n5-desu-4",
+          "japanese": "静かです。",
+          "furigana": "{静|しず}かです。",
+          "english": "It's quiet.",
+          "cloze_target": "です",
+          "accepted_answers": ["です"],
+          "valid_alternatives": [{ "answer": "だ", "note": "だ is the casual form of です — grammatical, but this review wants the polite form." }]
+        },
+        {
+          "id": "n5-desu-5",
+          "japanese": "おいしいです。",
+          "furigana": "おいしいです。",
+          "english": "It's delicious.",
+          "cloze_target": "です",
+          "accepted_answers": ["です"],
+          "hint": "polite ending after an い-adjective"
+        }
+      ]
+    },
+    {
+      "id": "n5-wa-topic",
+      "level": "N5",
+      "title": "は (topic)",
+      "meaning": "topic marker: \"as for X…\"",
+      "structure": ["Topic + は + comment"],
+      "formality": "neutral",
+      "explanation": "は marks the topic — what the sentence is about. Everything after は is a comment on that topic. In X は Y です, X is the topic and Y is what you're saying about it.\n\nOften the topic is also the subject, but not always: は simply sets the frame, a bit like \"Speaking of X…\". As a particle it is written with the kana は but pronounced \"wa\".",
+      "nuances": [
+        "Once a topic is established, speakers usually stop repeating it in following sentences.",
+        "は can carry a contrastive feel — \"X, at least\" or \"X, as opposed to others\" — which becomes very noticeable in negative sentences.",
+        "The \"wa\" pronunciation is a historical spelling that survives only in this particle (and in greetings like こんにちは)."
+      ],
+      "common_mistakes": [
+        "Writing わ for the particle: 私わ ✗ → 私は.",
+        "Treating は and が as interchangeable. は presents something as the topic; が points out or identifies it, often as new information."
+      ],
+      "comparisons": [
+        { "id": "n5-ga-arimasu-imasu", "note": "が marks the subject that exists or is being identified; は marks what the sentence is about." }
+      ],
+      "related_ids": ["n5-desu", "n5-mo", "n5-ga-arimasu-imasu"],
+      "examples": [
+        {
+          "id": "n5-wa-topic-1",
+          "japanese": "私は学生です。",
+          "furigana": "{私|わたし}は{学生|がくせい}です。",
+          "english": "I'm a student.",
+          "cloze_target": "は",
+          "accepted_answers": ["は"],
+          "valid_alternatives": [{ "answer": "が", "note": "私が学生です is grammatical but means \"I'm the one who is the student\" — it singles you out instead of introducing a topic." }]
+        },
+        {
+          "id": "n5-wa-topic-2",
+          "japanese": "田中さんは先生です。",
+          "furigana": "{田中|たなか}さんは{先生|せんせい}です。",
+          "english": "Tanaka-san is a teacher.",
+          "cloze_target": "は",
+          "accepted_answers": ["は"],
+          "valid_alternatives": [{ "answer": "が", "note": "が is grammatical but answers \"Who is the teacher?\" — it identifies Tanaka-san rather than talking about them." }]
+        },
+        {
+          "id": "n5-wa-topic-3",
+          "japanese": "今日はいい天気です。",
+          "furigana": "{今日|きょう}はいい{天気|てんき}です。",
+          "english": "The weather is nice today.",
+          "cloze_target": "は",
+          "accepted_answers": ["は"]
+        },
+        {
+          "id": "n5-wa-topic-4",
+          "japanese": "ここは駅です。",
+          "furigana": "ここは{駅|えき}です。",
+          "english": "This is the station.",
+          "cloze_target": "は",
+          "accepted_answers": ["は"]
+        },
+        {
+          "id": "n5-wa-topic-5",
+          "japanese": "東京は大きいです。",
+          "furigana": "{東京|とうきょう}は{大|おお}きいです。",
+          "english": "Tokyo is big.",
+          "cloze_target": "は",
+          "accepted_answers": ["は"]
+        }
+      ]
+    },
+    {
+      "id": "n5-ka-question",
+      "level": "N5",
+      "title": "か (question)",
+      "meaning": "question marker",
+      "structure": ["Polite sentence + か", "Question word … + か"],
+      "formality": "neutral",
+      "explanation": "Add か to the end of a sentence and it becomes a question — the word order stays exactly the same. 学生です (\"I'm a student\") becomes 学生ですか (\"Are you a student?\").\n\nQuestion words such as 何 (what), どこ (where) and いくら (how much) sit where the answer would go, and か still closes the sentence. In standard writing a か-question ends with 。 rather than ?.",
+      "nuances": [
+        "Your intonation usually rises on か, just like an English yes/no question.",
+        "In casual speech people often drop か and just raise their voice. Plain だ + か can sound blunt or rough.",
+        "そうですか said with falling intonation isn't really a question — it means \"I see.\""
+      ],
+      "common_mistakes": [
+        "Rearranging the sentence like English. Japanese keeps the statement's order and adds か.",
+        "Adding ? after か isn't wrong in casual text, but 。 is standard in formal writing."
+      ],
+      "related_ids": ["n5-desu", "n5-wa-topic"],
+      "examples": [
+        {
+          "id": "n5-ka-question-1",
+          "japanese": "学生ですか。",
+          "furigana": "{学生|がくせい}ですか。",
+          "english": "Are you a student?",
+          "cloze_target": "か",
+          "accepted_answers": ["か"]
+        },
+        {
+          "id": "n5-ka-question-2",
+          "japanese": "田中さんは先生ですか。",
+          "furigana": "{田中|たなか}さんは{先生|せんせい}ですか。",
+          "english": "Is Tanaka-san a teacher?",
+          "cloze_target": "か",
+          "accepted_answers": ["か"]
+        },
+        {
+          "id": "n5-ka-question-3",
+          "japanese": "あれは何ですか。",
+          "furigana": "あれは{何|なん}ですか。",
+          "english": "What is that (over there)?",
+          "cloze_target": "か",
+          "accepted_answers": ["か"]
+        },
+        {
+          "id": "n5-ka-question-4",
+          "japanese": "トイレはどこですか。",
+          "furigana": "トイレはどこですか。",
+          "english": "Where's the restroom?",
+          "cloze_target": "か",
+          "accepted_answers": ["か"]
+        },
+        {
+          "id": "n5-ka-question-5",
+          "japanese": "これはいくらですか。",
+          "furigana": "これはいくらですか。",
+          "english": "How much is this?",
+          "cloze_target": "か",
+          "accepted_answers": ["か"]
+        }
+      ]
+    },
+    {
+      "id": "n5-no-possessive",
+      "level": "N5",
+      "title": "の (linking nouns)",
+      "meaning": "'s / of — the first noun describes the second",
+      "structure": ["Noun₁ + の + Noun₂"],
+      "formality": "neutral",
+      "explanation": "の joins two nouns so that the first describes the second. The most common case is possession — 私の本 \"my book\" — but it covers many relationships: origin (日本の車, \"a Japanese car\"), subject area (日本語の先生, \"a Japanese teacher\"), location (東京の大学, \"a university in Tokyo\").\n\nThe core idea: Noun₁ の Noun₂ is \"the Noun₂ connected with Noun₁\". The main noun always comes last.",
+      "nuances": [
+        "You can chain の: 私の友だちの車 \"my friend's car\".",
+        "When the second noun is obvious, it can be dropped: これは私のです \"This is mine.\"",
+        "の works the same at every politeness level."
+      ],
+      "common_mistakes": [
+        "Reversing the order: 本の私 ✗. The owner or describer comes first: 私の本.",
+        "Putting の between an い-adjective and a noun: 大きいの車 ✗ → 大きい車."
+      ],
+      "related_ids": ["n5-wa-topic", "n5-desu"],
+      "examples": [
+        {
+          "id": "n5-no-possessive-1",
+          "japanese": "これは私の本です。",
+          "furigana": "これは{私|わたし}の{本|ほん}です。",
+          "english": "This is my book.",
+          "cloze_target": "の",
+          "accepted_answers": ["の"]
+        },
+        {
+          "id": "n5-no-possessive-2",
+          "japanese": "田中さんは日本語の先生です。",
+          "furigana": "{田中|たなか}さんは{日本語|にほんご}の{先生|せんせい}です。",
+          "english": "Tanaka-san is a Japanese-language teacher.",
+          "cloze_target": "の",
+          "accepted_answers": ["の"]
+        },
+        {
+          "id": "n5-no-possessive-3",
+          "japanese": "あれは山田さんの車ですか。",
+          "furigana": "あれは{山田|やまだ}さんの{車|くるま}ですか。",
+          "english": "Is that Yamada-san's car?",
+          "cloze_target": "の",
+          "accepted_answers": ["の"]
+        },
+        {
+          "id": "n5-no-possessive-4",
+          "japanese": "姉は東京の大学生です。",
+          "furigana": "{姉|あね}は{東京|とうきょう}の{大学生|だいがくせい}です。",
+          "english": "My older sister is a university student in Tokyo.",
+          "cloze_target": "の",
+          "accepted_answers": ["の"]
+        },
+        {
+          "id": "n5-no-possessive-5",
+          "japanese": "それはだれのかさですか。",
+          "furigana": "それはだれのかさですか。",
+          "english": "Whose umbrella is that?",
+          "cloze_target": "の",
+          "accepted_answers": ["の"]
+        }
+      ]
+    },
+    {
+      "id": "n5-mo",
+      "level": "N5",
+      "title": "も",
+      "meaning": "also, too; (with a negative) not … either",
+      "structure": ["Noun + も (replaces は, が or を)", "Noun + other particle + も (にも, でも …)"],
+      "formality": "neutral",
+      "explanation": "も means \"also\" or \"too\". It takes the place of は, が or を: instead of 私は学生です, say 私も学生です — \"I'm a student too.\"\n\nも attaches right after the word that is \"also\" true. In a negative sentence it means \"not … either\". Other particles such as に and で stay put and も is added after them (ここにも, そこでも).",
+      "nuances": [
+        "X も Y も means \"both X and Y\", or \"neither X nor Y\" with a negative verb.",
+        "Question word + も + negative gives total negation — 何もありません \"there's nothing at all\" — a pattern you'll meet later."
+      ],
+      "common_mistakes": [
+        "Stacking は and も: 私はも ✗. も replaces は.",
+        "Putting も at the end like English \"too\": 学生ですも ✗. It goes right after the word it adds to."
+      ],
+      "comparisons": [
+        { "id": "n5-wa-topic", "note": "は sets up a topic; も says the same comment applies to this topic too." }
+      ],
+      "related_ids": ["n5-wa-topic"],
+      "examples": [
+        {
+          "id": "n5-mo-1",
+          "japanese": "私も学生です。",
+          "furigana": "{私|わたし}も{学生|がくせい}です。",
+          "english": "I'm a student too.",
+          "cloze_target": "も",
+          "accepted_answers": ["も"]
+        },
+        {
+          "id": "n5-mo-2",
+          "japanese": "これも山田さんの本ですか。",
+          "furigana": "これも{山田|やまだ}さんの{本|ほん}ですか。",
+          "english": "Is this Yamada-san's book too?",
+          "cloze_target": "も",
+          "accepted_answers": ["も"]
+        },
+        {
+          "id": "n5-mo-3",
+          "japanese": "明日も休みです。",
+          "furigana": "{明日|あした}も{休|やす}みです。",
+          "english": "Tomorrow is a day off too.",
+          "cloze_target": "も",
+          "accepted_answers": ["も"]
+        },
+        {
+          "id": "n5-mo-4",
+          "japanese": "この車も高いです。",
+          "furigana": "この{車|くるま}も{高|たか}いです。",
+          "english": "This car is expensive too.",
+          "cloze_target": "も",
+          "accepted_answers": ["も"]
+        },
+        {
+          "id": "n5-mo-5",
+          "japanese": "猫も好きです。",
+          "furigana": "{猫|ねこ}も{好|す}きです。",
+          "english": "I like cats too.",
+          "cloze_target": "も",
+          "accepted_answers": ["も"]
+        }
+      ]
+    },
+    {
+      "id": "n5-ja-arimasen",
+      "level": "N5",
+      "title": "じゃありません / ではありません",
+      "meaning": "is not (polite negative of です)",
+      "structure": [
+        "Noun + じゃありません",
+        "な-adjective + じゃありません",
+        "More formal: … ではありません",
+        "Conversational: … じゃないです"
+      ],
+      "formality": "polite",
+      "explanation": "To say politely that something is not X, replace です with じゃありません. じゃ is the spoken contraction of では, so ではありません is slightly more formal and common in writing, while じゃありません is typical in conversation. じゃないです is another polite option you'll hear constantly in everyday speech.\n\nAll of these work with nouns and な-adjectives.",
+      "nuances": [
+        "い-adjectives do not use this pattern: 高いじゃありません ✗. They conjugate on their own (高くないです) — covered later.",
+        "The は in では is the topic particle, pronounced \"wa\"."
+      ],
+      "common_mistakes": [
+        "Using じゃありません after an い-adjective (おいしいじゃありません ✗).",
+        "Writing でわ instead of では."
+      ],
+      "comparisons": [{ "id": "n5-desu", "note": "です is the affirmative; じゃありません is its negative." }],
+      "related_ids": ["n5-desu"],
+      "examples": [
+        {
+          "id": "n5-ja-arimasen-1",
+          "japanese": "私は先生じゃありません。",
+          "furigana": "{私|わたし}は{先生|せんせい}じゃありません。",
+          "english": "I'm not a teacher.",
+          "cloze_target": "じゃありません",
+          "accepted_answers": ["じゃありません", "ではありません", "じゃないです", "ではないです"],
+          "hint": "polite \"is not\""
+        },
+        {
+          "id": "n5-ja-arimasen-2",
+          "japanese": "これは私のかさじゃありません。",
+          "furigana": "これは{私|わたし}のかさじゃありません。",
+          "english": "This isn't my umbrella.",
+          "cloze_target": "じゃありません",
+          "accepted_answers": ["じゃありません", "ではありません", "じゃないです", "ではないです"],
+          "hint": "polite \"is not\""
+        },
+        {
+          "id": "n5-ja-arimasen-3",
+          "japanese": "マリアさんは日本人じゃありません。",
+          "furigana": "マリアさんは{日本人|にほんじん}じゃありません。",
+          "english": "Maria isn't Japanese.",
+          "cloze_target": "じゃありません",
+          "accepted_answers": ["じゃありません", "ではありません", "じゃないです", "ではないです"],
+          "hint": "polite \"is not\""
+        },
+        {
+          "id": "n5-ja-arimasen-4",
+          "japanese": "今日は休みではありません。",
+          "furigana": "{今日|きょう}は{休|やす}みではありません。",
+          "english": "Today isn't a day off.",
+          "cloze_target": "ではありません",
+          "accepted_answers": ["ではありません", "じゃありません", "じゃないです", "ではないです"],
+          "hint": "polite \"is not\" (formal)"
+        },
+        {
+          "id": "n5-ja-arimasen-5",
+          "japanese": "この部屋は静かじゃありません。",
+          "furigana": "この{部屋|へや}は{静|しず}かじゃありません。",
+          "english": "This room isn't quiet.",
+          "cloze_target": "じゃありません",
+          "accepted_answers": ["じゃありません", "ではありません", "じゃないです", "ではないです"],
+          "hint": "polite \"is not\""
+        }
+      ]
+    },
+    {
+      "id": "n5-masu",
+      "level": "N5",
+      "title": "Verb-ます",
+      "meaning": "polite non-past verb: do / will do",
+      "structure": [
+        "Verb (ます-stem) + ます",
+        "う-verbs: 行く → 行きます, 飲む → 飲みます",
+        "る-verbs: 食べる → 食べます, 見る → 見ます",
+        "Irregular: する → します, 来る → 来ます (きます)"
+      ],
+      "formality": "polite",
+      "explanation": "ます is the polite ending for verbs. It covers both habits and future actions — Japanese has no separate future tense, so 行きます can mean \"I go\" or \"I'll go\", and context decides.\n\nTo build it, find the ます-stem. For る-verbs, drop る (食べる → 食べ). For う-verbs, change the final u-sound to its i-sound (飲む → 飲み, 書く → 書き). Then add ます. The two irregular verbs are する → します and 来る → 来ます.",
+      "nuances": [
+        "The form doesn't change for the subject: I, you and they all 行きます.",
+        "Use ます forms with people you don't know well; with close friends you'd use the dictionary form."
+      ],
+      "common_mistakes": [
+        "Treating a う-verb that ends in る as a る-verb: 帰る → 帰ります, not 帰ます. Watch out for 帰る, 入る, 走る, 知る.",
+        "Using ます for something happening right this moment. \"I'm eating (now)\" needs 〜ています, covered later."
+      ],
+      "related_ids": ["n5-masen", "n5-mashita"],
+      "examples": [
+        {
+          "id": "n5-masu-1",
+          "japanese": "毎日働きます。",
+          "furigana": "{毎日|まいにち}{働|はたら}きます。",
+          "english": "I work every day.",
+          "cloze_target": "働きます",
+          "accepted_answers": ["働きます", "はたらきます"],
+          "hint": "働く (to work) → polite"
+        },
+        {
+          "id": "n5-masu-2",
+          "japanese": "私も行きます。",
+          "furigana": "{私|わたし}も{行|い}きます。",
+          "english": "I'll go too.",
+          "cloze_target": "行きます",
+          "accepted_answers": ["行きます", "いきます"],
+          "hint": "行く (to go) → polite"
+        },
+        {
+          "id": "n5-masu-3",
+          "japanese": "田中さんは明日来ますか。",
+          "furigana": "{田中|たなか}さんは{明日|あした}{来|き}ますか。",
+          "english": "Is Tanaka-san coming tomorrow?",
+          "cloze_target": "来ます",
+          "accepted_answers": ["来ます", "きます"],
+          "hint": "来る (to come) → polite"
+        },
+        {
+          "id": "n5-masu-4",
+          "japanese": "今日は早く寝ます。",
+          "furigana": "{今日|きょう}は{早|はや}く{寝|ね}ます。",
+          "english": "I'll go to bed early today.",
+          "cloze_target": "寝ます",
+          "accepted_answers": ["寝ます", "ねます"],
+          "hint": "寝る (to go to bed) → polite"
+        },
+        {
+          "id": "n5-masu-5",
+          "japanese": "明日は休みます。",
+          "furigana": "{明日|あした}は{休|やす}みます。",
+          "english": "I'm taking tomorrow off.",
+          "cloze_target": "休みます",
+          "accepted_answers": ["休みます", "やすみます"],
+          "hint": "休む (to rest / take off) → polite"
+        },
+        {
+          "id": "n5-masu-6",
+          "japanese": "毎朝勉強します。",
+          "furigana": "{毎朝|まいあさ}{勉強|べんきょう}します。",
+          "english": "I study every morning.",
+          "cloze_target": "します",
+          "accepted_answers": ["します"],
+          "hint": "する (to do) → polite"
+        }
+      ]
+    },
+    {
+      "id": "n5-masen",
+      "level": "N5",
+      "title": "Verb-ません",
+      "meaning": "polite negative: don't / won't",
+      "structure": ["Verb (ます-stem) + ません"],
+      "formality": "polite",
+      "explanation": "Swap ます for ません to make a polite negative: 行きます → 行きません, \"I don't go\" or \"I won't go\". Like ます, it covers both habits and the future.\n\nEvery verb follows the same rule, including the irregulars: しません, 来ません (きません).",
+      "nuances": [
+        "In relaxed polite speech you'll also hear the plain negative + です (行かないです). ません sounds a little more proper.",
+        "A natural negative answer repeats the verb: 行きますか → いいえ、行きません."
+      ],
+      "common_mistakes": [
+        "Skipping the stem: 行くません ✗ → 行きません.",
+        "Mixing up 来ません (きません, \"won't come\") with 着ません (きません, \"won't wear\") — same sound, different verbs."
+      ],
+      "comparisons": [{ "id": "n5-masu", "note": "ます is the affirmative; ません is its negative." }],
+      "related_ids": ["n5-masu", "n5-mashita"],
+      "examples": [
+        {
+          "id": "n5-masen-1",
+          "japanese": "お酒は飲みません。",
+          "furigana": "お{酒|さけ}は{飲|の}みません。",
+          "english": "I don't drink alcohol.",
+          "cloze_target": "飲みません",
+          "accepted_answers": ["飲みません", "のみません"],
+          "valid_alternatives": [
+            { "answer": "飲まないです", "note": "飲まないです is also polite, but more casual. This review wants the ません form." },
+            { "answer": "のまないです", "note": "のまないです is also polite, but more casual. This review wants the ません form." }
+          ],
+          "hint": "飲む (to drink) → polite negative"
+        },
+        {
+          "id": "n5-masen-2",
+          "japanese": "田中さんは来ません。",
+          "furigana": "{田中|たなか}さんは{来|き}ません。",
+          "english": "Tanaka-san isn't coming.",
+          "cloze_target": "来ません",
+          "accepted_answers": ["来ません", "きません"],
+          "valid_alternatives": [
+            { "answer": "来ないです", "note": "来ないです is also polite, but more casual. This review wants the ません form." },
+            { "answer": "こないです", "note": "こないです is also polite, but more casual. This review wants the ません form." }
+          ],
+          "hint": "来る (to come) → polite negative"
+        },
+        {
+          "id": "n5-masen-3",
+          "japanese": "日曜日は働きません。",
+          "furigana": "{日曜日|にちようび}は{働|はたら}きません。",
+          "english": "I don't work on Sundays.",
+          "cloze_target": "働きません",
+          "accepted_answers": ["働きません", "はたらきません"],
+          "valid_alternatives": [
+            { "answer": "働かないです", "note": "働かないです is also polite, but more casual. This review wants the ません form." },
+            { "answer": "はたらかないです", "note": "はたらかないです is also polite, but more casual. This review wants the ません form." }
+          ],
+          "hint": "働く (to work) → polite negative"
+        },
+        {
+          "id": "n5-masen-4",
+          "japanese": "今日は勉強しません。",
+          "furigana": "{今日|きょう}は{勉強|べんきょう}しません。",
+          "english": "I'm not studying today.",
+          "cloze_target": "しません",
+          "accepted_answers": ["しません"],
+          "valid_alternatives": [
+            { "answer": "しないです", "note": "しないです is also polite, but more casual. This review wants the ません form." }
+          ],
+          "hint": "する (to do) → polite negative"
+        },
+        {
+          "id": "n5-masen-5",
+          "japanese": "テレビは見ません。",
+          "furigana": "テレビは{見|み}ません。",
+          "english": "I don't watch TV.",
+          "cloze_target": "見ません",
+          "accepted_answers": ["見ません", "みません"],
+          "valid_alternatives": [
+            { "answer": "見ないです", "note": "見ないです is also polite, but more casual. This review wants the ません form." },
+            { "answer": "みないです", "note": "みないです is also polite, but more casual. This review wants the ません form." }
+          ],
+          "hint": "見る (to watch) → polite negative"
+        }
+      ]
+    },
+    {
+      "id": "n5-wo",
+      "level": "N5",
+      "title": "を",
+      "meaning": "direct object marker",
+      "structure": ["Noun + を + transitive verb"],
+      "formality": "neutral",
+      "explanation": "を marks the direct object — the thing an action is done to. In パンを食べます (\"I eat bread\"), the bread is what gets eaten, so it takes を.\n\nを comes right after the object, and the verb usually follows at the end of the sentence. It is written を but pronounced the same as お.",
+      "nuances": [
+        "With movement verbs, を can also mark the space you move through (公園を歩きます, \"walk through the park\") — a later lesson.",
+        "In casual speech を is often dropped: パン食べる？"
+      ],
+      "common_mistakes": [
+        "Typing お for the particle — it must be を. (In romaji, type \"wo\".)",
+        "Using を with 好き or わかる: 猫を好きです ✗ → 猫が好きです.",
+        "Using を for the destination of 行く: 学校を行きます ✗ → 学校へ / に行きます."
+      ],
+      "related_ids": ["n5-masu", "n5-de-place"],
+      "examples": [
+        {
+          "id": "n5-wo-1",
+          "japanese": "朝はパンを食べます。",
+          "furigana": "{朝|あさ}はパンを{食|た}べます。",
+          "english": "In the mornings, I eat bread.",
+          "cloze_target": "を",
+          "accepted_answers": ["を"]
+        },
+        {
+          "id": "n5-wo-2",
+          "japanese": "毎朝コーヒーを飲みます。",
+          "furigana": "{毎朝|まいあさ}コーヒーを{飲|の}みます。",
+          "english": "I drink coffee every morning.",
+          "cloze_target": "を",
+          "accepted_answers": ["を"]
+        },
+        {
+          "id": "n5-wo-3",
+          "japanese": "日本語を勉強します。",
+          "furigana": "{日本語|にほんご}を{勉強|べんきょう}します。",
+          "english": "I study Japanese.",
+          "cloze_target": "を",
+          "accepted_answers": ["を"]
+        },
+        {
+          "id": "n5-wo-4",
+          "japanese": "田中さんは手紙を書きます。",
+          "furigana": "{田中|たなか}さんは{手紙|てがみ}を{書|か}きます。",
+          "english": "Tanaka-san writes letters.",
+          "cloze_target": "を",
+          "accepted_answers": ["を"]
+        },
+        {
+          "id": "n5-wo-5",
+          "japanese": "兄は毎晩ゲームをします。",
+          "furigana": "{兄|あに}は{毎晩|まいばん}ゲームをします。",
+          "english": "My older brother plays games every night.",
+          "cloze_target": "を",
+          "accepted_answers": ["を"]
+        }
+      ]
+    },
+    {
+      "id": "n5-ni-time",
+      "level": "N5",
+      "title": "に (time)",
+      "meaning": "at / on / in — a specific point in time",
+      "structure": ["Time + に + verb"],
+      "formality": "neutral",
+      "explanation": "に after a time expression marks when an action happens: 七時に起きます, \"I get up at seven.\" Use it with clock times, dates, days of the week, months and years — anything that pins the action to a specific point on the clock or calendar.",
+      "nuances": [
+        "Relative time words — 今日, 明日, 毎日, 毎朝, 今, 来週 — do NOT take に. Say 明日行きます, not 明日に行きます.",
+        "Days of the week work both with and without に; with に it sounds a little more precise.",
+        "When several time words stack, the largest comes first and only the last one takes に: 日曜日の九時に."
+      ],
+      "common_mistakes": [
+        "Adding に to relative time words: 毎朝に ✗.",
+        "Using で for a time: 七時で ✗ → 七時に."
+      ],
+      "related_ids": ["n5-e-ni-destination", "n5-ga-arimasu-imasu"],
+      "examples": [
+        {
+          "id": "n5-ni-time-1",
+          "japanese": "毎朝七時に起きます。",
+          "furigana": "{毎朝|まいあさ}{七時|しちじ}に{起|お}きます。",
+          "english": "I get up at seven every morning.",
+          "cloze_target": "に",
+          "accepted_answers": ["に"],
+          "hint": "at (a clock time)"
+        },
+        {
+          "id": "n5-ni-time-2",
+          "japanese": "日曜日に映画を見ます。",
+          "furigana": "{日曜日|にちようび}に{映画|えいが}を{見|み}ます。",
+          "english": "I'll watch a movie on Sunday.",
+          "cloze_target": "に",
+          "accepted_answers": ["に"],
+          "hint": "on (a day)"
+        },
+        {
+          "id": "n5-ni-time-3",
+          "japanese": "授業は九時に始まります。",
+          "furigana": "{授業|じゅぎょう}は{九時|くじ}に{始|はじ}まります。",
+          "english": "Class starts at nine.",
+          "cloze_target": "に",
+          "accepted_answers": ["に"],
+          "hint": "at (a clock time)"
+        },
+        {
+          "id": "n5-ni-time-4",
+          "japanese": "十一時に寝ます。",
+          "furigana": "{十一時|じゅういちじ}に{寝|ね}ます。",
+          "english": "I go to bed at eleven.",
+          "cloze_target": "に",
+          "accepted_answers": ["に"],
+          "hint": "at (a clock time)"
+        },
+        {
+          "id": "n5-ni-time-5",
+          "japanese": "五月に結婚します。",
+          "furigana": "{五月|ごがつ}に{結婚|けっこん}します。",
+          "english": "I'm getting married in May.",
+          "cloze_target": "に",
+          "accepted_answers": ["に"],
+          "hint": "in (a month)"
+        }
+      ]
+    },
+    {
+      "id": "n5-e-ni-destination",
+      "level": "N5",
+      "title": "へ / に (destination)",
+      "meaning": "to — the direction or destination of movement",
+      "structure": ["Place + へ / に + 行きます・来ます・帰ります"],
+      "formality": "neutral",
+      "explanation": "With movement verbs — 行く (go), 来る (come), 帰る (go home) — both へ and に mark where you're heading. へ (pronounced \"e\") leans toward direction, \"toward\"; に leans toward the arrival point, \"to\".\n\nIn everyday use they are mostly interchangeable: 学校へ行きます and 学校に行きます both mean \"I go to school.\"",
+      "nuances": [
+        "に is more common in conversation; へ feels a little more written or directional.",
+        "Only へ can take の to modify a noun: 母への手紙 \"a letter to my mother\" (にの is impossible)."
+      ],
+      "common_mistakes": [
+        "Writing え for the particle — it must be へ. (In romaji, type \"he\".)",
+        "Using を for a destination: 学校を行きます ✗.",
+        "Using で for a destination: で marks where an action happens, not where you go."
+      ],
+      "comparisons": [
+        { "id": "n5-ni-time", "note": "Same particle に, different job: time point vs. destination." },
+        { "id": "n5-de-place", "note": "で marks where an action takes place; へ / に mark where you move to." }
+      ],
+      "related_ids": ["n5-ni-time", "n5-de-place", "n5-masu"],
+      "examples": [
+        {
+          "id": "n5-e-ni-destination-1",
+          "japanese": "毎日学校へ行きます。",
+          "furigana": "{毎日|まいにち}{学校|がっこう}へ{行|い}きます。",
+          "english": "I go to school every day.",
+          "cloze_target": "へ",
+          "accepted_answers": ["へ", "に"],
+          "hint": "to (a destination)"
+        },
+        {
+          "id": "n5-e-ni-destination-2",
+          "japanese": "明日、京都に行きます。",
+          "furigana": "{明日|あした}、{京都|きょうと}に{行|い}きます。",
+          "english": "I'm going to Kyoto tomorrow.",
+          "cloze_target": "に",
+          "accepted_answers": ["に", "へ"],
+          "hint": "to (a destination)"
+        },
+        {
+          "id": "n5-e-ni-destination-3",
+          "japanese": "七時にうちへ帰ります。",
+          "furigana": "{七時|しちじ}にうちへ{帰|かえ}ります。",
+          "english": "I'll go home at seven.",
+          "cloze_target": "へ",
+          "accepted_answers": ["へ", "に"],
+          "hint": "to (a destination)"
+        },
+        {
+          "id": "n5-e-ni-destination-4",
+          "japanese": "田中さんは来週日本へ来ます。",
+          "furigana": "{田中|たなか}さんは{来週|らいしゅう}{日本|にほん}へ{来|き}ます。",
+          "english": "Tanaka-san is coming to Japan next week.",
+          "cloze_target": "へ",
+          "accepted_answers": ["へ", "に"],
+          "hint": "to (a destination)"
+        },
+        {
+          "id": "n5-e-ni-destination-5",
+          "japanese": "どこへ行きますか。",
+          "furigana": "どこへ{行|い}きますか。",
+          "english": "Where are you going?",
+          "cloze_target": "へ",
+          "accepted_answers": ["へ", "に"],
+          "hint": "to (a destination)"
+        }
+      ]
+    },
+    {
+      "id": "n5-de-place",
+      "level": "N5",
+      "title": "で (place of action)",
+      "meaning": "at / in — where an action takes place",
+      "structure": ["Place + で + action verb"],
+      "formality": "neutral",
+      "explanation": "で marks the place where an action happens: 図書館で勉強します, \"I study at the library.\" Think of it as the stage on which the activity is performed. It goes with action verbs — eat, study, work, buy, play and so on.",
+      "nuances": [
+        "For where something simply exists (あります / います), use に, not で. This contrast is one of the key N5 distinctions.",
+        "で has other uses too — for example a means or tool (バスで, \"by bus\") — covered in a later lesson."
+      ],
+      "common_mistakes": [
+        "Using に with an action: 図書館に勉強します ✗ → 図書館で.",
+        "Using で with あります / います: 部屋で猫がいます ✗ → 部屋に."
+      ],
+      "comparisons": [
+        { "id": "n5-ga-arimasu-imasu", "note": "Existence takes に (部屋に猫がいます); actions take で (部屋で勉強します)." },
+        { "id": "n5-e-ni-destination", "note": "へ / に mark where you go; で marks where you do something." }
+      ],
+      "related_ids": ["n5-wo", "n5-ga-arimasu-imasu", "n5-e-ni-destination"],
+      "examples": [
+        {
+          "id": "n5-de-place-1",
+          "japanese": "図書館で勉強します。",
+          "furigana": "{図書館|としょかん}で{勉強|べんきょう}します。",
+          "english": "I study at the library.",
+          "cloze_target": "で",
+          "accepted_answers": ["で"],
+          "hint": "at (where the action happens)"
+        },
+        {
+          "id": "n5-de-place-2",
+          "japanese": "駅でパンを買います。",
+          "furigana": "{駅|えき}でパンを{買|か}います。",
+          "english": "I buy bread at the station.",
+          "cloze_target": "で",
+          "accepted_answers": ["で"],
+          "hint": "at (where the action happens)"
+        },
+        {
+          "id": "n5-de-place-3",
+          "japanese": "公園でテニスをします。",
+          "furigana": "{公園|こうえん}でテニスをします。",
+          "english": "I play tennis in the park.",
+          "cloze_target": "で",
+          "accepted_answers": ["で"],
+          "hint": "in (where the action happens)"
+        },
+        {
+          "id": "n5-de-place-4",
+          "japanese": "どこで昼ご飯を食べますか。",
+          "furigana": "どこで{昼|ひる}ご{飯|はん}を{食|た}べますか。",
+          "english": "Where will you eat lunch?",
+          "cloze_target": "で",
+          "accepted_answers": ["で"],
+          "hint": "where (the action happens)"
+        },
+        {
+          "id": "n5-de-place-5",
+          "japanese": "うちで映画を見ます。",
+          "furigana": "うちで{映画|えいが}を{見|み}ます。",
+          "english": "I'll watch a movie at home.",
+          "cloze_target": "で",
+          "accepted_answers": ["で"],
+          "hint": "at (where the action happens)"
+        }
+      ]
+    },
+    {
+      "id": "n5-mashita",
+      "level": "N5",
+      "title": "ました / ませんでした",
+      "meaning": "polite past: did / didn't",
+      "structure": ["Verb (ます-stem) + ました", "Verb (ます-stem) + ませんでした"],
+      "formality": "polite",
+      "explanation": "To put a ます verb into the past, change ます to ました: 食べます → 食べました, \"ate\". For the negative past, add でした to ません: 食べませんでした, \"didn't eat\".\n\nThe rule is the same for every verb, irregulars included (しました, 来ました).",
+      "nuances": [
+        "ました also expresses completion, where English might use \"have done\": もう食べました, \"I've already eaten.\"",
+        "Answer a 〜ましたか question with the same verb: はい、行きました / いいえ、行きませんでした."
+      ],
+      "common_mistakes": [
+        "Saying ませんました ✗ — the negative past is ませんでした.",
+        "Using the present when English uses \"have done\": \"I've finished\" is 終わりました."
+      ],
+      "comparisons": [{ "id": "n5-masu", "note": "ます / ません are non-past; ました / ませんでした are past." }],
+      "related_ids": ["n5-masu", "n5-masen"],
+      "examples": [
+        {
+          "id": "n5-mashita-1",
+          "japanese": "昨日、映画を見ました。",
+          "furigana": "{昨日|きのう}、{映画|えいが}を{見|み}ました。",
+          "english": "I watched a movie yesterday.",
+          "cloze_target": "見ました",
+          "accepted_answers": ["見ました", "みました"],
+          "hint": "見る (to watch) → polite past"
+        },
+        {
+          "id": "n5-mashita-2",
+          "japanese": "朝ご飯を食べませんでした。",
+          "furigana": "{朝|あさ}ご{飯|はん}を{食|た}べませんでした。",
+          "english": "I didn't eat breakfast.",
+          "cloze_target": "食べませんでした",
+          "accepted_answers": ["食べませんでした", "たべませんでした"],
+          "valid_alternatives": [
+            { "answer": "食べなかったです", "note": "食べなかったです is also polite, but more casual. This review wants ませんでした." },
+            { "answer": "たべなかったです", "note": "たべなかったです is also polite, but more casual. This review wants ませんでした." }
+          ],
+          "hint": "食べる (to eat) → polite negative past"
+        },
+        {
+          "id": "n5-mashita-3",
+          "japanese": "先週、京都へ行きました。",
+          "furigana": "{先週|せんしゅう}、{京都|きょうと}へ{行|い}きました。",
+          "english": "I went to Kyoto last week.",
+          "cloze_target": "行きました",
+          "accepted_answers": ["行きました", "いきました"],
+          "hint": "行く (to go) → polite past"
+        },
+        {
+          "id": "n5-mashita-4",
+          "japanese": "田中さんは来ませんでした。",
+          "furigana": "{田中|たなか}さんは{来|き}ませんでした。",
+          "english": "Tanaka-san didn't come.",
+          "cloze_target": "来ませんでした",
+          "accepted_answers": ["来ませんでした", "きませんでした"],
+          "valid_alternatives": [
+            { "answer": "来なかったです", "note": "来なかったです is also polite, but more casual. This review wants ませんでした." },
+            { "answer": "こなかったです", "note": "こなかったです is also polite, but more casual. This review wants ませんでした." }
+          ],
+          "hint": "来る (to come) → polite negative past"
+        },
+        {
+          "id": "n5-mashita-5",
+          "japanese": "昨日の夜、十二時に寝ました。",
+          "furigana": "{昨日|きのう}の{夜|よる}、{十二時|じゅうにじ}に{寝|ね}ました。",
+          "english": "I went to bed at twelve last night.",
+          "cloze_target": "寝ました",
+          "accepted_answers": ["寝ました", "ねました"],
+          "hint": "寝る (to go to bed) → polite past"
+        },
+        {
+          "id": "n5-mashita-6",
+          "japanese": "週末は勉強しませんでした。",
+          "furigana": "{週末|しゅうまつ}は{勉強|べんきょう}しませんでした。",
+          "english": "I didn't study over the weekend.",
+          "cloze_target": "しませんでした",
+          "accepted_answers": ["しませんでした"],
+          "valid_alternatives": [
+            { "answer": "しなかったです", "note": "しなかったです is also polite, but more casual. This review wants ませんでした." }
+          ],
+          "hint": "する (to do) → polite negative past"
+        }
+      ]
+    },
+    {
+      "id": "n5-ga-arimasu-imasu",
+      "level": "N5",
+      "title": "が あります / います",
+      "meaning": "there is / to have (existence)",
+      "structure": [
+        "Place + に + Thing + が + あります (non-living things)",
+        "Place + に + Person / Animal + が + います (living beings)",
+        "Thing + は + Place + に + あります / います"
+      ],
+      "formality": "polite",
+      "explanation": "あります and います both mean \"there is\" or \"exists\". The difference is what exists: あります is for things that don't move on their own — objects, buildings, plants, events. います is for people and animals.\n\nThe thing that exists is marked with が, and its location with に: 部屋に猫がいます, \"There's a cat in the room.\" あります also expresses having something: 車があります, \"I have a car.\"",
+      "nuances": [
+        "When the thing is already the topic, turn it around: 猫は部屋にいます, \"The cat is in the room.\"",
+        "The negatives are ありません and いません. The ありません in じゃありません is this same verb.",
+        "A few edge cases bend the rule (a taxi with a driver waiting can take います), but the living / non-living test works almost all the time."
+      ],
+      "common_mistakes": [
+        "Using あります for people or pets: 犬があります ✗ → 犬がいます.",
+        "Marking the location with で: 公園で子どもがいます ✗ → 公園に.",
+        "Using です to say something exists: 机の上に本です ✗ → 本があります."
+      ],
+      "comparisons": [
+        { "id": "n5-de-place", "note": "Location of existence takes に; location of an action takes で." },
+        { "id": "n5-wa-topic", "note": "が introduces what exists; は talks about something already known." }
+      ],
+      "related_ids": ["n5-de-place", "n5-wa-topic", "n5-ni-time"],
+      "examples": [
+        {
+          "id": "n5-ga-arimasu-imasu-1",
+          "japanese": "机の上に本があります。",
+          "furigana": "{机|つくえ}の{上|うえ}に{本|ほん}があります。",
+          "english": "There's a book on the desk.",
+          "cloze_target": "あります",
+          "accepted_answers": ["あります"],
+          "hint": "there is — あります or います?"
+        },
+        {
+          "id": "n5-ga-arimasu-imasu-2",
+          "japanese": "庭に猫がいます。",
+          "furigana": "{庭|にわ}に{猫|ねこ}がいます。",
+          "english": "There's a cat in the garden.",
+          "cloze_target": "います",
+          "accepted_answers": ["います"],
+          "hint": "there is — あります or います?"
+        },
+        {
+          "id": "n5-ga-arimasu-imasu-3",
+          "japanese": "教室に学生が三人います。",
+          "furigana": "{教室|きょうしつ}に{学生|がくせい}が{三人|さんにん}います。",
+          "english": "There are three students in the classroom.",
+          "cloze_target": "います",
+          "accepted_answers": ["います"],
+          "hint": "there are — あります or います?"
+        },
+        {
+          "id": "n5-ga-arimasu-imasu-4",
+          "japanese": "駅の近くに銀行がありますか。",
+          "furigana": "{駅|えき}の{近|ちか}くに{銀行|ぎんこう}がありますか。",
+          "english": "Is there a bank near the station?",
+          "cloze_target": "あります",
+          "accepted_answers": ["あります"],
+          "hint": "is there — あります or います?"
+        },
+        {
+          "id": "n5-ga-arimasu-imasu-5",
+          "japanese": "私は車がありません。",
+          "furigana": "{私|わたし}は{車|くるま}がありません。",
+          "english": "I don't have a car.",
+          "cloze_target": "ありません",
+          "accepted_answers": ["ありません"],
+          "valid_alternatives": [
+            { "answer": "ないです", "note": "ないです is also polite, but more casual. This review wants ありません." }
+          ],
+          "hint": "don't have — polite negative"
+        },
+        {
+          "id": "n5-ga-arimasu-imasu-6",
+          "japanese": "田中さんは今どこにいますか。",
+          "furigana": "{田中|たなか}さんは{今|いま}どこにいますか。",
+          "english": "Where is Tanaka-san now?",
+          "cloze_target": "います",
+          "accepted_answers": ["います"],
+          "hint": "is (located) — あります or います?"
+        }
+      ]
+    },
+    {
+      "id": "n5-tai",
+      "level": "N5",
+      "title": "Verb-たい",
+      "meaning": "want to (do)",
+      "structure": [
+        "Verb (ます-stem) + たい",
+        "Polite: 〜たいです",
+        "Negative: 〜たくない(です)",
+        "Past: 〜たかった(です)"
+      ],
+      "formality": "neutral",
+      "explanation": "Attach たい to the ます-stem to say you want to do something: 行きます → 行きたい, \"I want to go.\"\n\nThe result behaves like an い-adjective. Add です to make it polite (行きたいです), and conjugate it like one: 行きたくないです (don't want to go), 行きたかったです (wanted to go). The object can be marked with を or が: 水を飲みたい / 水が飲みたい.",
+      "nuances": [
+        "たい describes your own wishes. Stating someone else's (田中さんは行きたいです) sounds like mind-reading; Japanese uses other forms for that, except in questions.",
+        "Asking a superior 〜たいですか directly can feel intrusive. Softer phrasing comes later.",
+        "To want a thing rather than an action, use ほしい, not たい."
+      ],
+      "common_mistakes": [
+        "Using the dictionary form: 行くたい ✗ → 行きたい.",
+        "Using たい with a noun: 車がたいです ✗ → 車がほしいです.",
+        "Adding だ: 行きたいだ ✗ — like any い-adjective it doesn't take だ."
+      ],
+      "related_ids": ["n5-masu", "n5-wo"],
+      "examples": [
+        {
+          "id": "n5-tai-1",
+          "japanese": "京都へ行きたいです。",
+          "furigana": "{京都|きょうと}へ{行|い}きたいです。",
+          "english": "I want to go to Kyoto.",
+          "cloze_target": "行きたい",
+          "accepted_answers": ["行きたい", "いきたい"],
+          "hint": "行く (to go) → want to"
+        },
+        {
+          "id": "n5-tai-2",
+          "japanese": "冷たい水を飲みたいです。",
+          "furigana": "{冷|つめ}たい{水|みず}を{飲|の}みたいです。",
+          "english": "I want to drink some cold water.",
+          "cloze_target": "飲みたい",
+          "accepted_answers": ["飲みたい", "のみたい"],
+          "hint": "飲む (to drink) → want to"
+        },
+        {
+          "id": "n5-tai-3",
+          "japanese": "今日は何を食べたいですか。",
+          "furigana": "{今日|きょう}は{何|なに}を{食|た}べたいですか。",
+          "english": "What do you want to eat today?",
+          "cloze_target": "食べたい",
+          "accepted_answers": ["食べたい", "たべたい"],
+          "hint": "食べる (to eat) → want to"
+        },
+        {
+          "id": "n5-tai-4",
+          "japanese": "日本で働きたいです。",
+          "furigana": "{日本|にほん}で{働|はたら}きたいです。",
+          "english": "I want to work in Japan.",
+          "cloze_target": "働きたい",
+          "accepted_answers": ["働きたい", "はたらきたい"],
+          "hint": "働く (to work) → want to"
+        },
+        {
+          "id": "n5-tai-5",
+          "japanese": "今日は勉強したくないです。",
+          "furigana": "{今日|きょう}は{勉強|べんきょう}したくないです。",
+          "english": "I don't want to study today.",
+          "cloze_target": "したくない",
+          "accepted_answers": ["したくない"],
+          "hint": "する (to do) → don't want to"
+        },
+        {
+          "id": "n5-tai-6",
+          "japanese": "日曜日は家でゆっくり休みたいです。",
+          "furigana": "{日曜日|にちようび}は{家|いえ}でゆっくり{休|やす}みたいです。",
+          "english": "On Sunday I want to relax at home.",
+          "cloze_target": "休みたい",
+          "accepted_answers": ["休みたい", "やすみたい"],
+          "hint": "休む (to rest) → want to"
+        }
+      ]
+    }
+  ]
+}
