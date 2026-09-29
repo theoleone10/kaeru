@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing } from 'react-native';
+import { Animated, Easing, Platform, View, type ViewProps } from 'react-native';
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 
 export type Mood = 'happy' | 'cheer' | 'think' | 'sad' | 'sleep';
 
 const INK = '#231C17';
 export const FROG = { skin: '#6CC04A', shade: '#4FA23A', belly: '#E4F5C8', blush: '#F6A38C' } as const;
+
+/**
+ * Decoration is hidden from screen readers; with a label it reads as one image. Uses the aria props
+ * (react-native-web passes the older accessibility* props straight to the DOM).
+ */
+function a11y(label?: string): ViewProps {
+  if (!label) return { 'aria-hidden': true };
+  return { role: 'img', 'aria-label': label, ...(Platform.OS === 'web' ? null : { accessible: true }) };
+}
 
 /** Eye domes, round body and two little feet: drawn twice (fat ink stroke, then fill) so the outline is one shape. */
 function Silhouette() {
@@ -76,13 +85,7 @@ export function Mascot({ size = 72, mood = 'happy', bounce = false, label }: { s
   }, [bounce, y]);
 
   return (
-    <Animated.View
-      style={{ transform: [{ translateY: y }] }}
-      accessible={!!label}
-      accessibilityLabel={label}
-      accessibilityElementsHidden={!label}
-      importantForAccessibility={label ? 'yes' : 'no-hide-descendants'}
-    >
+    <Animated.View style={{ transform: [{ translateY: y }] }} {...a11y(label)}>
       <Svg width={size} height={size} viewBox="0 0 100 100">
         <G fill={INK} stroke={INK} strokeWidth={8} strokeLinejoin="round">
           <Silhouette />
@@ -109,25 +112,19 @@ export function Logo({ size = 40, color, cutout = '#FFFFFF', label }: { size?: n
   const skin = color ?? FROG.skin;
   const ink = color ?? INK;
   return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      accessible={!!label}
-      accessibilityLabel={label}
-      accessibilityElementsHidden={!label}
-      importantForAccessibility={label ? 'yes' : 'no-hide-descendants'}
-    >
-      <G fill={skin}>
-        <Circle cx={30} cy={38} r={17} />
-        <Circle cx={70} cy={38} r={17} />
-        <Path d="M50 40C80 40 94 55 94 68C94 81 76 86 50 86S6 81 6 68C6 55 20 40 50 40z" />
-      </G>
-      <Circle cx={30} cy={38} r={10} fill={cutout} />
-      <Circle cx={70} cy={38} r={10} fill={cutout} />
-      <Circle cx={31} cy={39} r={5.5} fill={ink} />
-      <Circle cx={71} cy={39} r={5.5} fill={ink} />
-      <Path d="M34 64q16 11 32 0" fill="none" stroke={color ? cutout : INK} strokeWidth={4.5} strokeLinecap="round" />
-    </Svg>
+    <View {...a11y(label)}>
+      <Svg width={size} height={size} viewBox="0 0 100 100">
+        <G fill={skin}>
+          <Circle cx={30} cy={38} r={17} />
+          <Circle cx={70} cy={38} r={17} />
+          <Path d="M50 40C80 40 94 55 94 68C94 81 76 86 50 86S6 81 6 68C6 55 20 40 50 40z" />
+        </G>
+        <Circle cx={30} cy={38} r={10} fill={cutout} />
+        <Circle cx={70} cy={38} r={10} fill={cutout} />
+        <Circle cx={31} cy={39} r={5.5} fill={ink} />
+        <Circle cx={71} cy={39} r={5.5} fill={ink} />
+        <Path d="M34 64q16 11 32 0" fill="none" stroke={color ? cutout : INK} strokeWidth={4.5} strokeLinecap="round" />
+      </Svg>
+    </View>
   );
 }
