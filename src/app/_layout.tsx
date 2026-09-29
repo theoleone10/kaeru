@@ -5,8 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { migrate } from '@/db/migrations';
 import { AppProvider, useApp } from '@/state/AppProvider';
+import { useCloudSync } from '@/sync/useCloudSync';
 
 function useNotificationTaps() {
   useEffect(() => {
@@ -22,7 +24,9 @@ function useNotificationTaps() {
 
 function ThemedStack() {
   const { colors, isDark } = useApp();
+  const { onboarded } = useAuth();
   useNotificationTaps();
+  useCloudSync();
   const base = isDark ? DarkTheme : DefaultTheme;
   const theme = {
     ...base,
@@ -32,10 +36,21 @@ function ThemedStack() {
     <ThemeProvider value={theme}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerShadowVisible: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="lessons" options={{ headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen name="grammar/[id]" options={{ title: '' }} />
-        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        <Stack.Protected guard={onboarded}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="lessons" options={{ headerShown: false, gestureEnabled: false }} />
+          <Stack.Screen name="grammar/[id]" options={{ title: '' }} />
+          <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+          <Stack.Screen name="sign-in" options={{ title: 'Sign in', presentation: 'modal' }} />
+          <Stack.Screen name="new-password" options={{ title: 'New password' }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!onboarded}>
+          <Stack.Screen name="welcome" options={{ headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Screen name="email-auth" options={{ title: 'Sign in' }} />
+        <Stack.Screen name="auth-callback" options={{ headerShown: false }} />
+        <Stack.Screen name="legal/privacy" options={{ title: 'Privacy Policy' }} />
+        <Stack.Screen name="legal/terms" options={{ title: 'Terms of Use' }} />
       </Stack>
     </ThemeProvider>
   );
@@ -46,7 +61,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <SQLiteProvider databaseName="grammar.db" onInit={migrate}>
         <AppProvider>
-          <ThemedStack />
+          <AuthProvider>
+            <ThemedStack />
+          </AuthProvider>
         </AppProvider>
       </SQLiteProvider>
     </SafeAreaProvider>

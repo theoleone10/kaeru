@@ -8,11 +8,15 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.theoleone.grammarapp"
+      "bundleIdentifier": "com.theoleone.grammarapp",
+      "usesAppleSignIn": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#3F6E5A",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -33,8 +37,24 @@
           "color": "#3F6E5A"
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#F6F5F1",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#141715"
+          }
+        }
+      ],
+      "expo-apple-authentication"
     ],
-    "scheme": "grammarapp"
+    "scheme": "grammarapp",
+    "description": "Learn every JLPT grammar point from N5 to N1 with spaced-repetition reviews."
   }
 }
