@@ -258,7 +258,14 @@ function TimeLog() {
           <T variant="heading">History</T>
           <Button label="Add entry" kind="ghost" onPress={() => router.push('/track/entry')} style={{ minHeight: 36 }} />
         </View>
-        {byDay.length === 0 && <T variant="small">Your timer history will show up here.</T>}
+        {byDay.length === 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <Mascot size={48} mood="think" />
+            <T variant="small" style={{ flex: 1 }}>
+              Your timer history will show up here.
+            </T>
+          </View>
+        )}
         {byDay.slice(0, showDays).map(([day, list]) => (
           <Card key={day} style={{ gap: spacing.sm }}>
             <View style={styles.rowBetween}>

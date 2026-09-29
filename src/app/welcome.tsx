@@ -26,7 +26,7 @@ export default function Welcome() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xxl, paddingBottom: insets.bottom + spacing.xl }]}
     >
       <View style={{ gap: spacing.sm, alignItems: 'flex-start' }}>
-        <Mascot size={110} mood="cheer" bounce label="Musubi, the onigiri mascot" />
+        <Mascot size={110} mood="cheer" bounce label="Kaeru the frog, the app mascot" />
         <T variant="title" style={{ fontSize: 44, lineHeight: 56 }}>
           かえる
         </T>

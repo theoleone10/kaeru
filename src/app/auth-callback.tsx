@@ -3,7 +3,9 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Alert, View } from 'react-native';
 import { useAuth } from '@/auth/AuthProvider';
 import { supabase } from '@/auth/supabase';
+import { Mascot } from '@/components/Mascot';
 import { useApp } from '@/state/AppProvider';
+import { spacing } from '@/theme/colors';
 
 /**
  * Landing route for auth deep links (kaeru://auth-callback?code=…):
@@ -34,7 +36,8 @@ export default function AuthCallback() {
   }, [params.code, params.error_description, params.next, completeFromUrl, finishOnboarding]);
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, backgroundColor: colors.background }}>
+      <Mascot size={96} mood="think" bounce />
       <ActivityIndicator color={colors.accent} />
     </View>
   );
