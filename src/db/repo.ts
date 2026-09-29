@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import type { BackupData, ExampleSeenRow } from '../backup/format';
 import type { ExampleSeen } from '../srs/exampleRotation';
 import { cardBeforeLog, type StoredCard, type StoredLog } from '../srs/scheduler';
+import type { Activity, TimeEntry } from '../time/model';
 
 const CARD_COLUMNS = [
   'grammar_id',
@@ -205,17 +206,21 @@ export async function setKv(db: Executor, table: 'settings' | 'meta', key: strin
 // ---------- backup ----------
 
 export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> {
-  const [cards, logs, seen, settings] = await Promise.all([
+  const [cards, logs, seen, settings, activities, timeEntries] = await Promise.all([
     getAllCards(db),
     db.getAllAsync<StoredLog & { id?: number }>('SELECT * FROM review_logs ORDER BY id'),
     db.getAllAsync<ExampleSeenRow>('SELECT * FROM example_seen'),
     getKv(db, 'settings'),
+    db.getAllAsync<Activity>('SELECT * FROM activities ORDER BY id'),
+    db.getAllAsync<TimeEntry>('SELECT * FROM time_entries ORDER BY id'),
   ]);
   return {
     cards,
     review_logs: logs.map(({ id: _id, ...rest }) => rest),
     example_seen: seen,
     settings,
+    activities,
+    time_entries: timeEntries,
   };
 }
 
@@ -236,5 +241,23 @@ export async function replaceAllFromBackup(db: SQLiteDatabase, data: BackupData)
       );
     }
     for (const [k, v] of Object.entries(data.settings)) await setKv(txn, 'settings', k, v);
+    // Backups made before time tracking have no activities: keep the phone's own then.
+    if (data.activities.length > 0) {
+      await txn.execAsync('DELETE FROM time_entries; DELETE FROM activities;');
+      for (const a of data.activities) {
+        await txn.runAsync('INSERT INTO activities (id, name, color, position, archived) VALUES (?, ?, ?, ?, ?)', a.id, a.name, a.color, a.position, a.archived);
+      }
+      for (const e of data.time_entries) {
+        await txn.runAsync(
+          'INSERT INTO time_entries (id, activity_id, started_at, ended_at, note, source) VALUES (?, ?, ?, ?, ?, ?)',
+          e.id,
+          e.activity_id,
+          e.started_at,
+          e.ended_at,
+          e.note,
+          e.source,
+        );
+      }
+    }
   });
 }

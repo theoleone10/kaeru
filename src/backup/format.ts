@@ -1,8 +1,10 @@
 import type { ExampleSeen } from '../srs/exampleRotation';
 import type { StoredCard, StoredLog } from '../srs/scheduler';
+import type { Activity, TimeEntry } from '../time/model';
 
 export const BACKUP_APP_ID = 'jlpt-grammar';
-export const BACKUP_FORMAT_VERSION = 1;
+/** v2 added time tracking (activities, time_entries). v1 files still load. */
+export const BACKUP_FORMAT_VERSION = 2;
 
 export interface ExampleSeenRow extends ExampleSeen {
   grammar_id: string;
@@ -14,6 +16,8 @@ export interface BackupData {
   review_logs: StoredLog[];
   example_seen: ExampleSeenRow[];
   settings: Record<string, unknown>;
+  activities: Activity[];
+  time_entries: TimeEntry[];
 }
 
 export interface BackupFile extends BackupData {
@@ -88,5 +92,15 @@ export function parseBackup(json: string): BackupFile {
   raw.example_seen.forEach((e, i) => {
     requireFields(e, `example_seen[${i}]`, ['example_id', 'grammar_id'], ['times_shown', 'times_wrong']);
   });
-  return raw as unknown as BackupFile;
+  // v1 backups predate time tracking.
+  const activities = raw.activities ?? [];
+  const entries = raw.time_entries ?? [];
+  if (!Array.isArray(activities) || !Array.isArray(entries)) throw new Error('Backup has malformed time tracking data.');
+  activities.forEach((a, i) => requireFields(a, `activities[${i}]`, ['name', 'color'], ['id', 'position', 'archived']));
+  entries.forEach((e, i) => {
+    requireFields(e, `time_entries[${i}]`, ['note', 'source'], ['id', 'activity_id', 'started_at']);
+    const end = (e as Record<string, unknown>).ended_at;
+    if (end !== null && typeof end !== 'number') throw new Error(`time_entries[${i}]: "ended_at" must be a number or null`);
+  });
+  return { ...(raw as unknown as BackupFile), activities, time_entries: entries } as BackupFile;
 }

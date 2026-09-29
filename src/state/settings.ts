@@ -11,6 +11,11 @@ export interface Settings {
   quietStart: number;
   quietEnd: number;
   minReminderGapHours: number;
+  /** Log in-app study sessions to the Study activity when no timer is running. */
+  autoTrackStudy: boolean;
+  /** New Anki cards introduced per deck per day. */
+  ankiNewPerDay: number;
+  ankiMaxReviewsPerDay: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -23,12 +28,17 @@ export const DEFAULT_SETTINGS: Settings = {
   quietStart: 22 * 60,
   quietEnd: 8 * 60,
   minReminderGapHours: 4,
+  autoTrackStudy: true,
+  ankiNewPerDay: 20,
+  ankiMaxReviewsPerDay: 200,
 };
 
 export const LIMITS = {
   batchSize: { min: 1, max: 10 },
   dailyLessonLimit: { min: 1, max: 50 },
   minReminderGapHours: { min: 1, max: 12 },
+  ankiNewPerDay: { min: 0, max: 200 },
+  ankiMaxReviewsPerDay: { min: 10, max: 9999 },
 } as const;
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, Math.round(n)));
@@ -45,11 +55,15 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
   if (daily !== undefined) s.dailyLessonLimit = clamp(daily, LIMITS.dailyLessonLimit.min, LIMITS.dailyLessonLimit.max);
   const gap = num('minReminderGapHours');
   if (gap !== undefined) s.minReminderGapHours = clamp(gap, LIMITS.minReminderGapHours.min, LIMITS.minReminderGapHours.max);
+  const anew = num('ankiNewPerDay');
+  if (anew !== undefined) s.ankiNewPerDay = clamp(anew, LIMITS.ankiNewPerDay.min, LIMITS.ankiNewPerDay.max);
+  const arev = num('ankiMaxReviewsPerDay');
+  if (arev !== undefined) s.ankiMaxReviewsPerDay = clamp(arev, LIMITS.ankiMaxReviewsPerDay.min, LIMITS.ankiMaxReviewsPerDay.max);
   const qs = num('quietStart');
   if (qs !== undefined) s.quietStart = clamp(qs, 0, 24 * 60 - 1);
   const qe = num('quietEnd');
   if (qe !== undefined) s.quietEnd = clamp(qe, 0, 24 * 60 - 1);
-  for (const k of ['furigana', 'romajiInput', 'notificationsEnabled'] as const) {
+  for (const k of ['furigana', 'romajiInput', 'notificationsEnabled', 'autoTrackStudy'] as const) {
     const b = bool(k);
     if (b !== undefined) s[k] = b;
   }

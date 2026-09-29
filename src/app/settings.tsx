@@ -273,6 +273,13 @@ export default function SettingsScreen() {
       </Card>
 
       <Card style={styles.card}>
+        <T variant="heading">Time tracking</T>
+        <Row label="Track in-app study" detail="Log lessons and reviews to “Study” automatically when no timer is running">
+          <Switch value={settings.autoTrackStudy} onValueChange={(v) => updateSettings({ autoTrackStudy: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+        </Row>
+      </Card>
+
+      <Card style={styles.card}>
         <T variant="heading">Review reminders</T>
         <Row label="Notify when reviews are due">
           <Switch value={settings.notificationsEnabled} onValueChange={toggleNotifications} trackColor={switchColors} thumbColor="#FFFFFF" />

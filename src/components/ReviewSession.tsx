@@ -13,6 +13,7 @@ import { pickExample } from '../srs/exampleRotation';
 import { buildQueue, nextDueAt } from '../srs/queue';
 import { gradeCard, type StoredCard } from '../srs/scheduler';
 import { useApp } from '../state/AppProvider';
+import { useAutoTrack } from '../time/useAutoTrack';
 import { radius, spacing, TAP } from '../theme/colors';
 import { ClozeSentence } from './Furigana';
 import { Button, Card, T } from './ui';
@@ -67,6 +68,7 @@ export function ReviewSession({
   const [queue, setQueue] = useState<StoredCard[]>([]);
   const [current, setCurrent] = useState<Current | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: 'loading' });
+  useAutoTrack(phase.kind === 'answering' || phase.kind === 'result');
   const [input, setInput] = useState('');
   const [summary, setSummary] = useState<SessionSummary>({ reviewed: 0, correct: 0 });
   const inputRef = useRef<TextInput>(null);

@@ -13,6 +13,8 @@ import { availableLessonCount, lessonsLearnedToday } from '@/srs/lessons';
 import { levelProgress } from '@/stats/levelProgress';
 import { computeStreak } from '@/stats/streak';
 import { useApp, useNow } from '@/state/AppProvider';
+import { entryDuration, formatClock } from '@/time/model';
+import { useTime } from '@/time/TimeProvider';
 import { spacing, TAP } from '@/theme/colors';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -21,7 +23,8 @@ export default function Dashboard() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
   const { colors, cards, settings } = useApp();
-  const now = useNow();
+  const { running, activityById } = useTime();
+  const now = useNow(running ? 1000 : 30_000);
   const [streak, setStreak] = useState({ days: 0, studiedToday: false });
 
   // Recompute when progress changes (cards) or the day rolls over (now).
@@ -59,6 +62,20 @@ export default function Dashboard() {
           <Ionicons name="settings-outline" size={24} color={colors.text} />
         </Pressable>
       </View>
+
+      {running && (
+        <Pressable onPress={() => router.navigate('/track')} accessibilityRole="button" accessibilityHint="Open time tracking">
+          <Card style={[styles.timer, { borderColor: activityById.get(running.activity_id)?.color ?? colors.accent }]}>
+            <Ionicons name="timer-outline" size={22} color={activityById.get(running.activity_id)?.color ?? colors.accent} />
+            <T variant="body" style={{ flex: 1, fontWeight: '600' }}>
+              {activityById.get(running.activity_id)?.name ?? 'Timer'} running
+            </T>
+            <T variant="heading" style={{ fontVariant: ['tabular-nums'] }}>
+              {formatClock(entryDuration(running, now))}
+            </T>
+          </Card>
+        </Pressable>
+      )}
 
       <View style={styles.row}>
         <Card style={styles.stat}>
@@ -117,6 +134,7 @@ export default function Dashboard() {
 }
 
 const styles = StyleSheet.create({
+  timer: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: 2 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   iconButton: { width: TAP, height: TAP, borderRadius: TAP / 2, alignItems: 'center', justifyContent: 'center' },

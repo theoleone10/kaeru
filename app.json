@@ -52,7 +52,8 @@
           }
         }
       ],
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "@react-native-community/datetimepicker"
     ],
     "scheme": "grammarapp",
     "description": "Over 400 Japanese grammar points from JLPT N5 to N1, learned with spaced-repetition reviews."

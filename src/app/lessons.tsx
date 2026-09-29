@@ -13,6 +13,7 @@ import { addLearnedCards } from '@/db/repo';
 import { lessonsLearnedToday, nextLessonBatch } from '@/srs/lessons';
 import { newCard } from '@/srs/scheduler';
 import { useApp } from '@/state/AppProvider';
+import { useAutoTrack } from '@/time/useAutoTrack';
 import { spacing, TAP } from '@/theme/colors';
 
 /**
@@ -41,6 +42,7 @@ export default function Lessons() {
 
   const [index, setIndex] = useState(0);
   const [step, setStep] = useState<'learn' | 'quiz'>('learn');
+  useAutoTrack(step === 'learn');
   const scroll = useRef<ScrollView>(null);
 
   const close = () => {
