@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { playSound } from '../sound/sounds';
 import { View } from 'react-native';
 import { spacing } from '../theme/colors';
 import { Confetti } from './Confetti';
@@ -27,6 +28,9 @@ export function Celebration({
   confetti?: boolean;
   children?: ReactNode;
 }) {
+  useEffect(() => {
+    if (confetti) playSound('complete');
+  }, [confetti]);
   return (
     <View style={{ flex: 1, padding: spacing.xl, gap: spacing.xl, justifyContent: 'center' }}>
       <View style={{ alignItems: 'center', gap: spacing.md }}>

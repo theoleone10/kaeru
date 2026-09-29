@@ -1,6 +1,7 @@
 import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
+import { playSound } from '../sound/sounds';
 import type { Activity, TimeEntry } from './model';
 import { getRunning, listActivities, listEntriesSince, startTimer, stopTimer } from './repo';
 
@@ -45,6 +46,7 @@ export function TimeProvider({ children }: { children: ReactNode }) {
   const start = useCallback(
     async (activity: string | number, source = 'timer') => {
       await startTimer(db, activity, Date.now(), source);
+      playSound('start');
       await refresh();
     },
     [db, refresh],
@@ -52,6 +54,7 @@ export function TimeProvider({ children }: { children: ReactNode }) {
 
   const stop = useCallback(async () => {
     await stopTimer(db, Date.now());
+    playSound('stop');
     await refresh();
   }, [db, refresh]);
 

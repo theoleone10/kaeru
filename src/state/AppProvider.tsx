@@ -5,6 +5,7 @@ import { getAllCards, getKv, setKv } from '../db/repo';
 import { rescheduleReminder } from '../notifications/schedule';
 import type { StoredCard } from '../srs/scheduler';
 import { dark, light, type Palette } from '../theme/colors';
+import { setSoundEnabled } from '../sound/sounds';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings';
 
 interface AppContextValue {
@@ -46,6 +47,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [db, settings],
   );
+
+  useEffect(() => {
+    setSoundEnabled(settings.soundEffects);
+  }, [settings.soundEffects]);
 
   // Theme: 'system' follows the OS; otherwise override it. On device we also tell
   // the OS so native pieces (keyboard, alerts) match; web has no such API.

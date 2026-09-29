@@ -16,6 +16,7 @@ export interface Settings {
   /** New Anki cards introduced per deck per day. */
   ankiNewPerDay: number;
   ankiMaxReviewsPerDay: number;
+  soundEffects: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -31,6 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoTrackStudy: true,
   ankiNewPerDay: 20,
   ankiMaxReviewsPerDay: 200,
+  soundEffects: true,
 };
 
 export const LIMITS = {
@@ -63,7 +65,7 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
   if (qs !== undefined) s.quietStart = clamp(qs, 0, 24 * 60 - 1);
   const qe = num('quietEnd');
   if (qe !== undefined) s.quietEnd = clamp(qe, 0, 24 * 60 - 1);
-  for (const k of ['furigana', 'romajiInput', 'notificationsEnabled', 'autoTrackStudy'] as const) {
+  for (const k of ['furigana', 'romajiInput', 'notificationsEnabled', 'autoTrackStudy', 'soundEffects'] as const) {
     const b = bool(k);
     if (b !== undefined) s[k] = b;
   }

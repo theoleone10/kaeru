@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { playSound } from '@/sound/sounds';
 import { useApp } from '@/state/AppProvider';
 import { parseTimerCommand } from '@/time/model';
 import { startTimer, stopTimer, toggleTimer } from '@/time/repo';
@@ -30,6 +31,7 @@ export default function TimerLink() {
       if (cmd?.kind === 'start') await startTimer(db, cmd.activity, now, 'shortcut', cmd.note);
       else if (cmd?.kind === 'stop') await stopTimer(db, now);
       else if (cmd?.kind === 'toggle') await toggleTimer(db, cmd.activity, now, 'shortcut', cmd.note);
+      if (cmd) playSound(cmd.kind === 'stop' ? 'stop' : 'start');
       await refresh();
       router.replace('/track');
     })();

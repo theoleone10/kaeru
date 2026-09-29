@@ -246,6 +246,9 @@ export default function SettingsScreen() {
         <Row label="Furigana" detail="Readings above kanji">
           <Switch value={settings.furigana} onValueChange={(v) => updateSettings({ furigana: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>
+        <Row label="Sound effects" detail="Chimes for answers and finished lessons. Quiet in silent mode; never pauses your music or podcasts.">
+          <Switch value={settings.soundEffects} onValueChange={(v) => updateSettings({ soundEffects: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+        </Row>
         <Row label="Romaji → kana" detail="Convert typed romaji in reviews. Japanese keyboard input is never changed.">
           <Switch value={settings.romajiInput} onValueChange={(v) => updateSettings({ romajiInput: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>

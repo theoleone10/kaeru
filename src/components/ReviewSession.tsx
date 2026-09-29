@@ -13,6 +13,7 @@ import { convertRomajiInput, finalizeInput } from '../review/kanaInput';
 import { pickExample } from '../srs/exampleRotation';
 import { buildQueue, nextDueAt } from '../srs/queue';
 import { gradeCard, type StoredCard } from '../srs/scheduler';
+import { playSound } from '../sound/sounds';
 import { useApp } from '../state/AppProvider';
 import { useAutoTrack } from '../time/useAutoTrack';
 import { FONTS, LEVEL_COLORS, radius, spacing, TAP } from '../theme/colors';
@@ -155,6 +156,7 @@ export function ReviewSession({
       comboBefore.current = combo;
       setCombo(correct ? combo + 1 : 0);
       Haptics.notificationAsync(correct ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error);
+      playSound(correct ? 'correct' : 'wrong');
       refresh();
     } finally {
       busy.current = false;

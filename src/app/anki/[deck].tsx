@@ -11,6 +11,7 @@ import { formatInterval, GRADES, previewGrades, State, type AnkiSched } from '@/
 import { AnkiCardView } from '@/components/AnkiCardView';
 import { Celebration } from '@/components/Celebration';
 import { Button, T } from '@/components/ui';
+import { playSound } from '@/sound/sounds';
 import { useApp } from '@/state/AppProvider';
 import { useAutoTrack } from '@/time/useAutoTrack';
 import { radius, spacing, TAP } from '@/theme/colors';
@@ -147,6 +148,7 @@ export default function AnkiStudy() {
     const now = clock();
     const after = showing.previews.byRating[rating];
     Haptics.selectionAsync().catch(() => undefined);
+    playSound(rating === 1 ? 'wrong' : 'tap');
     const logId = await answerCard(db, showing.card.card, after, rating, now, Math.min(now - showing.shownAt, 60_000));
     const id = showing.card.card.id;
     const inLearning = after.state === State.Learning || after.state === State.Relearning;
