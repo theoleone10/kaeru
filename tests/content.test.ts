@@ -12,8 +12,8 @@ describe('bundled content', () => {
     expect(count('N5')).toBeGreaterThanOrEqual(91);
     expect(count('N4')).toBeGreaterThanOrEqual(98);
     expect(count('N3')).toBeGreaterThanOrEqual(83);
-    expect(count('N2')).toBeGreaterThanOrEqual(14);
-    expect(count('N1')).toBeGreaterThanOrEqual(15);
+    expect(count('N2')).toBeGreaterThanOrEqual(79);
+    expect(count('N1')).toBeGreaterThanOrEqual(65);
   });
 
   it('keeps the Phase 1 points so existing progress still matches', () => {

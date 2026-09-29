@@ -8,7 +8,7 @@ import { useApp } from '@/state/AppProvider';
 import { spacing } from '@/theme/colors';
 
 const FEATURES: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
-  { icon: 'library-outline', text: 'Every JLPT grammar point from N5 to N1' },
+  { icon: 'library-outline', text: 'Over 400 grammar points from JLPT N5 to N1' },
   { icon: 'repeat-outline', text: 'Spaced-repetition reviews with fill-in-the-blank sentences' },
   { icon: 'cloud-done-outline', text: 'Sign in to back up progress and continue on another phone' },
 ];
