@@ -221,9 +221,12 @@ export default function GrammarMap() {
           keyboardDismissMode="on-drag"
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm }}
           ListEmptyComponent={
-            <T variant="muted" style={{ textAlign: 'center', marginTop: spacing.xl }}>
-              {query.trim() ? 'No matching grammar.' : 'Type to search all 400+ points.'}
-            </T>
+            <View style={{ alignItems: 'center', gap: spacing.md, marginTop: spacing.xl }}>
+              <Mascot size={80} mood={query.trim() ? 'sad' : 'think'} />
+              <T variant="muted" style={{ textAlign: 'center' }}>
+                {query.trim() ? 'No matching grammar.' : 'Type to search all 400+ points.'}
+              </T>
+            </View>
           }
           renderItem={({ item }) => {
             const card = cardsById.get(item.id);

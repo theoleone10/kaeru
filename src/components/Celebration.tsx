@@ -12,7 +12,7 @@ export interface Stat {
   tone?: 'accent' | 'blue' | 'green' | 'gold';
 }
 
-/** End-of-session screen: Musubi, a headline, a row of stat tiles, then actions. */
+/** End-of-session screen: Kaeru the frog, a headline, a row of stat tiles, then actions. */
 export function Celebration({
   title,
   subtitle,

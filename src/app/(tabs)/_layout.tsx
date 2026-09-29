@@ -1,16 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router/js-tabs';
 import { View } from 'react-native';
+import { Logo } from '@/components/Mascot';
 import { T } from '@/components/ui';
 import { useApp, useNow } from '@/state/AppProvider';
 import { useTime } from '@/time/TimeProvider';
 
-type IconName = keyof typeof Ionicons.glyphMap;
+type IconName = keyof typeof Ionicons.glyphMap | 'frog';
 
 /** Tab icon: outline when idle; filled on a soft clay chip when active (like the mockup). */
 function TabIcon({ focused, icon, badge, dot }: { focused: boolean; icon: IconName; badge?: number; dot?: string }) {
   const { colors } = useApp();
-  const filled = icon.replace('-outline', '') as IconName;
+  const filled = icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap;
   return (
     <View
       style={{
@@ -22,7 +23,11 @@ function TabIcon({ focused, icon, badge, dot }: { focused: boolean; icon: IconNa
         backgroundColor: focused ? colors.accentSoft : 'transparent',
       }}
     >
-      <Ionicons name={focused ? filled : icon} size={25} color={focused ? colors.accent : colors.textMuted} />
+      {icon === 'frog' ? (
+        <Logo size={30} color={focused ? colors.accent : colors.textMuted} cutout={focused ? colors.accentSoft : colors.surface} />
+      ) : (
+        <Ionicons name={focused ? filled : icon} size={25} color={focused ? colors.accent : colors.textMuted} />
+      )}
       {badge ? (
         <View style={{ position: 'absolute', top: -4, right: 0, minWidth: 22, height: 22, paddingHorizontal: 5, borderRadius: 11, backgroundColor: colors.correct, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.surface }}>
           <T variant="small" color="#FFFFFF" style={{ fontSize: 11, lineHeight: 14, fontWeight: '900' }}>
@@ -53,7 +58,7 @@ export default function TabLayout() {
         tabBarIconStyle: { width: 56, height: 40 },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Today', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="sunny-outline" /> }} />
+      <Tabs.Screen name="index" options={{ title: 'Today', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="frog" /> }} />
       <Tabs.Screen name="grammar" options={{ title: 'Grammar', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="train-outline" badge={due} /> }} />
       <Tabs.Screen name="decks" options={{ title: 'Cards', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="albums-outline" /> }} />
       <Tabs.Screen name="progress" options={{ title: 'Progress', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="stats-chart-outline" dot={runningColor} /> }} />

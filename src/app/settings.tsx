@@ -7,6 +7,7 @@ import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { accountLabel, useAuth } from '@/auth/AuthProvider';
 import { exportBackup, pickBackup, restoreBackup } from '@/backup/exportImport';
+import { Logo } from '@/components/Mascot';
 import { Button, Card, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { LEVELS } from '@/content/types';
@@ -338,10 +339,16 @@ export default function SettingsScreen() {
         <LinkRow label="Privacy Policy" icon="shield-checkmark-outline" href="/legal/privacy" />
         <LinkRow label="Terms of Use" icon="document-text-outline" href="/legal/terms" />
         {supportEmail !== '' && (
-          <LinkRow label="Contact support" icon="mail-outline" onPress={() => Linking.openURL(`mailto:${supportEmail}?subject=Grammar%20app%20support`)} />
+          <LinkRow label="Contact support" icon="mail-outline" onPress={() => Linking.openURL(`mailto:${supportEmail}?subject=Kaeru%20support`)} />
         )}
       </Card>
 
+      <View style={{ alignItems: 'center', gap: spacing.xs, marginTop: spacing.md }}>
+        <Logo size={56} />
+        <T variant="heading" style={{ fontWeight: '900' }}>
+          Kaeru かえる
+        </T>
+      </View>
       <T variant="small" style={{ textAlign: 'center' }}>
         Version {Constants.expoConfig?.version ?? '—'}
       </T>
