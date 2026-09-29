@@ -11,6 +11,7 @@ import { getAllCards, getExampleSeen, saveReview, undoReview } from '../db/repo'
 import { checkAnswer, isRetry, type CheckResult } from '../review/answerCheck';
 import { convertRomajiInput, finalizeInput } from '../review/kanaInput';
 import { pickExample } from '../srs/exampleRotation';
+import type { QuizAnswer, QuizItem } from '../srs/quiz';
 import { buildQueue, nextDueAt } from '../srs/queue';
 import { gradeCard, type StoredCard } from '../srs/scheduler';
 import { playSound } from '../sound/sounds';
@@ -22,7 +23,9 @@ import { Mascot } from './Mascot';
 import { Button, Card, ProgressBar, T } from './ui';
 
 interface Current {
-  card: StoredCard;
+  /** Absent in a quiz: quiz answers don't touch the SRS until the quiz is over. */
+  card?: StoredCard;
+  retry?: boolean;
   point: GrammarPoint;
   example: Example;
   shownAt: number;
@@ -51,20 +54,24 @@ function retryMessage(r: NonNullable<Extract<Phase, { kind: 'answering' }>['retr
 }
 
 /**
- * The review loop, shared by the Review tab and the post-lesson quiz.
- * `onlyIds` limits the session to specific grammar points.
+ * The review loop, shared by grammar reviews and the post-lesson quiz.
+ * `onlyIds` limits the session to specific grammar points. With `quiz`, it asks the
+ * given sentences instead of due cards (a missed sentence comes back once at the end)
+ * and hands the answers to `quiz.onComplete` before showing the empty state.
  */
 export function ReviewSession({
   onlyIds,
   emptyState,
   onFinished,
   bottomInset = 0,
+  quiz,
 }: {
   onlyIds?: readonly string[];
   emptyState?: (nextDue: number | null, summary: SessionSummary) => React.ReactNode;
   onFinished?: (summary: SessionSummary) => void;
   /** Extra space below the footer (e.g. when no tab bar sits under it). */
   bottomInset?: number;
+  quiz?: { items: QuizItem[]; onComplete: (answers: QuizAnswer[]) => Promise<void> };
 }) {
   const db = useSQLiteContext();
   const { settings, colors, refresh } = useApp();
@@ -79,6 +86,10 @@ export function ReviewSession({
   const inputRef = useRef<TextInput>(null);
   const onlySet = useRef(onlyIds ? new Set(onlyIds) : undefined);
   const busy = useRef(false);
+  const quizQueue = useRef<QuizItem[]>(quiz ? [...quiz.items] : []);
+  const quizAnswers = useRef<QuizAnswer[]>([]);
+  const quizRef = useRef(quiz);
+  const [quizLeft, setQuizLeft] = useState(quiz?.items.length ?? 0);
 
   const present = useCallback(
     async (card: StoredCard) => {
@@ -95,6 +106,21 @@ export function ReviewSession({
   /** Take the next card, rebuilding the queue from the database when it runs out. */
   const advance = useCallback(
     async (rest: StoredCard[]) => {
+      if (quizRef.current) {
+        const item = quizQueue.current.shift();
+        setQuizLeft(quizQueue.current.length);
+        if (!item) {
+          await quizRef.current.onComplete(quizAnswers.current);
+          setCurrent(null);
+          setPhase({ kind: 'done', nextDue: null });
+          return;
+        }
+        setCurrent({ point: item.point, example: item.example, retry: item.retry, shownAt: Date.now() });
+        setInput('');
+        setPhase({ kind: 'answering' });
+        inputRef.current?.focus();
+        return;
+      }
       let q = rest;
       if (q.length === 0) {
         const all = (await getAllCards(db)).filter((c) => getPoint(c.grammar_id));
@@ -121,7 +147,7 @@ export function ReviewSession({
   // Coming back to an idle Review tab: check whether anything new is due.
   useFocusEffect(
     useCallback(() => {
-      if (phase.kind === 'done') advance([]);
+      if (phase.kind === 'done' && !quizRef.current) advance([]);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [phase.kind]),
   );
@@ -148,6 +174,20 @@ export function ReviewSession({
     try {
       const correct = result.kind === 'correct';
       const now = Date.now();
+      if (!current.card) {
+        // Quiz: remember the answer; a first-try miss is asked again at the end.
+        quizAnswers.current.push({ pointId: current.point.id, exampleId: current.example.id, correct, retry: !!current.retry, at: now });
+        if (!correct && !current.retry) quizQueue.current.push({ point: current.point, example: current.example, retry: true });
+        setQuizLeft(quizQueue.current.length);
+        setInput(answer);
+        setPhase({ kind: 'result', correct, answer, logId: quizAnswers.current.length });
+        if (!current.retry) setSummary((s) => ({ reviewed: s.reviewed + 1, correct: s.correct + (correct ? 1 : 0) }));
+        comboBefore.current = combo;
+        setCombo(correct ? combo + 1 : 0);
+        Haptics.notificationAsync(correct ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error);
+        playSound(correct ? 'correct' : 'wrong');
+        return;
+      }
       const graded = gradeCard({ card: current.card, correct, now, exampleId: current.example.id, answer, durationMs: now - current.shownAt });
       const logId = await saveReview(db, graded.card, graded.log, correct);
       setInput(answer);
@@ -167,14 +207,22 @@ export function ReviewSession({
     if (phase.kind !== 'result' || !current || busy.current) return;
     busy.current = true;
     try {
-      const restored = await undoReview(db, phase.logId);
-      if (restored) setCurrent({ ...current, card: restored, shownAt: Date.now() });
-      setSummary((s) => ({ reviewed: s.reviewed - 1, correct: s.correct - (phase.correct ? 1 : 0) }));
+      if (!current.card) {
+        const a = quizAnswers.current.pop();
+        if (a && !a.correct && !a.retry) quizQueue.current.pop();
+        setQuizLeft(quizQueue.current.length);
+        setCurrent({ ...current, shownAt: Date.now() });
+        if (!current.retry) setSummary((s) => ({ reviewed: s.reviewed - 1, correct: s.correct - (phase.correct ? 1 : 0) }));
+      } else {
+        const restored = await undoReview(db, phase.logId);
+        if (restored) setCurrent({ ...current, card: restored, shownAt: Date.now() });
+        setSummary((s) => ({ reviewed: s.reviewed - 1, correct: s.correct - (phase.correct ? 1 : 0) }));
+      }
       setCombo(comboBefore.current);
       setInput(phase.answer);
       setPhase({ kind: 'answering' });
       Haptics.selectionAsync();
-      refresh();
+      if (current.card) refresh();
       inputRef.current?.focus();
     } finally {
       busy.current = false;
@@ -202,7 +250,7 @@ export function ReviewSession({
   }
 
   const { example, point } = current;
-  const remaining = queue.length + (phase.kind === 'result' ? 0 : 1);
+  const remaining = (quiz ? quizLeft : queue.length) + (phase.kind === 'result' ? 0 : 1);
   const result = phase.kind === 'result' ? phase : null;
   const retry = phase.kind === 'answering' ? phase.retry : undefined;
   const inputBorder = result ? (result.correct ? colors.correct : colors.wrong) : retry ? colors.notice : colors.border;
@@ -231,7 +279,9 @@ export function ReviewSession({
               {point.level}
             </T>
           </View>
-          <T variant="muted">Fill in the grammar · {remaining} left</T>
+          <T variant="muted">
+            {quiz ? (current.retry ? 'Try this one again' : 'Quiz') : 'Fill in the grammar'} · {remaining} left
+          </T>
         </View>
 
         <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' }}>

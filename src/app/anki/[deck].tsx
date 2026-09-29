@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -10,6 +10,7 @@ import { answerCard, buildStudyQueue, getStudyCard, LEARN_AHEAD_MS, nextDue, set
 import { formatInterval, GRADES, previewGrades, State, type AnkiSched } from '@/anki/schedule';
 import { AnkiCardView } from '@/components/AnkiCardView';
 import { Celebration } from '@/components/Celebration';
+import { NextUp } from '@/components/DayPlan';
 import { Button, T } from '@/components/ui';
 import { playSound } from '@/sound/sounds';
 import { useApp } from '@/state/AppProvider';
@@ -223,7 +224,7 @@ export default function AnkiStudy() {
           stats={answered > 0 ? [{ label: 'Answered', value: String(answered), tone: 'green' }] : []}
         >
           {answered > 0 && <Button label="Undo last answer" kind="ghost" onPress={undo} />}
-          <Button label="Back to decks" kind="success" onPress={() => router.back()} />
+          <NextUp from="cards" />
         </Celebration>
       </View>
     );

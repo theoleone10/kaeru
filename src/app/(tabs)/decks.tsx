@@ -101,8 +101,8 @@ export default function Decks() {
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.header}>
         <View>
-          <T variant="title">Decks</T>
-          <T variant="muted">Your Anki decks</T>
+          <T variant="title">Flashcards</T>
+          <T variant="muted">Your Anki decks, part of every day</T>
         </View>
         <Button label="Import" small onPress={importDeck} disabled={!!progress} icon={<Ionicons name="add" size={18} color="#FFFFFF" />} style={{ width: 120 }} />
       </View>

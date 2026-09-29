@@ -23,7 +23,7 @@ function useNotificationTaps() {
   useEffect(() => {
     if (Platform.OS === 'web') return; // notifications are phone-only
     const open = (response: Notifications.NotificationResponse | null) => {
-      if (response?.notification.request.content.data?.url === '/review') router.navigate('/review');
+      if (response?.notification.request.content.data?.url === '/review') router.push('/review');
     };
     open(Notifications.getLastNotificationResponse());
     const sub = Notifications.addNotificationResponseReceivedListener(open);
@@ -57,6 +57,7 @@ function ThemedStack() {
         <Stack.Protected guard={onboarded}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="lessons" options={{ headerShown: false, gestureEnabled: false }} />
+          <Stack.Screen name="review" options={{ headerShown: false }} />
           <Stack.Screen name="grammar/[id]" options={{ title: '' }} />
           <Stack.Screen name="settings" options={{ title: 'Settings' }} />
           <Stack.Screen name="sign-in" options={{ title: 'Sign in', presentation: 'modal' }} />

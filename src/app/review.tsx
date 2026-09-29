@@ -1,12 +1,13 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ReviewSession } from '@/components/ReviewSession';
 import { Celebration } from '@/components/Celebration';
-import { Button } from '@/components/ui';
-import { curriculum } from '@/content/loader';
-import { availableLessonCount, lessonsLearnedToday } from '@/srs/lessons';
-import { useApp, useNow } from '@/state/AppProvider';
+import { NextUp } from '@/components/DayPlan';
+import { ReviewSession } from '@/components/ReviewSession';
+import { T } from '@/components/ui';
+import { useApp } from '@/state/AppProvider';
+import { spacing, TAP } from '@/theme/colors';
 
 function formatNext(ts: number | null): string {
   if (ts === null) return 'No reviews scheduled yet.';
@@ -16,25 +17,27 @@ function formatNext(ts: number | null): string {
   return `Next review ${sameDay ? 'today' : d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at ${time}.`;
 }
 
-export default function ReviewTab() {
+/** Grammar reviews: everything due, then on to the rest of today's plan. */
+export default function Review() {
   const insets = useSafeAreaInsets();
-  const { colors, cards, settings } = useApp();
-  const now = useNow();
-  const learned = new Set(cards.map((c) => c.grammar_id));
-  const lessons = availableLessonCount(
-    curriculum,
-    learned,
-    lessonsLearnedToday(cards.map((c) => c.learned_at), now),
-    settings.dailyLessonLimit,
-  );
+  const { colors } = useApp();
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.background }}>
+      <View style={styles.header}>
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close reviews" hitSlop={8} style={styles.close}>
+          <Ionicons name="close" size={30} color={colors.textMuted} />
+        </Pressable>
+        <T variant="small" style={{ fontWeight: '900', letterSpacing: 0.8 }}>
+          GRAMMAR REVIEW
+        </T>
+      </View>
       <ReviewSession
+        bottomInset={insets.bottom}
         emptyState={(nextDue, summary) =>
           summary.reviewed > 0 ? (
             <Celebration
-              title="Session complete!"
+              title="Reviews done!"
               subtitle={formatNext(nextDue)}
               confetti={summary.correct / summary.reviewed >= 0.8}
               stats={[
@@ -42,11 +45,11 @@ export default function ReviewTab() {
                 { label: 'Accuracy', value: `${Math.round((summary.correct / summary.reviewed) * 100)}%`, tone: 'green' },
               ]}
             >
-              {lessons > 0 && <Button label={`Learn ${Math.min(lessons, settings.batchSize)} new points`} onPress={() => router.push('/lessons')} />}
+              <NextUp from="review" />
             </Celebration>
           ) : (
             <Celebration title="All caught up" subtitle={formatNext(nextDue)} mood="sleep">
-              {lessons > 0 && <Button label={`Learn ${Math.min(lessons, settings.batchSize)} new points`} onPress={() => router.push('/lessons')} />}
+              <NextUp from="review" />
             </Celebration>
           )
         }
@@ -54,3 +57,8 @@ export default function ReviewTab() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.sm },
+  close: { width: TAP, height: TAP, alignItems: 'center', justifyContent: 'center' },
+});

@@ -40,13 +40,13 @@ describe('lessons', () => {
   const curriculum = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => point(id));
 
   it('takes the next unlearned points in order', () => {
-    const batch = nextLessonBatch(curriculum, new Set(['a', 'c']), 0, { batchSize: 3, dailyLimit: 10 });
+    const batch = nextLessonBatch(curriculum, new Set(['a', 'c']), 0, 3);
     expect(batch.map((p) => p.id)).toEqual(['b', 'd', 'e']);
   });
 
-  it('respects the daily limit', () => {
-    expect(nextLessonBatch(curriculum, new Set(), 9, { batchSize: 3, dailyLimit: 10 }).map((p) => p.id)).toEqual(['a']);
-    expect(nextLessonBatch(curriculum, new Set(), 10, { batchSize: 3, dailyLimit: 10 })).toEqual([]);
+  it('respects the daily goal', () => {
+    expect(nextLessonBatch(curriculum, new Set(), 1, 2).map((p) => p.id)).toEqual(['a']);
+    expect(nextLessonBatch(curriculum, new Set(), 2, 2)).toEqual([]);
     expect(availableLessonCount(curriculum, new Set(['a']), 2, 5)).toBe(3);
   });
 

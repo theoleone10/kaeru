@@ -85,7 +85,7 @@ export default function EntryEditor() {
 
       <Card style={{ gap: spacing.sm }}>
         <DateTimeField label="Start" value={start} onChange={setStart} />
-        {end != null ? <DateTimeField label="End" value={end} onChange={setEnd} /> : <T variant="small">Still running — stop it from the Track tab.</T>}
+        {end != null ? <DateTimeField label="End" value={end} onChange={setEnd} /> : <T variant="small">Still running — stop it from the Progress tab.</T>}
         <T variant="small">Duration: {formatDuration(entryDuration({ started_at: start, ended_at: end }, now))}</T>
       </Card>
 

@@ -235,3 +235,15 @@ export async function reviewsToday(db: Db, now: number): Promise<number> {
   const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM anki_revlog WHERE imported = 0 AND reviewed_at >= ?', startOfDay(now));
   return row?.n ?? 0;
 }
+
+/** Today's flashcard work across all top-level decks, and the first deck with something to study. */
+export async function ankiToday(db: Db, now: number, limits: Limits): Promise<{ decks: number; due: number; firstDeck: string | null; reviewed: number }> {
+  const top = (await listDecks(db, now, limits)).filter((d) => d.depth === 0);
+  const todo = (d: DeckNode) => d.newCount + d.learnCount + d.reviewCount;
+  return {
+    decks: top.length,
+    due: top.reduce((s, d) => s + todo(d), 0),
+    firstDeck: top.find((d) => todo(d) > 0)?.path ?? null,
+    reviewed: await reviewsToday(db, now),
+  };
+}

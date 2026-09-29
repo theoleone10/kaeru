@@ -74,16 +74,6 @@ export function getAllCards(db: SQLiteDatabase): Promise<StoredCard[]> {
   return db.getAllAsync<StoredCard>('SELECT * FROM cards');
 }
 
-/** Lesson completion: create cards for newly learned points (existing cards are kept). */
-export async function addLearnedCards(db: SQLiteDatabase, cards: StoredCard[]): Promise<void> {
-  await transaction(db, async (txn) => {
-    for (const card of cards) {
-      const existing = await txn.getFirstAsync('SELECT grammar_id FROM cards WHERE grammar_id = ?', card.grammar_id);
-      if (!existing) await upsertCard(txn, card);
-    }
-  });
-}
-
 export async function setSuspended(db: SQLiteDatabase, grammarId: string, suspended: boolean): Promise<void> {
   await db.runAsync('UPDATE cards SET suspended = ? WHERE grammar_id = ?', suspended ? 1 : 0, grammarId);
 }
@@ -142,6 +132,38 @@ export async function undoReview(db: SQLiteDatabase, logId: number): Promise<Sto
   return restored;
 }
 
+/**
+ * Finish a lesson: put the quizzed points into the SRS (card + its first review log) and
+ * mark every quiz sentence as shown, so reviews start with sentences not seen yet.
+ */
+export async function saveQuizResults(
+  db: SQLiteDatabase,
+  seeds: { card: StoredCard; log: StoredLog }[],
+  answers: { pointId: string; exampleId: string; correct: boolean; at: number }[],
+): Promise<void> {
+  await transaction(db, async (txn) => {
+    for (const { card, log } of seeds) {
+      if (await txn.getFirstAsync('SELECT grammar_id FROM cards WHERE grammar_id = ?', card.grammar_id)) continue;
+      await upsertCard(txn, card);
+      await insertLog(txn, log);
+    }
+    for (const a of answers) {
+      await txn.runAsync(
+        `INSERT INTO example_seen (example_id, grammar_id, times_shown, times_wrong, last_shown_at)
+         VALUES (?, ?, 1, ?, ?)
+         ON CONFLICT(example_id) DO UPDATE SET
+           times_shown = times_shown + 1,
+           times_wrong = times_wrong + excluded.times_wrong,
+           last_shown_at = MAX(COALESCE(last_shown_at, 0), excluded.last_shown_at)`,
+        a.exampleId,
+        a.pointId,
+        a.correct ? 0 : 1,
+        a.at,
+      );
+    }
+  });
+}
+
 export async function getExampleSeen(db: SQLiteDatabase, grammarId: string): Promise<Map<string, ExampleSeen>> {
   const rows = await db.getAllAsync<ExampleSeen>(
     'SELECT example_id, times_shown, last_shown_at FROM example_seen WHERE grammar_id = ?',
@@ -165,14 +187,33 @@ export async function getPointStats(db: SQLiteDatabase, grammarId: string): Prom
   return { reviews: row?.reviews ?? 0, correct: row?.correct ?? 0, lastReviewedAt: row?.last ?? null };
 }
 
-/** Timestamps of study activity (reviews + lessons) since `since`, for the streak. */
-export async function getActivityTimes(db: SQLiteDatabase, since: number): Promise<number[]> {
+/**
+ * Timestamps of any study since `since`, for the streak: grammar reviews and lessons,
+ * flashcard reviews, and tracked immersion/study time.
+ */
+export async function getActivityTimes(db: Pick<SQLiteDatabase, 'getAllAsync'>, since: number): Promise<number[]> {
   const rows = await db.getAllAsync<{ t: number }>(
-    'SELECT reviewed_at AS t FROM review_logs WHERE reviewed_at >= ? UNION ALL SELECT learned_at AS t FROM cards WHERE learned_at >= ?',
+    `SELECT reviewed_at AS t FROM review_logs WHERE reviewed_at >= ?
+     UNION ALL SELECT learned_at AS t FROM cards WHERE learned_at >= ?
+     UNION ALL SELECT reviewed_at AS t FROM anki_revlog WHERE reviewed_at >= ?
+     UNION ALL SELECT started_at AS t FROM time_entries WHERE started_at >= ?`,
+    since,
+    since,
     since,
     since,
   );
   return rows.map((r) => r.t);
+}
+
+/** Review timestamps since `since`, split into grammar and flashcards (for per-day charts). */
+export async function getReviewTimes(db: Pick<SQLiteDatabase, 'getAllAsync'>, since: number): Promise<{ grammar: number[]; cards: number[] }> {
+  const rows = await db.getAllAsync<{ t: number; k: string }>(
+    `SELECT reviewed_at AS t, 'g' AS k FROM review_logs WHERE reviewed_at >= ?
+     UNION ALL SELECT reviewed_at AS t, 'c' AS k FROM anki_revlog WHERE reviewed_at >= ?`,
+    since,
+    since,
+  );
+  return { grammar: rows.filter((r) => r.k === 'g').map((r) => r.t), cards: rows.filter((r) => r.k === 'c').map((r) => r.t) };
 }
 
 export async function getReviewCountSince(db: SQLiteDatabase, since: number): Promise<number> {

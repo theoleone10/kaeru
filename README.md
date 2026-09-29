@@ -37,17 +37,38 @@ Keep `id`s stable once you've reviewed a point — progress is stored by id.
 
 ## How it works
 
-- **Lessons** → reading pages for a batch (default 4, daily limit 12), then a quiz. The quiz is a normal review session restricted to the new points, so first answers feed FSRS directly; misses come back until answered correctly.
+The app is built around one daily routine, shown on the **Today** tab. The routine has up to four steps, and a step that doesn't apply to you is left out:
+
+1. **Learn**: today's 1–2 new grammar points, then a short quiz.
+2. **Review**: grammar that's due.
+3. **Flashcards**: your Anki decks.
+4. **Immerse**: reach your daily time goal.
+
+Each step shows its progress. One button always takes you to the next step. When a session ends, it offers the next step or a way back to Today. Your streak counts any study: grammar, flashcards or tracked time.
+
+- **Tabs** → Today · Grammar (the train map) · Cards (your Anki decks) · Progress.
+  - Progress's *Overview* shows your streak and a 7-day table of grammar reviews, flashcards and minutes tracked. It also shows each JLPT level's progress and the next 24 hours of reviews.
+  - Progress's *Time tracking* section has the timer and your history.
+- **Lessons** → you read each new point, then take a quiz.
+  - **Size:** the quiz asks 3 different sentences per point. A missed sentence comes back once at the end, and that retry isn't scored.
+  - **Passing:** a point passes with at most one miss out of three.
+  - **Entering reviews:** a point you pass goes into reviews with its first review in about 2 days. A point you don't pass comes back within 10 minutes.
+  - **Next sentences:** quiz sentences count as seen, so your reviews start with sentences you haven't met yet.
+  - **Leaving early:** a point is only added once you finish the quiz.
+- **Settings → Daily plan** sets new grammar per day (1–5, default 2) and the daily time goal (default 30m, or Off). *Learn one more* on Today lets you go past the goal.
 - **Reviews** → type the missing grammar. Romaji is converted to kana as you type (wanakana, IME mode); Japanese-keyboard input is never altered. Typing `wa`/`e`/`o` where the particle は/へ/を is expected gives a "Close!" retry rather than a fail. Sentences rotate so you don't memorise one.
 - **SRS** → [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs), retention 0.9, one 10-minute (re)learning step, pass/fail grading (Good/Again). **Undo** restores the card exactly as it was before the answer.
 - **Storage** → SQLite (`src/db/migrations.ts`), fully offline. Settings → Backup file exports/imports everything as JSON.
-- **Time tracking** → the Track tab is a Toggl-style timer (Immersion, Study, or your own activities) with daily / weekly totals, a 7-day chart, streak and editable history. Lessons and reviews log to Study automatically when no timer is running (Settings → Time tracking). You can import past time from a Toggl *Detailed report* CSV (Track → ⋯).
+- **Time tracking** → a Toggl-style timer (Immersion, Study, or your own activities).
+  - **Where:** start and stop it from the chips on Today, or open Progress → Time tracking for daily and weekly totals, a 7-day chart and editable history.
+  - **Automatic study time:** lessons, reviews and flashcards log to Study automatically when no timer is running (Settings → Time tracking).
+  - **Toggl import:** you can import past time from a Toggl *Detailed report* CSV (Time tracking → ⋯).
 - **iOS Shortcuts** → the timer is driven by links, so any Shortcut (or Siri, Back Tap, the Action button, a Home Screen icon, or Android automation apps) can start and stop it with an *Open URLs* action:
   - `grammarapp://timer/start?activity=Immersion&note=Anime` (starting another activity stops the current one)
   - `grammarapp://timer/stop`
   - `grammarapp://timer/toggle?activity=Study` (one button to start / stop)
-  Track → ⋯ → *Set up iPhone Shortcuts* lists copyable links. The app opens briefly to record the time.
-- **Anki decks** → Decks tab → + imports an `.apkg` / `.colpkg` exported from Anki with *Include scheduling information* and *Include media*. Both package formats are read (Anki ≤ 2.1.49 and the current zstd/protobuf format). Notes, note types (templates + CSS), decks and subdecks, media, review history and each card's progress come across: if you used FSRS in Anki its memory state is used directly, otherwise stability ≈ current interval and difficulty is estimated from ease. Cards render in a WebView with Anki's template language (fields, conditionals, cloze, furigana/kana/kanji, hint, FrontSide, [sound:]). Reviews use FSRS with Anki's four buttons, 1m/10m learning steps, and per-day new/review limits (Settings → Anki decks). Re-importing a newer export of the same deck updates it; for each card the more recently reviewed copy wins. `{{type:}}` fields show the answer instead of a typing box, and add-on-specific template features aren't supported.
+  Time tracking → ⋯ → *Set up iPhone Shortcuts* lists copyable links. The app opens briefly to record the time.
+- **Anki decks** → Cards tab → Import imports an `.apkg` / `.colpkg` exported from Anki with *Include scheduling information* and *Include media*. Both package formats are read (Anki ≤ 2.1.49 and the current zstd/protobuf format). Notes, note types (templates + CSS), decks and subdecks, media, review history and each card's progress come across: if you used FSRS in Anki its memory state is used directly, otherwise stability ≈ current interval and difficulty is estimated from ease. Cards render in a WebView with Anki's template language (fields, conditionals, cloze, furigana/kana/kanji, hint, FrontSide, [sound:]). Reviews use FSRS with Anki's four buttons, 1m/10m learning steps, and per-day new/review limits (Settings → Anki decks). Re-importing a newer export of the same deck updates it; for each card the more recently reviewed copy wins. `{{type:}}` fields show the answer instead of a typing box, and add-on-specific template features aren't supported.
 - **Accounts (optional)** → Supabase Auth. The first launch shows a welcome screen (Apple / Google / email, or *Use without an account*). A signed-in phone uploads the same backup JSON to `user_progress` whenever the app goes to the background; signing in on a phone that already has progress asks which copy to keep. Settings → Account has back up now, sign out and delete account.
 
 ## Look & feel
@@ -57,7 +78,7 @@ Warm and playful: ivory background, clay-orange primary, chunky 3D buttons that 
 ## Layout
 
 ```
-src/app/            screens (Expo Router): (tabs)/index, grammar, review; lessons; grammar/[id]; settings;
+src/app/            screens (Expo Router): (tabs)/index (Today), grammar, decks, progress; lessons; review; grammar/[id]; settings;
                     welcome, sign-in, email-auth, new-password, auth-callback, legal/privacy, legal/terms
 src/auth/           Supabase client, AuthProvider (Apple / Google / email), redirect parsing
 src/sync/           cloud backup upload / restore / reconcile
@@ -66,7 +87,8 @@ src/anki/           Anki import (package unzip, collection reader, protobuf, sto
 src/legal/          privacy policy + terms text (publish the same text at a public URL)
 supabase/           database migration (progress table, row-level security, delete_account)
 src/components/     UI: ReviewSession, LessonContent, Furigana/ClozeSentence, ForecastChart
-src/srs/            FSRS wrapper, queue, sentence rotation, forecast, lesson batching
+src/daily/          the daily plan (pure) and useToday (what's due across grammar, flashcards and time)
+src/srs/            FSRS wrapper, queue, sentence rotation, forecast, lesson batching, post-lesson quiz
 src/review/         answer normalisation + checking, romaji input
 src/notifications/  reminder planning (pure) + scheduling
 src/db/             schema migrations + queries

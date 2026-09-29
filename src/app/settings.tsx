@@ -232,12 +232,19 @@ export default function SettingsScreen() {
       <AccountCard />
 
       <Card style={styles.card}>
-        <T variant="heading">Lessons</T>
-        <Row label="Batch size" detail="New grammar points per lesson">
-          <Stepper value={settings.batchSize} {...LIMITS.batchSize} onChange={(v) => updateSettings({ batchSize: v })} />
+        <T variant="heading">Daily plan</T>
+        <T variant="small">Each day: learn new grammar with a short quiz, review what’s due, study your flashcards, and track your immersion.</T>
+        <Row label="New grammar per day" detail="Learned together in one lesson, then quizzed">
+          <Stepper value={settings.dailyNewGrammar} {...LIMITS.dailyNewGrammar} onChange={(v) => updateSettings({ dailyNewGrammar: v })} />
         </Row>
-        <Row label="Daily limit" detail="Maximum new points per day">
-          <Stepper value={settings.dailyLessonLimit} {...LIMITS.dailyLessonLimit} onChange={(v) => updateSettings({ dailyLessonLimit: v })} />
+        <Row label="Daily time goal" detail="Immersion and study, including in-app time">
+          <Stepper
+            value={settings.dailyTimeGoalMin}
+            display={settings.dailyTimeGoalMin === 0 ? 'Off' : `${settings.dailyTimeGoalMin}m`}
+            {...LIMITS.dailyTimeGoalMin}
+            step={15}
+            onChange={(v) => updateSettings({ dailyTimeGoalMin: v })}
+          />
         </Row>
       </Card>
 

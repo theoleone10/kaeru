@@ -13,7 +13,7 @@ import { useTime } from '@/time/TimeProvider';
  *   grammarapp://timer/start?activity=Immersion&note=Anime
  *   grammarapp://timer/stop
  *   grammarapp://timer/toggle?activity=Study
- * Runs the command, then shows the Track tab.
+ * Runs the command, then shows the Progress tab.
  */
 export default function TimerLink() {
   const db = useSQLiteContext();
@@ -33,7 +33,7 @@ export default function TimerLink() {
       else if (cmd?.kind === 'toggle') await toggleTimer(db, cmd.activity, now, 'shortcut', cmd.note);
       if (cmd) playSound(cmd.kind === 'stop' ? 'stop' : 'start');
       await refresh();
-      router.replace('/track');
+      router.replace('/progress');
     })();
   }, [db, params, refresh]);
 

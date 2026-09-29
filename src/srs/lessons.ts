@@ -1,28 +1,22 @@
 import type { GrammarPoint } from '../content/types';
 import { startOfLocalDay } from '../stats/dates';
 
-export interface LessonLimits {
-  batchSize: number;
-  dailyLimit: number;
-}
-
 export function lessonsLearnedToday(learnedAt: readonly number[], now: number): number {
   const start = startOfLocalDay(now);
   return learnedAt.filter((t) => t >= start).length;
 }
 
 /**
- * Next lesson batch: unlearned points in curriculum order (content is ordered N5 → N1,
- * simplest first), capped by batch size and what is left of today's limit.
+ * Today's lesson: the next unlearned points in curriculum order (content is ordered
+ * N5 → N1, simplest first), as many as are left of the daily goal.
  */
 export function nextLessonBatch(
   curriculum: readonly GrammarPoint[],
   learnedIds: ReadonlySet<string>,
   learnedToday: number,
-  { batchSize, dailyLimit }: LessonLimits,
+  dailyGoal: number,
 ): GrammarPoint[] {
-  const remainingToday = Math.max(0, dailyLimit - learnedToday);
-  const size = Math.min(batchSize, remainingToday);
+  const size = Math.max(0, dailyGoal - learnedToday);
   if (size === 0) return [];
   return curriculum.filter((p) => !learnedIds.has(p.id)).slice(0, size);
 }

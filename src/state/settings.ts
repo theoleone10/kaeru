@@ -1,8 +1,10 @@
 export type ThemePreference = 'system' | 'light' | 'dark';
 
 export interface Settings {
-  batchSize: number;
-  dailyLessonLimit: number;
+  /** New grammar points per day: one lesson + quiz covers them all. */
+  dailyNewGrammar: number;
+  /** Daily immersion/study time goal in minutes (0 = no goal). */
+  dailyTimeGoalMin: number;
   furigana: boolean;
   romajiInput: boolean;
   theme: ThemePreference;
@@ -20,8 +22,8 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  batchSize: 4,
-  dailyLessonLimit: 12,
+  dailyNewGrammar: 2,
+  dailyTimeGoalMin: 30,
   furigana: true,
   romajiInput: true,
   theme: 'system',
@@ -36,8 +38,8 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 export const LIMITS = {
-  batchSize: { min: 1, max: 10 },
-  dailyLessonLimit: { min: 1, max: 50 },
+  dailyNewGrammar: { min: 1, max: 5 },
+  dailyTimeGoalMin: { min: 0, max: 480 },
   minReminderGapHours: { min: 1, max: 12 },
   ankiNewPerDay: { min: 0, max: 200 },
   ankiMaxReviewsPerDay: { min: 10, max: 9999 },
@@ -51,10 +53,10 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
   const num = (k: keyof Settings) => (typeof raw[k] === 'number' && Number.isFinite(raw[k]) ? (raw[k] as number) : undefined);
   const bool = (k: keyof Settings) => (typeof raw[k] === 'boolean' ? (raw[k] as boolean) : undefined);
 
-  const batch = num('batchSize');
-  if (batch !== undefined) s.batchSize = clamp(batch, LIMITS.batchSize.min, LIMITS.batchSize.max);
-  const daily = num('dailyLessonLimit');
-  if (daily !== undefined) s.dailyLessonLimit = clamp(daily, LIMITS.dailyLessonLimit.min, LIMITS.dailyLessonLimit.max);
+  const daily = num('dailyNewGrammar');
+  if (daily !== undefined) s.dailyNewGrammar = clamp(daily, LIMITS.dailyNewGrammar.min, LIMITS.dailyNewGrammar.max);
+  const goal = num('dailyTimeGoalMin');
+  if (goal !== undefined) s.dailyTimeGoalMin = clamp(goal, LIMITS.dailyTimeGoalMin.min, LIMITS.dailyTimeGoalMin.max);
   const gap = num('minReminderGapHours');
   if (gap !== undefined) s.minReminderGapHours = clamp(gap, LIMITS.minReminderGapHours.min, LIMITS.minReminderGapHours.max);
   const anew = num('ankiNewPerDay');

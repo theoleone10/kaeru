@@ -7,25 +7,27 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LessonContent } from '@/components/LessonContent';
 import { ReviewSession } from '@/components/ReviewSession';
 import { Celebration } from '@/components/Celebration';
+import { NextUp } from '@/components/DayPlan';
 import { Button, ProgressBar, T } from '@/components/ui';
 import { curriculum, getPoint } from '@/content/loader';
 import type { GrammarPoint } from '@/content/types';
-import { addLearnedCards } from '@/db/repo';
+import { saveQuizResults } from '@/db/repo';
 import { lessonsLearnedToday, nextLessonBatch } from '@/srs/lessons';
-import { newCard } from '@/srs/scheduler';
+import { buildQuiz, cardsFromQuiz, type QuizAnswer, type QuizItem } from '@/srs/quiz';
 import { useApp } from '@/state/AppProvider';
 import { useAutoTrack } from '@/time/useAutoTrack';
 import { spacing, TAP } from '@/theme/colors';
 
 /**
- * Lesson flow: read each point in the batch, then a short quiz. The quiz is a
- * restricted review session, so first answers feed straight into FSRS.
- * `?id=` teaches one specific point (from "Learn now" on the grammar screen).
+ * Today's lesson: read each new point (1–2 a day by default), then a short quiz of a
+ * few sentences per point. When the quiz is over the points go into the SRS, scheduled
+ * by how the quiz went. `?id=` teaches one specific point (from the grammar screen);
+ * `?extra=1` teaches one more point after the daily goal is met.
  */
 export default function Lessons() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, extra } = useLocalSearchParams<{ id?: string; extra?: string }>();
   const { colors, cards, settings, refresh } = useApp();
 
   // Freeze the batch when the screen opens so it doesn't shift as cards are created.
@@ -35,20 +37,20 @@ export default function Lessons() {
         const p = getPoint(id);
         return p && !learned.has(p.id) ? [p] : [];
       }
-      return nextLessonBatch(curriculum, learned, lessonsLearnedToday(cards.map((c) => c.learned_at), Date.now()), {
-        batchSize: settings.batchSize,
-        dailyLimit: settings.dailyLessonLimit,
-      });
+      if (extra) return curriculum.filter((p) => !learned.has(p.id)).slice(0, 1);
+      return nextLessonBatch(curriculum, learned, lessonsLearnedToday(cards.map((c) => c.learned_at), Date.now()), settings.dailyNewGrammar);
   });
 
   const [index, setIndex] = useState(0);
   const [step, setStep] = useState<'learn' | 'quiz'>('learn');
+  const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
+  const [passed, setPassed] = useState<Map<string, boolean> | null>(null);
   useAutoTrack(step === 'learn');
   const scroll = useRef<ScrollView>(null);
 
   const close = () => {
-    if (step === 'learn' && batch.length > 0) {
-      Alert.alert('Leave lessons?', 'These grammar points will stay unlearned.', [
+    if (batch.length > 0 && !passed) {
+      Alert.alert(step === 'quiz' ? 'Leave the quiz?' : 'Leave the lesson?', 'These grammar points won’t be added to your reviews until you finish the quiz.', [
         { text: 'Stay', style: 'cancel' },
         { text: 'Leave', style: 'destructive', onPress: () => router.back() },
       ]);
@@ -62,14 +64,16 @@ export default function Lessons() {
     scroll.current?.scrollTo({ y: 0, animated: false });
   };
 
-  const startQuiz = async () => {
-    const now = Date.now();
-    await addLearnedCards(
-      db,
-      batch.map((p) => newCard(p.id, p.level, now)),
-    );
-    await refresh();
+  const startQuiz = () => {
+    setQuizItems(buildQuiz(batch));
     setStep('quiz');
+  };
+
+  const finishQuiz = async (answers: QuizAnswer[]) => {
+    const seeds = cardsFromQuiz(batch, answers, Date.now());
+    await saveQuizResults(db, seeds, answers);
+    setPassed(new Map(seeds.map((s) => [s.card.grammar_id, s.passed])));
+    await refresh();
   };
 
   const header = (
@@ -87,11 +91,17 @@ export default function Lessons() {
   );
 
   if (batch.length === 0) {
+    const anyLeft = curriculum.some((p) => !cards.some((c) => c.grammar_id === p.id));
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         {header}
-        <Celebration title="No lessons right now" subtitle="Today’s lesson limit is reached, or everything is learned. Reviews keep your streak going!" mood="sleep">
-          <Button label="Back" onPress={() => router.back()} />
+        <Celebration
+          title={anyLeft ? 'Today’s grammar is learned' : 'Every point learned!'}
+          subtitle={anyLeft ? 'A little every day sticks best. Tomorrow brings the next stations, and reviews keep today’s fresh.' : 'You’ve finished the whole curriculum. Reviews keep it all fresh.'}
+          mood="cheer"
+        >
+          <NextUp from="learn" />
+          {anyLeft && <Button label="Learn one more anyway" kind="ghost" onPress={() => router.replace({ pathname: '/lessons', params: { extra: '1' } })} />}
         </Celebration>
       </View>
     );
@@ -102,21 +112,28 @@ export default function Lessons() {
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         {header}
         <ReviewSession
-          onlyIds={batch.map((p) => p.id)}
+          quiz={{ items: quizItems, onComplete: finishQuiz }}
           bottomInset={insets.bottom}
-          emptyState={(_next, summary) => (
-            <Celebration
-              title="Lesson complete!"
-              subtitle={`${batch.length} new ${batch.length === 1 ? 'station' : 'stations'} on your line. They’re in your review schedule now.`}
-              confetti
-              stats={[
-                { label: 'Learned', value: String(batch.length), tone: 'accent' },
-                { label: 'Accuracy', value: summary.reviewed ? `${Math.round((summary.correct / summary.reviewed) * 100)}%` : '—', tone: 'green' },
-              ]}
-            >
-              <Button label="Continue" kind="success" onPress={() => router.back()} />
-            </Celebration>
-          )}
+          emptyState={(_next, summary) => {
+            const shaky = batch.filter((p) => passed?.get(p.id) === false);
+            return (
+              <Celebration
+                title="Lesson complete!"
+                subtitle={
+                  shaky.length === 0
+                    ? `${batch.map((p) => p.title).join(' and ')} ${batch.length === 1 ? 'is' : 'are'} in your reviews now. First review in a couple of days.`
+                    : `Added to your reviews. ${shaky.map((p) => p.title).join(' and ')} needs another look, so it comes back in 10 minutes.`
+                }
+                confetti={shaky.length === 0}
+                stats={[
+                  { label: 'Learned', value: String(batch.length), tone: 'accent' },
+                  { label: 'Quiz', value: summary.reviewed ? `${summary.correct}/${summary.reviewed}` : '—', tone: 'green' },
+                ]}
+              >
+                <NextUp from="learn" />
+              </Celebration>
+            );
+          }}
         />
       </View>
     );
@@ -132,7 +149,7 @@ export default function Lessons() {
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, borderTopColor: colors.border }]}>
         <Button label="Back" kind="ghost" onPress={() => go(index - 1)} disabled={index === 0} style={{ flex: 1 }} />
-        <Button label={last ? 'Start quiz' : 'Next'} onPress={last ? startQuiz : () => go(index + 1)} style={{ flex: 2 }} />
+        <Button label={last ? 'Take the quiz' : 'Next'} onPress={last ? startQuiz : () => go(index + 1)} style={{ flex: 2 }} />
       </View>
     </View>
   );
