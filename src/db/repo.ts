@@ -46,7 +46,7 @@ type Executor = Pick<SQLiteDatabase, 'runAsync' | 'getFirstAsync' | 'getAllAsync
  * Exclusive transaction on device (other queries can't interleave). The web build
  * (browser preview only) doesn't support exclusive transactions, so it falls back.
  */
-export async function transaction(db: SQLiteDatabase, task: (txn: Executor & Pick<SQLiteDatabase, 'execAsync'>) => Promise<void>): Promise<void> {
+export async function transaction(db: SQLiteDatabase, task: (txn: Executor & Pick<SQLiteDatabase, 'execAsync' | 'prepareAsync'>) => Promise<void>): Promise<void> {
   if (Platform.OS === 'web') return db.withTransactionAsync(() => task(db));
   return db.withExclusiveTransactionAsync(task);
 }

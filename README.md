@@ -18,7 +18,7 @@ Everything except native Sign in with Apple runs in Expo Go (review reminders ar
 
 | Command | What it does |
 | --- | --- |
-| `npm test` | Jest tests: SRS scheduling, answer checking, romaji input, furigana, reminders, backup format, and validation of every file in `/content` |
+| `npm test` | Jest tests: SRS scheduling, answer checking, romaji input, furigana, reminders, backup format, time tracking, Anki import (real `.apkg` fixtures through the real migrations on Node's SQLite) and rendering, and validation of every file in `/content` |
 | `npm run typecheck` | TypeScript |
 | `npm run lint` | ESLint (expo config) |
 
@@ -41,6 +41,13 @@ Keep `id`s stable once you've reviewed a point — progress is stored by id.
 - **Reviews** → type the missing grammar. Romaji is converted to kana as you type (wanakana, IME mode); Japanese-keyboard input is never altered. Typing `wa`/`e`/`o` where the particle は/へ/を is expected gives a "Close!" retry rather than a fail. Sentences rotate so you don't memorise one.
 - **SRS** → [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs), retention 0.9, one 10-minute (re)learning step, pass/fail grading (Good/Again). **Undo** restores the card exactly as it was before the answer.
 - **Storage** → SQLite (`src/db/migrations.ts`), fully offline. Settings → Backup file exports/imports everything as JSON.
+- **Time tracking** → the Track tab is a Toggl-style timer (Immersion, Study, or your own activities) with daily / weekly totals, a 7-day chart, streak and editable history. Lessons and reviews log to Study automatically when no timer is running (Settings → Time tracking). You can import past time from a Toggl *Detailed report* CSV (Track → ⋯).
+- **iOS Shortcuts** → the timer is driven by links, so any Shortcut (or Siri, Back Tap, the Action button, a Home Screen icon, or Android automation apps) can start and stop it with an *Open URLs* action:
+  - `grammarapp://timer/start?activity=Immersion&note=Anime` (starting another activity stops the current one)
+  - `grammarapp://timer/stop`
+  - `grammarapp://timer/toggle?activity=Study` (one button to start / stop)
+  Track → ⋯ → *Set up iPhone Shortcuts* lists copyable links. The app opens briefly to record the time.
+- **Anki decks** → Decks tab → + imports an `.apkg` / `.colpkg` exported from Anki with *Include scheduling information* and *Include media*. Both package formats are read (Anki ≤ 2.1.49 and the current zstd/protobuf format). Notes, note types (templates + CSS), decks and subdecks, media, review history and each card's progress come across: if you used FSRS in Anki its memory state is used directly, otherwise stability ≈ current interval and difficulty is estimated from ease. Cards render in a WebView with Anki's template language (fields, conditionals, cloze, furigana/kana/kanji, hint, FrontSide, [sound:]). Reviews use FSRS with Anki's four buttons, 1m/10m learning steps, and per-day new/review limits (Settings → Anki decks). Re-importing a newer export of the same deck updates it; for each card the more recently reviewed copy wins. `{{type:}}` fields show the answer instead of a typing box, and add-on-specific template features aren't supported.
 - **Accounts (optional)** → Supabase Auth. The first launch shows a welcome screen (Apple / Google / email, or *Use without an account*). A signed-in phone uploads the same backup JSON to `user_progress` whenever the app goes to the background; signing in on a phone that already has progress asks which copy to keep. Settings → Account has back up now, sign out and delete account.
 
 ## Layout
@@ -50,6 +57,8 @@ src/app/            screens (Expo Router): (tabs)/index, grammar, review; lesson
                     welcome, sign-in, email-auth, new-password, auth-callback, legal/privacy, legal/terms
 src/auth/           Supabase client, AuthProvider (Apple / Google / email), redirect parsing
 src/sync/           cloud backup upload / restore / reconcile
+src/time/           time tracking: model (totals, Toggl CSV, Shortcut links), repo, provider, auto-tracking
+src/anki/           Anki import (package unzip, collection reader, protobuf, store), template rendering, FSRS scheduling, deck queries
 src/legal/          privacy policy + terms text (publish the same text at a public URL)
 supabase/           database migration (progress table, row-level security, delete_account)
 src/components/     UI: ReviewSession, LessonContent, Furigana/ClozeSentence, ForecastChart

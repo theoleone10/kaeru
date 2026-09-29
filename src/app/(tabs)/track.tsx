@@ -84,7 +84,7 @@ function WeekChart({ entries, activities, now }: { entries: TimeEntry[]; activit
       {days.map((d) => (
         <View key={d.dayStart} style={{ flex: 1, alignItems: 'center', gap: 4 }} accessibilityLabel={`${dayLabel(d.dayStart, now)}: ${formatDuration(d.total)}`}>
           <T variant="small" style={{ fontSize: 10 }}>
-            {d.total > 0 ? formatDuration(d.total).replace(' ', '') : ''}
+            {d.total >= 60_000 ? formatDuration(d.total).replace(' ', '') : ''}
           </T>
           <View style={{ width: '70%', height: H, justifyContent: 'flex-end', borderRadius: 4, overflow: 'hidden', backgroundColor: colors.surfaceAlt }}>
             {[...d.byActivity.entries()].map(([id, ms]) => (

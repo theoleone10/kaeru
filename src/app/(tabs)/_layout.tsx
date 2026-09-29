@@ -38,6 +38,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="decks"
+        options={{ title: 'Decks', tabBarIcon: ({ color, size }) => <Ionicons name="albums-outline" color={color} size={size} /> }}
+      />
+      <Tabs.Screen
         name="track"
         options={{
           title: 'Track',

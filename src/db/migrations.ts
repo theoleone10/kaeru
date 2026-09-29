@@ -79,41 +79,39 @@ const MIGRATIONS: string[] = [
   CREATE INDEX idx_time_started ON time_entries(started_at);
   CREATE INDEX idx_time_running ON time_entries(ended_at) WHERE ended_at IS NULL;
 
+  -- Anki: decks, note types and notes are keyed by Anki's own stable ids, so
+  -- re-importing an updated export updates in place instead of duplicating.
   CREATE TABLE anki_imports (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     file_name   TEXT NOT NULL,
     imported_at INTEGER NOT NULL,
-    media_dir   TEXT NOT NULL
+    notes       INTEGER NOT NULL,
+    cards       INTEGER NOT NULL
   );
 
   CREATE TABLE anki_decks (
-    id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    import_id INTEGER NOT NULL REFERENCES anki_imports(id) ON DELETE CASCADE,
-    anki_id   INTEGER NOT NULL,
-    name      TEXT NOT NULL
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    anki_id INTEGER NOT NULL UNIQUE,
+    name    TEXT NOT NULL
   );
-  CREATE INDEX idx_anki_decks_import ON anki_decks(import_id, anki_id);
 
   CREATE TABLE anki_notetypes (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    import_id INTEGER NOT NULL REFERENCES anki_imports(id) ON DELETE CASCADE,
-    anki_id   INTEGER NOT NULL,
+    anki_id   INTEGER NOT NULL UNIQUE,
     name      TEXT NOT NULL,
     is_cloze  INTEGER NOT NULL,
     css       TEXT NOT NULL,
     fields    TEXT NOT NULL,
     templates TEXT NOT NULL
   );
-  CREATE INDEX idx_anki_notetypes_import ON anki_notetypes(import_id, anki_id);
 
   CREATE TABLE anki_notes (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     notetype_id INTEGER NOT NULL REFERENCES anki_notetypes(id) ON DELETE CASCADE,
-    guid        TEXT NOT NULL,
+    guid        TEXT NOT NULL UNIQUE,
     fields      TEXT NOT NULL,
     tags        TEXT NOT NULL
   );
-  CREATE INDEX idx_anki_notes_guid ON anki_notes(guid);
 
   CREATE TABLE anki_cards (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -141,12 +139,13 @@ const MIGRATIONS: string[] = [
     card_id     INTEGER NOT NULL REFERENCES anki_cards(id) ON DELETE CASCADE,
     reviewed_at INTEGER NOT NULL,
     rating      INTEGER NOT NULL,
+    prev_state  INTEGER NOT NULL,
     duration_ms INTEGER,
     imported    INTEGER NOT NULL DEFAULT 0,
     prev_card   TEXT
   );
   CREATE INDEX idx_anki_revlog_time ON anki_revlog(reviewed_at);
-  CREATE INDEX idx_anki_revlog_card ON anki_revlog(card_id);
+  CREATE INDEX idx_anki_revlog_card ON anki_revlog(card_id, reviewed_at);
   `,
 ];
 

@@ -273,6 +273,16 @@ export default function SettingsScreen() {
       </Card>
 
       <Card style={styles.card}>
+        <T variant="heading">Anki decks</T>
+        <Row label="New cards per day" detail="Per deck you study (like Anki’s daily limit)">
+          <Stepper value={settings.ankiNewPerDay} {...LIMITS.ankiNewPerDay} step={5} onChange={(v) => updateSettings({ ankiNewPerDay: v })} />
+        </Row>
+        <Row label="Maximum reviews per day">
+          <Stepper value={settings.ankiMaxReviewsPerDay} min={50} max={2000} step={50} onChange={(v) => updateSettings({ ankiMaxReviewsPerDay: v })} />
+        </Row>
+      </Card>
+
+      <Card style={styles.card}>
         <T variant="heading">Time tracking</T>
         <Row label="Track in-app study" detail="Log lessons and reviews to “Study” automatically when no timer is running">
           <Switch value={settings.autoTrackStudy} onValueChange={(v) => updateSettings({ autoTrackStudy: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
