@@ -8,7 +8,7 @@ import { useTime } from '@/time/TimeProvider';
 
 type IconName = keyof typeof Ionicons.glyphMap | 'frog';
 
-/** Tab icon: outline when idle; filled on a soft clay chip when active (like the mockup). */
+/** Tab icon: outline when idle; filled on a soft indigo chip when active (like the mockup). */
 function TabIcon({ focused, icon, badge, dot }: { focused: boolean; icon: IconName; badge?: number; dot?: string }) {
   const { colors } = useApp();
   const filled = icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap;
