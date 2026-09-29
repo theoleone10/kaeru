@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "Grammar",
-    "slug": "grammarapp",
+    "name": "Kaeru",
+    "slug": "kaeru",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.theoleone.grammarapp",
+      "bundleIdentifier": "com.theoleone.kaeru",
       "usesAppleSignIn": true,
       "config": {
         "usesNonExemptEncryption": false
@@ -22,7 +22,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.theoleone.grammarapp",
+      "package": "com.theoleone.kaeru",
       "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
@@ -64,7 +64,7 @@
         }
       ]
     ],
-    "scheme": "grammarapp",
+    "scheme": "kaeru",
     "description": "Over 400 Japanese grammar points from JLPT N5 to N1, learned with spaced-repetition reviews."
   }
 }

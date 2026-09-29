@@ -127,9 +127,9 @@ export type TimerCommand =
   | { kind: 'toggle'; activity: string; note: string };
 
 /**
- * grammarapp://timer/start?activity=Immersion&note=Anime
- * grammarapp://timer/stop
- * grammarapp://timer/toggle?activity=Study
+ * kaeru://timer/start?activity=Immersion&note=Anime
+ * kaeru://timer/stop
+ * kaeru://timer/toggle?activity=Study
  */
 export function parseTimerCommand(action: string | undefined, params: { activity?: string; note?: string }): TimerCommand | null {
   const activity = (params.activity ?? '').trim() || 'Immersion';

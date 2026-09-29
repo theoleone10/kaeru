@@ -10,9 +10,9 @@ import { useTime } from '@/time/TimeProvider';
 
 /**
  * Deep-link target for iOS Shortcuts / Android automation:
- *   grammarapp://timer/start?activity=Immersion&note=Anime
- *   grammarapp://timer/stop
- *   grammarapp://timer/toggle?activity=Study
+ *   kaeru://timer/start?activity=Immersion&note=Anime
+ *   kaeru://timer/stop
+ *   kaeru://timer/toggle?activity=Study
  * Runs the command, then shows the Progress tab.
  */
 export default function TimerLink() {

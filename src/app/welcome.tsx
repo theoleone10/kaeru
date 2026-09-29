@@ -28,7 +28,7 @@ export default function Welcome() {
       <View style={{ gap: spacing.sm, alignItems: 'flex-start' }}>
         <Mascot size={110} mood="cheer" bounce label="Musubi, the onigiri mascot" />
         <T variant="title" style={{ fontSize: 44, lineHeight: 56 }}>
-          文法
+          かえる
         </T>
         <T variant="heading">Learn Japanese grammar, one point at a time.</T>
       </View>

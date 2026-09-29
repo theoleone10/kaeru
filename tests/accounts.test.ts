@@ -7,17 +7,17 @@ jest.mock('@/auth/supabase', () => ({ supabase: null, authConfigured: false }));
 
 describe('parseAuthRedirect', () => {
   it('reads a PKCE code from the query', () => {
-    expect(parseAuthRedirect('grammarapp://auth-callback?code=abc-123&next=new-password')).toEqual({ code: 'abc-123' });
+    expect(parseAuthRedirect('kaeru://auth-callback?code=abc-123&next=new-password')).toEqual({ code: 'abc-123' });
   });
 
   it('reads errors from the fragment, decoding them', () => {
-    expect(parseAuthRedirect('grammarapp://auth-callback#error=access_denied&error_description=Email+link+is+invalid')).toEqual({
+    expect(parseAuthRedirect('kaeru://auth-callback#error=access_denied&error_description=Email+link+is+invalid')).toEqual({
       error: 'Email link is invalid',
     });
   });
 
   it('returns nothing for a bare URL', () => {
-    expect(parseAuthRedirect('grammarapp://auth-callback')).toEqual({});
+    expect(parseAuthRedirect('kaeru://auth-callback')).toEqual({});
   });
 });
 

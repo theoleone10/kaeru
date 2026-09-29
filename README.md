@@ -1,4 +1,4 @@
-# grammarapp
+# kaeru
 
 A JLPT grammar trainer (N5 → N1) inspired by Bunpro, covering every section of Tae Kim's *Guide to Japanese Grammar*. Expo SDK 57 + React Native + TypeScript, Expo Router, SQLite, FSRS. Works fully offline; optional accounts (Apple, Google, email) back progress up to Supabase.
 
@@ -64,9 +64,9 @@ Each step shows its progress. One button always takes you to the next step. When
   - **Automatic study time:** lessons, reviews and flashcards log to Study automatically when no timer is running (Settings → Time tracking).
   - **Toggl import:** you can import past time from a Toggl *Detailed report* CSV (Time tracking → ⋯).
 - **iOS Shortcuts** → the timer is driven by links, so any Shortcut (or Siri, Back Tap, the Action button, a Home Screen icon, or Android automation apps) can start and stop it with an *Open URLs* action:
-  - `grammarapp://timer/start?activity=Immersion&note=Anime` (starting another activity stops the current one)
-  - `grammarapp://timer/stop`
-  - `grammarapp://timer/toggle?activity=Study` (one button to start / stop)
+  - `kaeru://timer/start?activity=Immersion&note=Anime` (starting another activity stops the current one)
+  - `kaeru://timer/stop`
+  - `kaeru://timer/toggle?activity=Study` (one button to start / stop)
   Time tracking → ⋯ → *Set up iPhone Shortcuts* lists copyable links. The app opens briefly to record the time.
 - **Anki decks** → Cards tab → Import imports an `.apkg` / `.colpkg` exported from Anki with *Include scheduling information* and *Include media*. Both package formats are read (Anki ≤ 2.1.49 and the current zstd/protobuf format). Notes, note types (templates + CSS), decks and subdecks, media, review history and each card's progress come across: if you used FSRS in Anki its memory state is used directly, otherwise stability ≈ current interval and difficulty is estimated from ease. Cards render in a WebView with Anki's template language (fields, conditionals, cloze, furigana/kana/kanji, hint, FrontSide, [sound:]). Reviews use FSRS with Anki's four buttons, 1m/10m learning steps, and per-day new/review limits (Settings → Anki decks). Re-importing a newer export of the same deck updates it; for each card the more recently reviewed copy wins. `{{type:}}` fields show the answer instead of a typing box, and add-on-specific template features aren't supported.
 - **Accounts (optional)** → Supabase Auth. The first launch shows a welcome screen (Apple / Google / email, or *Use without an account*). A signed-in phone uploads the same backup JSON to `user_progress` whenever the app goes to the background; signing in on a phone that already has progress asks which copy to keep. Settings → Account has back up now, sign out and delete account.
@@ -114,13 +114,13 @@ Everything in the code is done; what's left needs your accounts, so only you can
    npx eas-cli@latest login          # create a free Expo account at expo.dev first
    npx eas-cli@latest init           # links the project to your Expo account (writes the projectId into app.json — commit it)
    ```
-2. Pick the store name now. "Grammar" is taken, so choose something like **Bunpō – JLPT Grammar** (max 30 characters) and check it's free by searching the App Store. To change the name under the home-screen icon too, edit `expo.name` in `app.json`.
+2. The store name is **Kaeru** (`expo.name` in `app.json`) — check it's still free by searching the App Store before you submit; App Store Connect names are max 30 characters, so you have room to add a subtitle like "Kaeru – JLPT Grammar" if it's taken.
 
 ### 1. Apple Developer account
 
 1. Enrol at [developer.apple.com/programs](https://developer.apple.com/programs/enroll/) as an individual ($99/year). Approval takes anywhere from minutes to 48 hours.
-2. In [Certificates, Identifiers & Profiles → Identifiers](https://developer.apple.com/account/resources/identifiers/list), open the App ID `com.theoleone.grammarapp` once the first build has created it (step 4), or create it now, and make sure **Sign In with Apple** is ticked. (If you want a different bundle ID, change `ios.bundleIdentifier` in `app.json` *before* the first build — it can't change after release.)
-3. In [App Store Connect → Apps](https://appstoreconnect.apple.com/apps) → **+ New App**: platform iOS, your store name, primary language English, bundle ID `com.theoleone.grammarapp`, SKU `grammarapp`, full access.
+2. In [Certificates, Identifiers & Profiles → Identifiers](https://developer.apple.com/account/resources/identifiers/list), open the App ID `com.theoleone.kaeru` once the first build has created it (step 4), or create it now, and make sure **Sign In with Apple** is ticked. (If you want a different bundle ID, change `ios.bundleIdentifier` in `app.json` *before* the first build — it can't change after release.)
+3. In [App Store Connect → Apps](https://appstoreconnect.apple.com/apps) → **+ New App**: platform iOS, your store name, primary language English, bundle ID `com.theoleone.kaeru`, SKU `kaeru`, full access.
 
 ### 2. Supabase (accounts + cloud backup)
 
@@ -129,10 +129,10 @@ Skip this whole step if you want to ship without accounts: with no Supabase valu
 1. Create a free project at [supabase.com](https://supabase.com) (pick the region nearest you; save the database password somewhere safe).
 2. **SQL Editor** → New query → paste the contents of `supabase/migrations/20260929000000_accounts.sql` → **Run**.
 3. **Project Settings → API**: copy the *Project URL* and the *publishable / anon* key.
-4. **Authentication → URL Configuration → Redirect URLs**: add `grammarapp://**` (and `exp://**` if you'll test sign-in in Expo Go).
+4. **Authentication → URL Configuration → Redirect URLs**: add `kaeru://**` (and `exp://**` if you'll test sign-in in Expo Go).
 5. **Authentication → Sign In / Providers**:
    - **Email**: already on. Leave "Confirm email" on.
-   - **Apple**: turn on, and in *Client IDs* enter `com.theoleone.grammarapp`. That's all native iPhone sign-in needs. (Apple sign-in on Android additionally needs a Services ID + key from the Apple portal; skip unless you ship Android.)
+   - **Apple**: turn on, and in *Client IDs* enter `com.theoleone.kaeru`. That's all native iPhone sign-in needs. (Apple sign-in on Android additionally needs a Services ID + key from the Apple portal; skip unless you ship Android.)
    - **Google**: in [Google Cloud Console](https://console.cloud.google.com) create a project → **APIs & Services → OAuth consent screen** (External, app name, your email, publish it) → **Credentials → Create credentials → OAuth client ID**, type *Web application*, and add the *Callback URL* Supabase shows on its Google provider page as an authorised redirect URI. Paste the client ID and secret back into Supabase and turn Google on.
 6. Give the build these values (the `.env` file is never uploaded, so EAS needs its own copy):
    ```bash
@@ -177,7 +177,7 @@ In App Store Connect → your app:
   - Promotional text, description, keywords (e.g. `japanese,grammar,jlpt,n5,n4,n3,anki,srs,bunpro,study,nihongo`), support URL (your privacy page or any contact page), marketing URL optional.
   - **Build**: pick the build from step 5.
   - **App Review Information**: your contact details, and under *Sign-in required* either untick it (sign-in is optional — mention that the app is fully usable via **Use without an account**) or give a demo email + password you created in the app.
-  - **Notes** for the reviewer, e.g.: "Sign-in is optional. Anki import accepts .apkg files exported from Anki. Timer links (grammarapp://timer/start) are for the user's own iOS Shortcuts."
+  - **Notes** for the reviewer, e.g.: "Sign-in is optional. Anki import accepts .apkg files exported from Anki. Timer links (kaeru://timer/start) are for the user's own iOS Shortcuts."
 - Export compliance is answered automatically (the app declares no non-exempt encryption).
 
 ### 7. Submit

@@ -6,7 +6,7 @@ import { supabase } from '@/auth/supabase';
 import { useApp } from '@/state/AppProvider';
 
 /**
- * Landing route for auth deep links (grammarapp://auth-callback?code=…):
+ * Landing route for auth deep links (kaeru://auth-callback?code=…):
  * email confirmation, password reset, and OAuth redirects that open the app directly.
  */
 export default function AuthCallback() {
