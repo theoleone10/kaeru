@@ -3,7 +3,8 @@ import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { getPoint } from '../content/loader';
 import type { GrammarPoint } from '../content/types';
 import { useApp } from '../state/AppProvider';
-import { radius, spacing } from '../theme/colors';
+import { stationCode, stationOf } from '../content/units';
+import { LEVEL_COLORS, radius, spacing } from '../theme/colors';
 import { FuriganaText } from './Furigana';
 import { Card, Pill, RichText, T } from './ui';
 
@@ -68,23 +69,34 @@ export function FuriganaToggle() {
 /** Full lesson content for a grammar point (used by lessons and the grammar detail screen). */
 export function LessonContent({ point }: { point: GrammarPoint }) {
   const { colors } = useApp();
+  const station = stationOf(point.id);
+  const line = LEVEL_COLORS[point.level] ?? LEVEL_COLORS.N5;
   return (
     <View style={{ gap: spacing.xl }}>
-      <View style={{ gap: spacing.sm }}>
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <Pill label={point.level} tone="accent" />
+      <View style={[styles.sign, { backgroundColor: colors.surface, borderColor: colors.borderStrong }]}>
+        <View style={[styles.band, { backgroundColor: line.line }]}>
+          <T variant="small" color="#FFFFFF" style={{ fontWeight: '900', letterSpacing: 0.8 }}>
+            {point.level} LINE{station ? ` · UNIT ${station.unit}` : ''}
+          </T>
+          {station && (
+            <T variant="small" color="#FFFFFF" style={{ fontWeight: '900', letterSpacing: 0.8 }}>
+              {stationCode(station)}
+            </T>
+          )}
+        </View>
+        <View style={{ padding: spacing.lg, alignItems: 'center', gap: spacing.xs }}>
+          <T variant="title" style={{ fontSize: 32, lineHeight: 44, textAlign: 'center' }}>
+            {point.title}
+          </T>
+          <T variant="muted" style={{ textAlign: 'center' }}>
+            {point.meaning}
+          </T>
           {point.formality && <Pill label={point.formality} />}
         </View>
-        <T variant="title" style={{ fontSize: 32 }}>
-          {point.title}
-        </T>
-        <T variant="heading" color={colors.textMuted} style={{ fontWeight: '500' }}>
-          {point.meaning}
-        </T>
       </View>
 
-      <Card style={{ gap: spacing.sm, backgroundColor: colors.accentSoft, borderColor: 'transparent' }}>
-        <T variant="small" color={colors.accent} style={{ fontWeight: '700' }}>
+      <Card style={{ gap: spacing.sm }} tone="accent">
+        <T variant="small" color={colors.accent} style={{ fontWeight: '900' }}>
           STRUCTURE
         </T>
         {point.structure.map((s, i) => (
@@ -140,6 +152,8 @@ export function LessonContent({ point }: { point: GrammarPoint }) {
 }
 
 const styles = StyleSheet.create({
+  sign: { borderRadius: 18, borderWidth: 2, borderBottomWidth: 6, overflow: 'hidden' },
+  band: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 6 },
   link: { borderRadius: radius.md, padding: spacing.md, gap: 2, minHeight: 52, justifyContent: 'center' },
   toggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing.sm },
 });

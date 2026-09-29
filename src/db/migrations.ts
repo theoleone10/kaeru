@@ -66,7 +66,7 @@ const MIGRATIONS: string[] = [
     position   INTEGER NOT NULL DEFAULT 0,
     archived   INTEGER NOT NULL DEFAULT 0
   );
-  INSERT INTO activities (name, color, position) VALUES ('Immersion', '#3F7FBF', 0), ('Study', '#3F6E5A', 1);
+  INSERT INTO activities (name, color, position) VALUES ('Immersion', '#2F7FC1', 0), ('Study', '#3FA34D', 1);
 
   CREATE TABLE time_entries (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,

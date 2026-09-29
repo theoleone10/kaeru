@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { clusters, parseFurigana, splitCloze, takeLeadingPunctuation, type RubyToken } from '../content/furigana';
 import type { Example } from '../content/types';
 import { useApp } from '../state/AppProvider';
+import { FONTS } from '../theme/colors';
 
 interface Sizing {
   size: number;
@@ -13,11 +14,11 @@ function RubyUnits({ tokens, showFurigana, size, color, mutedColor }: { tokens: 
   const unit = (u: RubyToken, key: number) => (
     <View key={key} style={styles.unit}>
       {showFurigana && (
-        <Text style={{ fontSize: rubySize, lineHeight: rubySize + 3, color: mutedColor }} numberOfLines={1}>
+        <Text style={{ fontSize: rubySize, lineHeight: rubySize + 3, color: mutedColor, fontFamily: FONTS.jpBold }} numberOfLines={1}>
           {u.reading ?? ' '}
         </Text>
       )}
-      <Text style={{ fontSize: size, lineHeight: size * 1.35, color }}>{u.text}</Text>
+      <Text style={{ fontSize: size, lineHeight: size * 1.35, color, fontFamily: FONTS.jpBold }}>{u.text}</Text>
     </View>
   );
   return (
@@ -40,7 +41,7 @@ export const FuriganaText = memo(function FuriganaText({ markup, size = 22, show
   const { colors, settings } = useApp();
   const show = showFurigana ?? settings.furigana;
   if (!show) {
-    return <Text style={{ fontSize: size, lineHeight: size * 1.45, color: colors.text }}>{parseFurigana(markup).map((t) => t.text).join('')}</Text>;
+    return <Text style={{ fontSize: size, lineHeight: size * 1.45, color: colors.text, fontFamily: FONTS.jpBold }}>{parseFurigana(markup).map((t) => t.text).join('')}</Text>;
   }
   return (
     <View style={styles.row}>
@@ -68,7 +69,7 @@ export function ClozeSentence({ example, state, size = 24 }: { example: Example;
     blank = (
       <View style={styles.unit}>
         {show && <Text style={{ fontSize: size * 0.5, lineHeight: size * 0.5 + 3 }}> </Text>}
-        <View style={[styles.blank, { width, height: size * 1.35, borderBottomColor: colors.accent, backgroundColor: colors.accentSoft }]} />
+        <View style={[styles.blank, { width, height: size * 1.35, borderBottomColor: colors.accent, backgroundColor: colors.accentSoft, borderRadius: 8, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]} />
       </View>
     );
   } else {

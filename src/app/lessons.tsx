@@ -6,7 +6,8 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LessonContent } from '@/components/LessonContent';
 import { ReviewSession } from '@/components/ReviewSession';
-import { Button, Card, T } from '@/components/ui';
+import { Celebration } from '@/components/Celebration';
+import { Button, ProgressBar, T } from '@/components/ui';
 import { curriculum, getPoint } from '@/content/loader';
 import type { GrammarPoint } from '@/content/types';
 import { addLearnedCards } from '@/db/repo';
@@ -74,10 +75,14 @@ export default function Lessons() {
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + spacing.sm, borderBottomColor: colors.border }]}>
       <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="Close lessons" hitSlop={8} style={styles.close}>
-        <Ionicons name="close" size={28} color={colors.text} />
+        <Ionicons name="close" size={30} color={colors.textMuted} />
       </Pressable>
-      <T variant="heading">{step === 'quiz' ? 'Quiz' : batch.length ? `Lesson ${index + 1} of ${batch.length}` : 'Lessons'}</T>
-      <View style={styles.close} />
+      <View style={{ flex: 1, gap: 4 }}>
+        <ProgressBar value={step === 'quiz' ? 1 : batch.length ? (index + 1) / batch.length : 0} height={16} color={colors.accent} />
+        <T variant="small" style={{ fontWeight: '900' }}>
+          {step === 'quiz' ? 'QUIZ TIME' : batch.length ? `LESSON ${index + 1} OF ${batch.length}` : 'LESSONS'}
+        </T>
+      </View>
     </View>
   );
 
@@ -85,11 +90,9 @@ export default function Lessons() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         {header}
-        <View style={{ padding: spacing.lg }}>
-          <Card>
-            <T variant="body">No lessons available right now — either today&apos;s lesson limit is reached or everything is learned.</T>
-          </Card>
-        </View>
+        <Celebration title="No lessons right now" subtitle="Today’s lesson limit is reached, or everything is learned. Reviews keep your streak going!" mood="sleep">
+          <Button label="Back" onPress={() => router.back()} />
+        </Celebration>
       </View>
     );
   }
@@ -102,16 +105,17 @@ export default function Lessons() {
           onlyIds={batch.map((p) => p.id)}
           bottomInset={insets.bottom}
           emptyState={(_next, summary) => (
-            <View style={{ padding: spacing.lg, gap: spacing.lg }}>
-              <Card style={{ gap: spacing.sm }}>
-                <T variant="heading">Lessons complete</T>
-                <T variant="body">
-                  {summary.correct} of {summary.reviewed} answers correct.
-                </T>
-                <T variant="muted">These points are now in your review schedule.</T>
-              </Card>
-              <Button label="Done" onPress={() => router.back()} />
-            </View>
+            <Celebration
+              title="Lesson complete!"
+              subtitle={`${batch.length} new ${batch.length === 1 ? 'station' : 'stations'} on your line. They’re in your review schedule now.`}
+              confetti
+              stats={[
+                { label: 'Learned', value: String(batch.length), tone: 'accent' },
+                { label: 'Accuracy', value: summary.reviewed ? `${Math.round((summary.correct / summary.reviewed) * 100)}%` : '—', tone: 'green' },
+              ]}
+            >
+              <Button label="Continue" kind="success" onPress={() => router.back()} />
+            </Celebration>
           )}
         />
       </View>
@@ -139,10 +143,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: spacing.sm,
     paddingHorizontal: spacing.sm,
+    paddingRight: spacing.lg,
     paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   close: { width: TAP, height: TAP, alignItems: 'center', justifyContent: 'center' },
-  footer: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.md, borderTopWidth: StyleSheet.hairlineWidth },
+  footer: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.md, borderTopWidth: 2 },
 });

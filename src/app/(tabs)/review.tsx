@@ -2,11 +2,11 @@ import { router } from 'expo-router';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReviewSession } from '@/components/ReviewSession';
-import { Button, Card, T } from '@/components/ui';
+import { Celebration } from '@/components/Celebration';
+import { Button } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { availableLessonCount, lessonsLearnedToday } from '@/srs/lessons';
 import { useApp, useNow } from '@/state/AppProvider';
-import { spacing } from '@/theme/colors';
 
 function formatNext(ts: number | null): string {
   if (ts === null) return 'No reviews scheduled yet.';
@@ -30,24 +30,26 @@ export default function ReviewTab() {
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.background }}>
-      <T variant="title" style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
-        Review
-      </T>
       <ReviewSession
-        emptyState={(nextDue, summary) => (
-          <View style={{ padding: spacing.lg, gap: spacing.lg }}>
-            <Card style={{ gap: spacing.sm }}>
-              <T variant="heading">{summary.reviewed > 0 ? 'Session complete' : 'All caught up'}</T>
-              {summary.reviewed > 0 && (
-                <T variant="body">
-                  {summary.correct} / {summary.reviewed} correct
-                </T>
-              )}
-              <T variant="muted">{formatNext(nextDue)}</T>
-            </Card>
-            {lessons > 0 && <Button label={`Learn new grammar (${Math.min(lessons, settings.batchSize)})`} kind="secondary" onPress={() => router.push('/lessons')} />}
-          </View>
-        )}
+        emptyState={(nextDue, summary) =>
+          summary.reviewed > 0 ? (
+            <Celebration
+              title="Session complete!"
+              subtitle={formatNext(nextDue)}
+              confetti={summary.correct / summary.reviewed >= 0.8}
+              stats={[
+                { label: 'Reviewed', value: String(summary.reviewed), tone: 'blue' },
+                { label: 'Accuracy', value: `${Math.round((summary.correct / summary.reviewed) * 100)}%`, tone: 'green' },
+              ]}
+            >
+              {lessons > 0 && <Button label={`Learn ${Math.min(lessons, settings.batchSize)} new points`} onPress={() => router.push('/lessons')} />}
+            </Celebration>
+          ) : (
+            <Celebration title="All caught up" subtitle={formatNext(nextDue)} mood="sleep">
+              {lessons > 0 && <Button label={`Learn ${Math.min(lessons, settings.batchSize)} new points`} onPress={() => router.push('/lessons')} />}
+            </Celebration>
+          )
+        }
       />
     </View>
   );

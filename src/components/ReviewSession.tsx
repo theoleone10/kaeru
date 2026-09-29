@@ -2,7 +2,8 @@ import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Animated, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getPoint } from '../content/loader';
 import type { Example, GrammarPoint } from '../content/types';
@@ -14,9 +15,10 @@ import { buildQueue, nextDueAt } from '../srs/queue';
 import { gradeCard, type StoredCard } from '../srs/scheduler';
 import { useApp } from '../state/AppProvider';
 import { useAutoTrack } from '../time/useAutoTrack';
-import { radius, spacing, TAP } from '../theme/colors';
+import { FONTS, LEVEL_COLORS, radius, spacing, TAP } from '../theme/colors';
 import { ClozeSentence } from './Furigana';
-import { Button, Card, T } from './ui';
+import { Mascot } from './Mascot';
+import { Button, Card, ProgressBar, T } from './ui';
 
 interface Current {
   card: StoredCard;
@@ -71,6 +73,8 @@ export function ReviewSession({
   useAutoTrack(phase.kind === 'answering' || phase.kind === 'result');
   const [input, setInput] = useState('');
   const [summary, setSummary] = useState<SessionSummary>({ reviewed: 0, correct: 0 });
+  const [combo, setCombo] = useState(0);
+  const comboBefore = useRef(0);
   const inputRef = useRef<TextInput>(null);
   const onlySet = useRef(onlyIds ? new Set(onlyIds) : undefined);
   const busy = useRef(false);
@@ -148,6 +152,8 @@ export function ReviewSession({
       setInput(answer);
       setPhase({ kind: 'result', correct, answer, logId });
       setSummary((s) => ({ reviewed: s.reviewed + 1, correct: s.correct + (correct ? 1 : 0) }));
+      comboBefore.current = combo;
+      setCombo(correct ? combo + 1 : 0);
       Haptics.notificationAsync(correct ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error);
       refresh();
     } finally {
@@ -162,6 +168,7 @@ export function ReviewSession({
       const restored = await undoReview(db, phase.logId);
       if (restored) setCurrent({ ...current, card: restored, shownAt: Date.now() });
       setSummary((s) => ({ reviewed: s.reviewed - 1, correct: s.correct - (phase.correct ? 1 : 0) }));
+      setCombo(comboBefore.current);
       setInput(phase.answer);
       setPhase({ kind: 'answering' });
       Haptics.selectionAsync();
@@ -198,26 +205,48 @@ export function ReviewSession({
   const retry = phase.kind === 'answering' ? phase.retry : undefined;
   const inputBorder = result ? (result.correct ? colors.correct : colors.wrong) : retry ? colors.notice : colors.border;
   const inputBg = result ? (result.correct ? colors.correctSoft : colors.wrongSoft) : colors.surface;
+  const done = summary.reviewed;
+  const line = LEVEL_COLORS[point.level] ?? LEVEL_COLORS.N5;
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior="padding">
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.topRow}>
-          <T variant="small">{remaining} left</T>
-          <T variant="small">
-            {summary.reviewed > 0 ? `${Math.round((summary.correct / summary.reviewed) * 100)}% correct` : ' '}
-          </T>
+          <View style={{ flex: 1 }}>
+            <ProgressBar value={0} secondary={done / Math.max(1, done + remaining)} height={16} />
+          </View>
+          <View style={styles.combo} accessibilityLabel={`${combo} correct in a row`}>
+            <Ionicons name="flame" size={20} color={combo > 0 ? '#F08A3C' : colors.textMuted} />
+            <T variant="heading" color={combo > 0 ? '#D9663D' : colors.textMuted} style={{ fontWeight: '900' }}>
+              {combo}
+            </T>
+          </View>
         </View>
 
-        <Card style={{ gap: spacing.lg }}>
-          <T variant="muted">{example.english}</T>
-          <ClozeSentence example={example} state={result ? (result.correct ? 'correct' : 'wrong') : 'empty'} />
-          {!result && (
-            <T variant="small" color={colors.accent}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <View style={[styles.levelChip, { backgroundColor: line.soft }]}>
+            <T variant="small" color={line.ink} style={{ fontWeight: '900' }}>
+              {point.level}
+            </T>
+          </View>
+          <T variant="muted">Fill in the grammar · {remaining} left</T>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' }}>
+          <Mascot size={60} mood={result ? (result.correct ? 'cheer' : 'sad') : 'think'} />
+          <Card style={{ flex: 1, gap: spacing.md }}>
+            <ClozeSentence example={example} state={result ? (result.correct ? 'correct' : 'wrong') : 'empty'} />
+            <T variant="muted">{example.english}</T>
+          </Card>
+        </View>
+
+        {!result && (
+          <View style={[styles.hint, { backgroundColor: colors.surfaceAlt }]}>
+            <T variant="small" style={{ fontWeight: '800' }}>
               Hint: {example.hint ?? point.meaning}
             </T>
-          )}
-        </Card>
+          </View>
+        )}
 
         {retry && (
           <View style={[styles.notice, { backgroundColor: colors.noticeSoft }]}>
@@ -226,56 +255,81 @@ export function ReviewSession({
             </T>
           </View>
         )}
-
-        {result && (
-          <Card style={{ gap: spacing.sm, backgroundColor: result.correct ? colors.correctSoft : colors.wrongSoft, borderColor: 'transparent' }}>
-            <T variant="heading" color={result.correct ? colors.correct : colors.wrong}>
-              {result.correct ? 'Correct' : 'Not quite'}
-            </T>
-            {!result.correct && <T variant="body">You typed: {result.answer}</T>}
-            <T variant="body">
-              Answer: {example.accepted_answers.join(' / ')}
-            </T>
-            <Pressable onPress={() => router.push(`/grammar/${point.id}`)} accessibilityRole="link" hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }}>
-              <T variant="body" color={colors.accent} style={{ fontWeight: '600' }}>
-                {point.title} — {point.meaning} ›
-              </T>
-            </Pressable>
-          </Card>
-        )}
       </ScrollView>
 
-      <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background, paddingBottom: spacing.md + bottomInset }]}>
-        <TextInput
-          ref={inputRef}
-          value={input}
-          onChangeText={onChangeText}
-          onSubmitEditing={submit}
-          submitBehavior="submit"
-          autoFocus
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete="off"
-          spellCheck={false}
-          importantForAutofill="no"
-          returnKeyType={result ? 'next' : 'done'}
-          placeholder={settings.romajiInput ? 'Type in kana or romaji' : 'Type your answer'}
-          placeholderTextColor={colors.textMuted}
-          style={[styles.input, { color: colors.text, borderColor: inputBorder, backgroundColor: inputBg }]}
-          accessibilityLabel="Answer"
-        />
-        <View style={styles.buttons}>
-          {result ? (
-            <>
-              <Button label="Undo" kind="ghost" onPress={undo} style={{ flex: 1 }} accessibilityHint="Take back this answer and try again" />
-              <Button label="Next" onPress={next} style={{ flex: 2 }} />
-            </>
-          ) : (
-            <Button label="Check" onPress={submit} disabled={!input.trim()} style={{ flex: 1 }} />
-          )}
+      {result ? (
+        <ResultPanel key={phase.kind === 'result' ? phase.logId : 0} correct={result.correct} bottomInset={bottomInset}>
+          {!result.correct && <T variant="body">You typed: {result.answer}</T>}
+          <T variant="body" style={{ fontWeight: '800' }}>
+            {result.correct ? '' : 'Answer: '}
+            {example.accepted_answers.join(' / ')}
+          </T>
+          <Pressable onPress={() => router.push(`/grammar/${point.id}`)} accessibilityRole="link" hitSlop={8} style={{ minHeight: 36, justifyContent: 'center' }}>
+            <T variant="body" color={result.correct ? colors.correctText : colors.wrong} style={{ fontWeight: '800' }}>
+              {point.title} · {point.meaning} ›
+            </T>
+          </Pressable>
+          <View style={styles.buttons}>
+            <Button label="Undo" kind="ghost" onPress={undo} style={{ flex: 1 }} accessibilityHint="Take back this answer and try again" />
+            <Button label="Continue" kind={result.correct ? 'success' : 'danger'} onPress={next} style={{ flex: 2 }} />
+          </View>
+        </ResultPanel>
+      ) : (
+        <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background, paddingBottom: spacing.md + bottomInset }]}>
+          <TextInput
+            ref={inputRef}
+            value={input}
+            onChangeText={onChangeText}
+            onSubmitEditing={submit}
+            submitBehavior="submit"
+            autoFocus
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="off"
+            spellCheck={false}
+            importantForAutofill="no"
+            returnKeyType="done"
+            placeholder={settings.romajiInput ? 'Type in kana or romaji' : 'Type your answer'}
+            placeholderTextColor={colors.textMuted}
+            style={[styles.input, { color: colors.text, borderColor: inputBorder, backgroundColor: inputBg, fontFamily: FONTS.jpBold }]}
+            accessibilityLabel="Answer"
+          />
+          <Button label="Check" kind="success" onPress={submit} disabled={!input.trim()} />
         </View>
-      </View>
+      )}
     </KeyboardAvoidingView>
+  );
+}
+
+/** Slides up with a little bounce: green for correct, red for a miss. */
+function ResultPanel({ correct, bottomInset, children }: { correct: boolean; bottomInset: number; children: React.ReactNode }) {
+  const { colors } = useApp();
+  const enter = useState(() => new Animated.Value(0))[0];
+  useEffect(() => {
+    Animated.spring(enter, { toValue: 1, friction: 6, tension: 90, useNativeDriver: true }).start();
+  }, [enter]);
+  return (
+    <Animated.View
+      accessibilityLiveRegion="polite"
+      style={[
+        styles.panel,
+        {
+          backgroundColor: correct ? colors.correctSoft : colors.wrongSoft,
+          paddingBottom: spacing.lg + bottomInset,
+          transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [80, 0] }) }, { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }],
+        },
+      ]}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+        <View style={[styles.resultIcon, { backgroundColor: colors.surface }]}>
+          <Ionicons name={correct ? 'checkmark' : 'close'} size={28} color={correct ? colors.correctText : colors.wrong} />
+        </View>
+        <T variant="title" color={correct ? colors.correctText : colors.wrong} style={{ fontSize: 24, lineHeight: 30 }}>
+          {correct ? 'Nice! 正解' : 'Not quite'}
+        </T>
+      </View>
+      {children}
+    </Animated.View>
   );
 }
 
@@ -286,9 +340,14 @@ export function useFooterInset(): number {
 
 const styles = StyleSheet.create({
   scroll: { padding: spacing.lg, gap: spacing.lg, flexGrow: 1 },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  combo: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  levelChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
+  hint: { alignSelf: 'flex-start', borderRadius: 12, paddingHorizontal: spacing.md, paddingVertical: 6 },
   notice: { borderRadius: radius.md, padding: spacing.md },
-  footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
-  input: { minHeight: TAP + 4, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 22 },
-  buttons: { flexDirection: 'row', gap: spacing.sm },
+  footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.sm, borderTopWidth: 2 },
+  input: { minHeight: TAP + 6, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 22 },
+  buttons: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  panel: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, gap: spacing.xs, borderTopLeftRadius: 26, borderTopRightRadius: 26 },
+  resultIcon: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
 });

@@ -50,6 +50,10 @@ Keep `id`s stable once you've reviewed a point — progress is stored by id.
 - **Anki decks** → Decks tab → + imports an `.apkg` / `.colpkg` exported from Anki with *Include scheduling information* and *Include media*. Both package formats are read (Anki ≤ 2.1.49 and the current zstd/protobuf format). Notes, note types (templates + CSS), decks and subdecks, media, review history and each card's progress come across: if you used FSRS in Anki its memory state is used directly, otherwise stability ≈ current interval and difficulty is estimated from ease. Cards render in a WebView with Anki's template language (fields, conditionals, cloze, furigana/kana/kanji, hint, FrontSide, [sound:]). Reviews use FSRS with Anki's four buttons, 1m/10m learning steps, and per-day new/review limits (Settings → Anki decks). Re-importing a newer export of the same deck updates it; for each card the more recently reviewed copy wins. `{{type:}}` fields show the answer instead of a typing box, and add-on-specific template features aren't supported.
 - **Accounts (optional)** → Supabase Auth. The first launch shows a welcome screen (Apple / Google / email, or *Use without an account*). A signed-in phone uploads the same backup JSON to `user_progress` whenever the app goes to the background; signing in on a phone that already has progress asks which copy to keep. Settings → Account has back up now, sign out and delete account.
 
+## Look & feel
+
+Warm and playful: ivory background, clay-orange primary, chunky 3D buttons that press down (with a haptic tick), lipped cards, Nunito for UI text and Zen Maru Gothic for Japanese (only two Japanese weights ship, ~3.7 MB each). Musubi the onigiri mascot reacts to how you're doing, finished lessons and good review sessions end with confetti (skipped with Reduce Motion), and light/dark follow the system (or Settings). The Grammar tab is a train map: each JLPT level is a coloured line, each point a numbered station (N5-12), units are transfers, and a platform-style sign shows your current stop. Palette, fonts and line colours live in `src/theme/colors.ts`; the chunky components in `src/components/ui.tsx`.
+
 ## Layout
 
 ```

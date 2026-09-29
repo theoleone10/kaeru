@@ -19,7 +19,7 @@ export interface TimeEntry {
   source: string;
 }
 
-export const ACTIVITY_COLORS = ['#3F7FBF', '#3F6E5A', '#B7791F', '#8E5BB5', '#C0504D', '#2A9D8F', '#6B7280'];
+export const ACTIVITY_COLORS = ['#2F7FC1', '#3FA34D', '#8E5BB5', '#D9663D', '#F2B33D', '#2A9D8F', '#E4574B'];
 
 const DAY = 24 * 60 * 60 * 1000;
 

@@ -6,11 +6,24 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { deleteDeck, listDecks, type DeckNode } from '@/anki/repo';
-import { Button, Card, ProgressBar, T } from '@/components/ui';
+import { Mascot } from '@/components/Mascot';
+import { Button, Card, Pill, ProgressBar, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
 
-const COUNT_COLORS = { new: '#3B82F6', learn: '#DC2626', review: '#16A34A' };
+const COUNT_COLORS = { new: '#2F7FC1', learn: '#C8562F', review: '#2E8B3E' };
+const DECK_TINTS = [
+  { soft: '#FCE6DA', ink: '#A3431F' },
+  { soft: '#F1E8FB', ink: '#6B3FA0' },
+  { soft: '#E3EFFA', ink: '#1F5F95' },
+  { soft: '#E3F3E6', ink: '#25702F' },
+];
+
+/** First kanji/kana in the deck name, else its first letter: the deck's badge. */
+function deckGlyph(name: string): string {
+  const cjk = name.match(/[\u3040-\u30ff\u3400-\u9fff]/);
+  return cjk ? cjk[0] : (name.trim()[0] ?? '?').toUpperCase();
+}
 const PHASE_LABEL: Record<ImportPhase, string> = {
   unpacking: 'Unpacking…',
   reading: 'Reading the collection…',
@@ -91,16 +104,7 @@ export default function Decks() {
           <T variant="title">Decks</T>
           <T variant="muted">Your Anki decks</T>
         </View>
-        <Pressable
-          onPress={importDeck}
-          disabled={!!progress}
-          accessibilityRole="button"
-          accessibilityLabel="Import an Anki deck"
-          hitSlop={8}
-          style={({ pressed }) => [styles.iconButton, { backgroundColor: colors.surfaceAlt, opacity: progress ? 0.4 : pressed ? 0.7 : 1 }]}
-        >
-          <Ionicons name="add" size={28} color={colors.text} />
-        </Pressable>
+        <Button label="Import" small onPress={importDeck} disabled={!!progress} icon={<Ionicons name="add" size={18} color="#FFFFFF" />} style={{ width: 120 }} />
       </View>
 
       {progress && (
@@ -113,6 +117,9 @@ export default function Decks() {
 
       {decks && decks.length === 0 && !progress && (
         <Card style={{ gap: spacing.md }}>
+          <View style={{ alignItems: 'center' }}>
+            <Mascot size={96} mood="happy" bounce />
+          </View>
           <T variant="heading">Bring your Anki decks</T>
           <T variant="body">Your cards, scheduling progress, review history, images and audio all come across.</T>
           <T variant="small">
@@ -124,45 +131,61 @@ export default function Decks() {
         </Card>
       )}
 
-      {decks && decks.length > 0 && (
-        <Card style={{ paddingVertical: spacing.sm, gap: 0 }}>
-          <View style={[styles.row, { minHeight: 32 }]}>
-            <T variant="small" style={{ flex: 1 }}>
-              Deck
-            </T>
-            <T variant="small" style={styles.countHead}>
-              New
-            </T>
-            <T variant="small" style={styles.countHead}>
-              Learn
-            </T>
-            <T variant="small" style={styles.countHead}>
-              Due
-            </T>
-          </View>
-          {decks.map((d) => (
-            <Pressable
-              key={d.path}
-              onPress={() => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(d.path) } })}
-              onLongPress={() => options(d)}
-              accessibilityRole="button"
-              accessibilityLabel={`${d.path}: ${d.newCount} new, ${d.learnCount} learning, ${d.reviewCount} due`}
-              accessibilityHint="Opens a study session. Long-press for options."
-              style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1, borderTopColor: colors.border }]}
-            >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: d.depth * spacing.lg, gap: spacing.xs }}>
-                {d.depth > 0 && <Ionicons name="return-down-forward" size={14} color={colors.textMuted} />}
-                <T variant="body" numberOfLines={1} style={{ flexShrink: 1, fontWeight: d.depth === 0 ? '600' : '400' }}>
-                  {d.name}
-                </T>
-              </View>
-              <Count n={d.newCount} color={COUNT_COLORS.new} />
-              <Count n={d.learnCount} color={COUNT_COLORS.learn} />
-              <Count n={d.reviewCount} color={COUNT_COLORS.review} />
-            </Pressable>
-          ))}
-        </Card>
-      )}
+      {decks &&
+        decks
+          .filter((d) => d.depth === 0)
+          .map((top, i) => {
+            const subs = decks.filter((d) => d.path.startsWith(`${top.path}::`));
+            const todo = top.newCount + top.learnCount + top.reviewCount;
+            const tint = DECK_TINTS[i % DECK_TINTS.length];
+            return (
+              <Card key={top.path} style={{ gap: spacing.md }}>
+                <Pressable onLongPress={() => options(top)} accessibilityHint="Long-press for options" style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <View style={[styles.deckIcon, { backgroundColor: tint.soft }]}>
+                    <T variant="heading" color={tint.ink} jp style={{ fontSize: 24, lineHeight: 30 }}>
+                      {deckGlyph(top.name)}
+                    </T>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <T variant="heading" numberOfLines={1}>
+                      {top.name}
+                    </T>
+                    <T variant="small">{top.total.toLocaleString()} cards</T>
+                  </View>
+                  {todo === 0 && <Pill label="✓ Done" tone="green" />}
+                </Pressable>
+                <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
+                  <Pill label={`${top.newCount} new`} tone="blue" />
+                  <Pill label={`${top.learnCount} learning`} tone="accent" />
+                  <Pill label={`${top.reviewCount} due`} tone="green" />
+                </View>
+                {subs.map((d) => (
+                  <Pressable
+                    key={d.path}
+                    onPress={() => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(d.path) } })}
+                    onLongPress={() => options(d)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${d.path}: ${d.newCount} new, ${d.learnCount} learning, ${d.reviewCount} due`}
+                    style={({ pressed }) => [styles.subRow, { borderTopColor: colors.border, paddingLeft: (d.depth - 1) * spacing.lg, opacity: pressed ? 0.6 : 1 }]}
+                  >
+                    <Ionicons name="return-down-forward" size={16} color={colors.textMuted} />
+                    <T variant="body" numberOfLines={1} style={{ flex: 1, fontWeight: '700' }}>
+                      {d.name}
+                    </T>
+                    <Count n={d.newCount} color={COUNT_COLORS.new} />
+                    <Count n={d.learnCount} color={COUNT_COLORS.learn} />
+                    <Count n={d.reviewCount} color={COUNT_COLORS.review} />
+                  </Pressable>
+                ))}
+                <Button
+                  label={todo > 0 ? `Study ${todo}` : 'Nothing due'}
+                  kind="success"
+                  disabled={todo === 0}
+                  onPress={() => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(top.path) } })}
+                />
+              </Card>
+            );
+          })}
 
       {decks && decks.length > 0 && (
         <T variant="small" style={{ textAlign: 'center' }}>
@@ -177,6 +200,8 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   iconButton: { width: TAP, height: TAP, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  subRow: { flexDirection: 'row', alignItems: 'center', minHeight: 44, gap: spacing.sm, borderTopWidth: 2 },
+  deckIcon: { width: 50, height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: TAP, gap: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'transparent' },
   count: { width: 44, textAlign: 'right', fontSize: 16, fontWeight: '600', fontVariant: ['tabular-nums'] },
   countHead: { width: 44, textAlign: 'right' },

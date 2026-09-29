@@ -1,18 +1,36 @@
+import * as Haptics from 'expo-haptics';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { useApp } from '../state/AppProvider';
-import { radius, spacing, TAP } from '../theme/colors';
+import { fontFor, LIP, radius, spacing, TAP, type Palette } from '../theme/colors';
 
 type Variant = 'title' | 'heading' | 'body' | 'muted' | 'small' | 'jp';
 
 const TEXT: Record<Variant, TextStyle> = {
-  title: { fontSize: 28, fontWeight: '700' },
-  heading: { fontSize: 18, fontWeight: '600' },
-  body: { fontSize: 16, lineHeight: 24 },
-  muted: { fontSize: 15, lineHeight: 22 },
-  small: { fontSize: 13, lineHeight: 18 },
-  jp: { fontSize: 22, lineHeight: 32 },
+  title: { fontSize: 30, lineHeight: 36, fontWeight: '900' },
+  heading: { fontSize: 19, lineHeight: 25, fontWeight: '800' },
+  body: { fontSize: 16, lineHeight: 23, fontWeight: '600' },
+  muted: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
+  small: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
+  jp: { fontSize: 22, lineHeight: 32, fontWeight: '700' },
 };
+
+const CJK = /[぀-ヿ㐀-鿿ｦ-ﾟ]/;
+
+function containsCjk(node: ReactNode): boolean {
+  if (typeof node === 'string') return CJK.test(node);
+  if (Array.isArray(node)) return node.some(containsCjk);
+  return false;
+}
+
+/**
+ * Map a weight to the loaded font file (native custom fonts need one family per weight).
+ * Japanese text uses Zen Maru Gothic; everything else Nunito.
+ */
+export function fontStyle(style: StyleProp<TextStyle>, jp: boolean): TextStyle {
+  const flat = StyleSheet.flatten(style) ?? {};
+  return { fontFamily: fontFor(flat.fontWeight, jp), fontWeight: 'normal' };
+}
 
 export function T({
   children,
@@ -20,29 +38,80 @@ export function T({
   style,
   color,
   numberOfLines,
+  jp,
 }: {
   children: ReactNode;
   variant?: Variant;
   style?: StyleProp<TextStyle>;
   color?: string;
   numberOfLines?: number;
+  /** Force (or disable) the Japanese font. Default: on when the text contains kana/kanji. */
+  jp?: boolean;
 }) {
   const { colors } = useApp();
   const c = color ?? (variant === 'muted' || variant === 'small' ? colors.textMuted : colors.text);
+  const useJp = jp ?? (variant === 'jp' || containsCjk(children));
+  const merged = [TEXT[variant], { color: c }, style];
   return (
-    <Text style={[TEXT[variant], { color: c }, style]} numberOfLines={numberOfLines}>
+    <Text style={[...merged, fontStyle(merged, useJp)]} numberOfLines={numberOfLines}>
       {children}
     </Text>
   );
 }
 
-export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+/** A white card with a soft 3D lip. */
+export function Card({ children, style, tone }: { children: ReactNode; style?: StyleProp<ViewStyle>; tone?: 'accent' | 'blue' | 'green' | 'gold' }) {
   const { colors } = useApp();
+  const tint = tone ? toneColors(colors, tone) : null;
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, style]}>{children}</View>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: tint ? tint.soft : colors.surface,
+          borderColor: tint ? tint.edge : colors.border,
+          borderBottomColor: tint ? tint.edge : colors.borderStrong,
+        },
+        style,
+      ]}
+    >
+      {children}
+    </View>
   );
 }
 
+function toneColors(colors: Palette, tone: 'accent' | 'blue' | 'green' | 'gold') {
+  return {
+    accent: { soft: colors.accentSoft, edge: colors.accent },
+    blue: { soft: colors.blueSoft, edge: colors.blue },
+    green: { soft: colors.correctSoft, edge: colors.correct },
+    gold: { soft: colors.goldSoft, edge: colors.gold },
+  }[tone];
+}
+
+export type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'blue';
+
+export function buttonColors(colors: Palette, kind: ButtonKind): { bg: string; lip: string; fg: string; border?: string } {
+  switch (kind) {
+    case 'primary':
+      return { bg: colors.accent, lip: colors.accentShadow, fg: colors.accentText };
+    case 'success':
+      return { bg: colors.correct, lip: colors.correctShadow, fg: '#FFFFFF' };
+    case 'blue':
+      return { bg: colors.blue, lip: colors.blueShadow, fg: '#FFFFFF' };
+    case 'danger':
+      return { bg: colors.wrong, lip: colors.wrongShadow, fg: '#FFFFFF' };
+    case 'secondary':
+      return { bg: colors.surface, lip: colors.borderStrong, fg: colors.accent, border: colors.border };
+    case 'ghost':
+      return { bg: 'transparent', lip: 'transparent', fg: colors.accent, border: colors.border };
+  }
+}
+
+/**
+ * Chunky 3D button: a coloured face on a darker lip that presses down when tapped.
+ * Labels are uppercase and extra-bold, like a game button.
+ */
 export function Button({
   label,
   onPress,
@@ -51,57 +120,96 @@ export function Button({
   loading,
   style,
   accessibilityHint,
+  icon,
+  small,
 }: {
   label: string;
   onPress: () => void;
-  kind?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  kind?: ButtonKind;
   disabled?: boolean;
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
   accessibilityHint?: string;
+  icon?: ReactNode;
+  small?: boolean;
 }) {
   const { colors } = useApp();
-  const bg = { primary: colors.accent, secondary: colors.accentSoft, ghost: 'transparent', danger: colors.wrongSoft }[kind];
-  const fg = { primary: colors.accentText, secondary: colors.accent, ghost: colors.accent, danger: colors.wrong }[kind];
+  const c = buttonColors(colors, kind);
+  const height = small ? 40 : TAP;
+  const lip = kind === 'ghost' ? 0 : small ? 3 : LIP;
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: !!(disabled || loading) }}
       disabled={disabled || loading}
       onPress={onPress}
+      onPressIn={() => Haptics.selectionAsync().catch(() => undefined)}
       hitSlop={6}
-      style={({ pressed }) => [
-        styles.button,
-        { backgroundColor: bg, opacity: disabled ? 0.45 : pressed ? 0.8 : 1 },
-        kind === 'ghost' && { borderWidth: 1, borderColor: colors.border },
-        style,
-      ]}
+      style={[{ minHeight: height + lip, opacity: disabled ? 0.45 : 1 }, style]}
     >
-      {loading ? <ActivityIndicator color={fg} /> : <Text style={[styles.buttonText, { color: fg }]}>{label}</Text>}
+      {({ pressed }) => (
+        <>
+          <View style={[StyleSheet.absoluteFill, { top: lip, borderRadius: radius.md, backgroundColor: c.lip }]} />
+          <View
+            style={[
+              styles.buttonFace,
+              {
+                minHeight: height,
+                backgroundColor: c.bg,
+                borderColor: c.border ?? c.bg,
+                borderWidth: c.border ? 2 : 0,
+                transform: [{ translateY: pressed && !disabled ? lip : 0 }],
+              },
+            ]}
+          >
+            {loading ? (
+              <ActivityIndicator color={c.fg} />
+            ) : (
+              <>
+                {icon}
+                <T variant="body" color={c.fg} jp={false} style={{ fontWeight: '900', fontSize: small ? 14 : 17, letterSpacing: 0.8 }}>
+                  {label.toUpperCase()}
+                </T>
+              </>
+            )}
+          </View>
+        </>
+      )}
     </Pressable>
   );
 }
 
-export function ProgressBar({ value, secondary, height = 8 }: { value: number; secondary?: number; height?: number }) {
-  const { colors } = useApp();
-  const pct = (v: number) => `${Math.round(Math.min(1, Math.max(0, v)) * 100)}%` as const;
+const pct = (v: number) => `${Math.round(Math.min(1, Math.max(0, v)) * 100)}%` as const;
+
+function BarFill({ v, color, height }: { v: number; color: string; height: number }) {
   return (
-    <View style={{ height, borderRadius: height / 2, backgroundColor: colors.surfaceAlt, overflow: 'hidden' }}>
-      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: pct(value), backgroundColor: colors.chartBar }} />
-      {secondary !== undefined && (
-        <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: pct(secondary), backgroundColor: colors.accent }} />
-      )}
+    <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: pct(v), borderRadius: height / 2, backgroundColor: color, overflow: 'hidden' }}>
+      {height >= 10 && <View style={{ marginTop: height * 0.2, marginHorizontal: 6, height: Math.max(2, height * 0.2), borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)' }} />}
     </View>
   );
 }
 
-export function Pill({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'accent' | 'notice' }) {
+export function ProgressBar({ value, secondary, height = 12, color }: { value: number; secondary?: number; height?: number; color?: string }) {
   const { colors } = useApp();
-  const bg = { neutral: colors.surfaceAlt, accent: colors.accentSoft, notice: colors.noticeSoft }[tone];
-  const fg = { neutral: colors.textMuted, accent: colors.accent, notice: colors.notice }[tone];
+  return (
+    <View style={{ height, borderRadius: height / 2, backgroundColor: colors.surfaceAlt, overflow: 'hidden' }}>
+      {value > 0 && <BarFill v={value} color={color ?? colors.gold} height={height} />}
+      {secondary !== undefined && secondary > 0 && <BarFill v={secondary} color={colors.correct} height={height} />}
+    </View>
+  );
+}
+
+export function Pill({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'accent' | 'notice' | 'green' | 'blue' | 'gold' }) {
+  const { colors } = useApp();
+  const bg = { neutral: colors.surfaceAlt, accent: colors.accentSoft, notice: colors.noticeSoft, green: colors.correctSoft, blue: colors.blueSoft, gold: colors.goldSoft }[tone];
+  const fg = { neutral: colors.textMuted, accent: colors.accent, notice: colors.notice, green: colors.correctText, blue: colors.blueText, gold: colors.notice }[tone];
   return (
     <View style={[styles.pill, { backgroundColor: bg }]}>
-      <Text style={{ color: fg, fontSize: 12, fontWeight: '600' }}>{label}</Text>
+      <T variant="small" color={fg} style={{ fontSize: 12, fontWeight: '900' }}>
+        {label}
+      </T>
     </View>
   );
 }
@@ -112,10 +220,10 @@ export function RichText({ text }: { text: string }) {
   return (
     <View style={{ gap: spacing.md }}>
       {text.split(/\n\s*\n/).map((para, i) => (
-        <Text key={i} style={[TEXT.body, { color: colors.text }]}>
+        <Text key={i} style={[TEXT.body, { color: colors.text }, fontStyle(TEXT.body, CJK.test(para))]}>
           {para.split(/(\*[^*]+\*)/).map((part, j) =>
             part.startsWith('*') && part.endsWith('*') ? (
-              <Text key={j} style={{ fontStyle: 'italic', fontWeight: '600' }}>
+              <Text key={j} style={[{ fontStyle: 'italic' }, fontStyle({ fontWeight: '800' }, CJK.test(part))]}>
                 {part.slice(1, -1)}
               </Text>
             ) : (
@@ -128,9 +236,35 @@ export function RichText({ text }: { text: string }) {
   );
 }
 
+/** Round icon button (settings, more, close) on a soft chip. */
+export function IconButton({ children, onPress, label, tone = 'neutral' }: { children: ReactNode; onPress: () => void; label: string; tone?: 'neutral' | 'accent' }) {
+  const { colors } = useApp();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={8}
+      style={({ pressed }) => [
+        styles.iconButton,
+        { backgroundColor: tone === 'accent' ? colors.accentSoft : colors.surfaceAlt, transform: [{ scale: pressed ? 0.94 : 1 }] },
+      ]}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: spacing.lg },
-  button: { minHeight: TAP, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.lg },
-  buttonText: { fontSize: 17, fontWeight: '600' },
-  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, alignSelf: 'flex-start' },
+  card: { borderRadius: radius.lg, borderWidth: 2, borderBottomWidth: 2 + LIP, padding: spacing.lg },
+  buttonFace: {
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  iconButton: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
 });

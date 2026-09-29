@@ -1,11 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Haptics from 'expo-haptics';
 import { File } from 'expo-file-system';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, T } from '@/components/ui';
+import Svg, { Circle } from 'react-native-svg';
+import { Mascot } from '@/components/Mascot';
+import { Button, Card, IconButton, T } from '@/components/ui';
 import { useApp, useNow } from '@/state/AppProvider';
 import {
   dailyTotals,
@@ -36,6 +39,35 @@ function dayLabel(t: number, now: number): string {
   if (t === today) return 'Today';
   if (t === startOfDay(today - DAY / 2)) return 'Yesterday';
   return new Date(t).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
+const HOUR = 60 * 60 * 1000;
+
+/** Big progress ring: fills once per hour of the running timer. */
+function TimerRing({ fraction, color, children }: { fraction: number; color: string; children: React.ReactNode }) {
+  const { colors } = useApp();
+  const size = 220;
+  const r = size / 2 - 14;
+  const c = 2 * Math.PI * r;
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surfaceAlt} strokeWidth={18} fill={colors.surface} />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={color}
+          strokeWidth={18}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${Math.max(0.01, fraction) * c} ${c}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </Svg>
+      <View style={{ alignItems: 'center', paddingHorizontal: spacing.xl }}>{children}</View>
+    </View>
+  );
 }
 
 function Dot({ color, size = 10 }: { color: string; size?: number }) {
@@ -160,60 +192,74 @@ export default function Track() {
           <T variant="title">Track</T>
           <T variant="muted">Immersion & study time</T>
         </View>
-        <Pressable
-          onPress={more}
-          accessibilityRole="button"
-          accessibilityLabel="More tracking options"
-          hitSlop={8}
-          style={({ pressed }) => [styles.iconButton, { backgroundColor: colors.surfaceAlt, opacity: pressed ? 0.7 : 1 }]}
-        >
-          <Ionicons name="ellipsis-horizontal" size={24} color={colors.text} />
-        </Pressable>
+        <IconButton label="More tracking options" onPress={more}>
+          <Ionicons name="ellipsis-horizontal" size={24} color={colors.textMuted} />
+        </IconButton>
       </View>
 
-      <Card style={{ gap: spacing.md, borderColor: runningActivity?.color ?? colors.border, borderWidth: running ? 2 : StyleSheet.hairlineWidth }}>
+      <View style={{ alignItems: 'center', gap: spacing.md }}>
         {running ? (
           <>
-            <View style={styles.inline}>
-              <Dot color={runningActivity?.color ?? colors.accent} size={12} />
-              <T variant="heading">{runningActivity?.name ?? 'Tracking'}</T>
-              {running.note ? <T variant="muted">· {running.note}</T> : null}
-            </View>
-            <T variant="title" style={{ fontSize: 48, fontVariant: ['tabular-nums'] }}>
-              {formatClock(entryDuration(running, now))}
-            </T>
-            <T variant="small">Started {timeOfDay(running.started_at)}</T>
-            <Button label="Stop" kind="danger" onPress={stop} />
+            <TimerRing fraction={(entryDuration(running, now) % HOUR) / HOUR} color={runningActivity?.color ?? colors.blue}>
+              <T variant="body" color={runningActivity?.color ?? colors.blue} style={{ fontWeight: '900' }}>
+                {runningActivity?.name ?? 'Tracking'}
+              </T>
+              <T variant="title" style={{ fontSize: 44, lineHeight: 52, fontVariant: ['tabular-nums'] }}>
+                {formatClock(entryDuration(running, now))}
+              </T>
+              <T variant="small" numberOfLines={1}>
+                {running.note ? `${running.note} · ` : ''}since {timeOfDay(running.started_at)}
+              </T>
+            </TimerRing>
+            <Button label="Stop" kind="danger" onPress={stop} style={{ width: 220 }} />
           </>
         ) : (
-          <>
+          <View style={{ alignItems: 'center', gap: spacing.xs }}>
+            <Mascot size={96} mood="sleep" />
             <T variant="heading">Not tracking</T>
-            <T variant="small">Tap an activity to start a timer. Starting another one switches over.</T>
-          </>
+            <T variant="small" style={{ textAlign: 'center' }}>
+              Tap an activity to start. Starting another one switches over.
+            </T>
+          </View>
         )}
-        <View style={styles.chips}>
-          {visible.map((a) => {
-            const active = running?.activity_id === a.id;
-            return (
-              <Pressable
-                key={a.id}
-                onPress={() => (active ? stop() : start(a.id))}
-                accessibilityRole="button"
-                accessibilityLabel={active ? `Stop ${a.name}` : `Start ${a.name}`}
-                style={({ pressed }) => [
-                  styles.chip,
-                  { borderColor: a.color, backgroundColor: active ? a.color : colors.surface, opacity: pressed ? 0.75 : 1 },
-                ]}
-              >
-                <Ionicons name={active ? 'stop' : 'play'} size={16} color={active ? '#FFFFFF' : a.color} />
-                <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '600' }}>
-                  {a.name}
-                </T>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Card>
+      </View>
+
+      <View style={styles.chips}>
+        {visible.map((a) => {
+          const active = running?.activity_id === a.id;
+          return (
+            <Pressable
+              key={a.id}
+              onPress={() => (active ? stop() : start(a.id))}
+              onPressIn={() => Haptics.selectionAsync().catch(() => undefined)}
+              accessibilityRole="button"
+              accessibilityLabel={active ? `Stop ${a.name}` : `Start ${a.name}`}
+              style={({ pressed }) => [
+                styles.chip,
+                {
+                  borderColor: a.color,
+                  backgroundColor: active ? a.color : colors.surface,
+                  borderBottomWidth: pressed ? 2 : 5,
+                  transform: [{ translateY: pressed ? 3 : 0 }],
+                },
+              ]}
+            >
+              <Ionicons name={active ? 'stop' : 'play'} size={16} color={active ? '#FFFFFF' : a.color} />
+              <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '900' }}>
+                {a.name}
+              </T>
+            </Pressable>
+          );
+        })}
+        <Pressable
+          onPress={() => router.push('/track/activities')}
+          accessibilityRole="button"
+          accessibilityLabel="Add an activity"
+          style={[styles.addChip, { borderColor: colors.border }]}
+        >
+          <Ionicons name="add" size={22} color={colors.textMuted} />
+        </Pressable>
+      </View>
 
       <View style={styles.row}>
         <Card style={styles.stat}>
@@ -224,7 +270,7 @@ export default function Track() {
           <T variant="small">This week</T>
           <T variant="heading">{formatDuration(weekTotal)}</T>
         </Card>
-        <Card style={styles.stat}>
+        <Card style={styles.stat} tone="gold">
           <T variant="small">Streak</T>
           <T variant="heading">
             {streak} {streak === 1 ? 'day' : 'days'}
@@ -304,6 +350,7 @@ const styles = StyleSheet.create({
   stat: { flex: 1, gap: 4, padding: spacing.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: TAP, paddingHorizontal: spacing.lg, borderRadius: 999, borderWidth: 2 },
+  addChip: { width: TAP, height: TAP, borderRadius: TAP / 2, borderWidth: 2, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   entry: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: TAP },
   iconButton: { width: TAP, height: TAP, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });

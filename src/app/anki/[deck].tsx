@@ -9,13 +9,19 @@ import { cardDocument, renderCard } from '@/anki/render';
 import { answerCard, buildStudyQueue, getStudyCard, LEARN_AHEAD_MS, nextDue, setCardSuspended, undoAnswer, type StudyCard } from '@/anki/repo';
 import { formatInterval, GRADES, previewGrades, State, type AnkiSched } from '@/anki/schedule';
 import { AnkiCardView } from '@/components/AnkiCardView';
+import { Celebration } from '@/components/Celebration';
 import { Button, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { useAutoTrack } from '@/time/useAutoTrack';
 import { radius, spacing, TAP } from '@/theme/colors';
 
-const COUNT_COLORS = { new: '#3B82F6', learn: '#DC2626', review: '#16A34A' };
-const GRADE_COLORS: Record<number, string> = { 1: '#C0504D', 2: '#8A6414', 3: '#2F7A4F', 4: '#3F7FBF' };
+const COUNT_COLORS = { new: '#2F7FC1', learn: '#C8562F', review: '#2E8B3E' };
+const GRADE_COLORS: Record<number, { face: string; lip: string }> = {
+  1: { face: '#DD4B3E', lip: '#AE3226' },
+  2: { face: '#B7791F', lip: '#8A5A0B' },
+  3: { face: '#3FA34D', lip: '#2E7D39' },
+  4: { face: '#2F7FC1', lip: '#1F5F95' },
+};
 
 interface Session {
   queue: number[];
@@ -201,18 +207,22 @@ export default function AnkiStudy() {
 
   if (finished) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background, paddingBottom: insets.bottom }]}>
+      <View style={{ flex: 1, backgroundColor: colors.background, paddingBottom: insets.bottom }}>
         <Stack.Screen options={{ title }} />
-        <Ionicons name="checkmark-circle-outline" size={64} color={colors.accent} />
-        <T variant="title">Done for now</T>
-        <T variant="muted" style={{ textAlign: 'center' }}>
-          {answered > 0 ? `You answered ${answered} ${answered === 1 ? 'card' : 'cards'}. ` : ''}
-          {finished.next
-            ? `Next card due ${new Date(finished.next).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })}.`
-            : 'Nothing else is scheduled.'}
-        </T>
-        {answered > 0 && <Button label="Undo last answer" kind="ghost" onPress={undo} />}
-        <Button label="Back to decks" onPress={() => router.back()} />
+        <Celebration
+          title={answered > 0 ? 'Deck cleared!' : 'Nothing due'}
+          subtitle={
+            finished.next
+              ? `Next card due ${new Date(finished.next).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })}.`
+              : 'Nothing else is scheduled.'
+          }
+          mood={answered > 0 ? 'cheer' : 'sleep'}
+          confetti={answered > 0}
+          stats={answered > 0 ? [{ label: 'Answered', value: String(answered), tone: 'green' }] : []}
+        >
+          {answered > 0 && <Button label="Undo last answer" kind="ghost" onPress={undo} />}
+          <Button label="Back to decks" kind="success" onPress={() => router.back()} />
+        </Celebration>
       </View>
     );
   }
@@ -253,7 +263,7 @@ export default function AnkiStudy() {
                   onPress={() => grade(r)}
                   accessibilityRole="button"
                   accessibilityLabel={`${label}, next in ${interval}`}
-                  style={({ pressed }) => [styles.grade, { backgroundColor: GRADE_COLORS[rating], opacity: pressed ? 0.7 : 1 }]}
+                  style={({ pressed }) => [styles.grade, { backgroundColor: GRADE_COLORS[rating].face, borderBottomColor: GRADE_COLORS[rating].lip, borderBottomWidth: pressed ? 1 : 5, transform: [{ translateY: pressed ? 4 : 0 }] }]}
                 >
                   <T variant="small" color="#FFFFFF" style={{ fontWeight: '600' }}>
                     {interval}

@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LegalNote, SignInOptions } from '@/components/SignInOptions';
+import { Mascot } from '@/components/Mascot';
 import { Button, T } from '@/components/ui';
 import { useAuth } from '@/auth/AuthProvider';
 import { useApp } from '@/state/AppProvider';
@@ -24,8 +25,9 @@ export default function Welcome() {
       style={{ backgroundColor: colors.background }}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xxl, paddingBottom: insets.bottom + spacing.xl }]}
     >
-      <View style={{ gap: spacing.sm }}>
-        <T variant="title" style={{ fontSize: 44 }}>
+      <View style={{ gap: spacing.sm, alignItems: 'flex-start' }}>
+        <Mascot size={110} mood="cheer" bounce label="Musubi, the onigiri mascot" />
+        <T variant="title" style={{ fontSize: 44, lineHeight: 56 }}>
           文法
         </T>
         <T variant="heading">Learn Japanese grammar, one point at a time.</T>
@@ -34,7 +36,9 @@ export default function Welcome() {
       <View style={{ gap: spacing.md }}>
         {FEATURES.map((f) => (
           <View key={f.icon} style={styles.feature}>
-            <Ionicons name={f.icon} size={22} color={colors.accent} />
+            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={f.icon} size={22} color={colors.accent} />
+            </View>
             <T variant="body" style={{ flex: 1 }}>
               {f.text}
             </T>
