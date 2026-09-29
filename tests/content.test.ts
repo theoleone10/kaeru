@@ -7,11 +7,13 @@ describe('bundled content', () => {
     expect(validateContent(allLevelFiles)).toEqual([]);
   });
 
-  it('has the full N5, N4 and N3 sets', () => {
+  it('has the full level sets', () => {
     const count = (level: string) => curriculum.filter((p) => p.level === level).length;
-    expect(count('N5')).toBeGreaterThanOrEqual(88);
-    expect(count('N4')).toBeGreaterThanOrEqual(80);
-    expect(count('N3')).toBeGreaterThanOrEqual(70);
+    expect(count('N5')).toBeGreaterThanOrEqual(91);
+    expect(count('N4')).toBeGreaterThanOrEqual(98);
+    expect(count('N3')).toBeGreaterThanOrEqual(83);
+    expect(count('N2')).toBeGreaterThanOrEqual(14);
+    expect(count('N1')).toBeGreaterThanOrEqual(15);
   });
 
   it('keeps the Phase 1 points so existing progress still matches', () => {

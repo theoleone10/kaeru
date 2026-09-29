@@ -326,6 +326,93 @@
       ]
     },
     {
+      "id": "n3-to-iu-ka",
+      "level": "N3",
+      "title": "〜というか／〜っていうか",
+      "meaning": "or rather / I mean…",
+      "structure": [
+        "A + というか + B (A, or rather B)",
+        "っていうか、… (casual: I mean / anyway)"
+      ],
+      "formality": "neutral",
+      "explanation": "というか rephrases something more accurately: 静かというか、寂しい町だ, \"It's a quiet — or rather, lonely — town.\" In casual speech, っていうか at the start of a sentence means \"I mean…\" or changes the subject: っていうか、お腹すいた, \"Anyway, I'm hungry.\"",
+      "nuances": [
+        "AというかBというか means \"you could call it A, or B\": 大胆というか無謀というか.",
+        "っていうか is heavy slang when overused."
+      ],
+      "common_mistakes": [
+        "Using というか when you're not correcting or refining a word.",
+        "Using っていうか in formal speech."
+      ],
+      "related_ids": [
+        "n3-to-iu-no-wa",
+        "n3-tte"
+      ],
+      "examples": [
+        {
+          "id": "n3-to-iu-ka-1",
+          "japanese": "静かというか、寂しい町だ。",
+          "furigana": "{静|しず}かというか、{寂|さび}しい{町|まち}だ。",
+          "english": "It's a quiet — or rather, lonely — town.",
+          "cloze_target": "というか",
+          "accepted_answers": [
+            "というか",
+            "っていうか"
+          ],
+          "hint": "or rather"
+        },
+        {
+          "id": "n3-to-iu-ka-2",
+          "japanese": "彼は友達というか、家族みたいな存在だ。",
+          "furigana": "{彼|かれ}は{友達|ともだち}というか、{家族|かぞく}みたいな{存在|そんざい}だ。",
+          "english": "He's a friend — or more like family, really.",
+          "cloze_target": "というか",
+          "accepted_answers": [
+            "というか",
+            "っていうか"
+          ],
+          "hint": "or rather"
+        },
+        {
+          "id": "n3-to-iu-ka-3",
+          "japanese": "っていうか、今日何曜日だっけ？",
+          "furigana": "っていうか、{今日|きょう}{何曜日|なんようび}だっけ？",
+          "english": "Anyway — what day is it today?",
+          "cloze_target": "っていうか",
+          "accepted_answers": [
+            "っていうか",
+            "というか"
+          ],
+          "hint": "I mean / anyway (casual)"
+        },
+        {
+          "id": "n3-to-iu-ka-4",
+          "japanese": "嫌いというか、ちょっと苦手なんです。",
+          "furigana": "{嫌|きら}いというか、ちょっと{苦手|にがて}なんです。",
+          "english": "It's not that I hate it — I'm just not good with it.",
+          "cloze_target": "というか",
+          "accepted_answers": [
+            "というか",
+            "っていうか"
+          ],
+          "hint": "or rather"
+        },
+        {
+          "id": "n3-to-iu-ka-5",
+          "japanese": "勇敢というか無謀というか、彼には驚かされる。",
+          "furigana": "{勇敢|ゆうかん}というか{無謀|むぼう}というか、{彼|かれ}には{驚|おどろ}かされる。",
+          "english": "Brave or reckless, he never fails to surprise me.",
+          "cloze_target": "というか",
+          "cloze_occurrence": 1,
+          "accepted_answers": [
+            "というか",
+            "っていうか"
+          ],
+          "hint": "you could call it A…"
+        }
+      ]
+    },
+    {
       "id": "n3-tte",
       "level": "N3",
       "title": "〜って",
@@ -403,6 +490,87 @@
             "って"
           ],
           "hint": "(I heard)"
+        }
+      ]
+    },
+    {
+      "id": "n3-tte-ba",
+      "level": "N3",
+      "title": "〜ってば／〜ったら",
+      "meaning": "I said…! / come on! — insistence and exasperation",
+      "structure": [
+        "Plain form + ってば (insisting, repeating yourself)",
+        "Name + ったら (exasperated at someone)"
+      ],
+      "formality": "casual",
+      "explanation": "ってば shows impatience because you've already said something and the listener isn't listening: わかったってば!, \"I said I get it!\" 行くってば, \"I'm going, OK!\"\n\nったら after a name or noun expresses exasperation or affection about that person: お父さんったら、また忘れてる, \"Honestly, Dad — you've forgotten again.\"",
+      "nuances": [
+        "Both come from quoting forms (と言えば／と言ったら).",
+        "ねえってば is a common way to demand someone's attention."
+      ],
+      "common_mistakes": [
+        "Using them when you haven't already said something — ってば implies repetition.",
+        "Using them politely; they're emotional and casual."
+      ],
+      "related_ids": [
+        "n3-tte",
+        "n3-jan"
+      ],
+      "examples": [
+        {
+          "id": "n3-tte-ba-1",
+          "japanese": "もうわかったってば！",
+          "furigana": "もうわかったってば！",
+          "english": "I said I get it already!",
+          "cloze_target": "ってば",
+          "accepted_answers": [
+            "ってば"
+          ],
+          "hint": "(insisting, exasperated)"
+        },
+        {
+          "id": "n3-tte-ba-2",
+          "japanese": "ねえってば、聞いてる？",
+          "furigana": "ねえってば、{聞|き}いてる？",
+          "english": "Hey! Are you listening?",
+          "cloze_target": "ってば",
+          "accepted_answers": [
+            "ってば"
+          ],
+          "hint": "(demanding attention)"
+        },
+        {
+          "id": "n3-tte-ba-3",
+          "japanese": "大丈夫だってば。心配しないで。",
+          "furigana": "{大丈夫|だいじょうぶ}だってば。{心配|しんぱい}しないで。",
+          "english": "I told you, I'm fine. Don't worry.",
+          "cloze_target": "ってば",
+          "accepted_answers": [
+            "ってば"
+          ],
+          "hint": "(insisting)"
+        },
+        {
+          "id": "n3-tte-ba-4",
+          "japanese": "お父さんったら、また鍵を忘れてる。",
+          "furigana": "お{父|とう}さんったら、また{鍵|かぎ}を{忘|わす}れてる。",
+          "english": "Honestly, Dad's forgotten his keys again.",
+          "cloze_target": "ったら",
+          "accepted_answers": [
+            "ったら"
+          ],
+          "hint": "(exasperated at someone)"
+        },
+        {
+          "id": "n3-tte-ba-5",
+          "japanese": "すぐ行くってば。",
+          "furigana": "すぐ{行|い}くってば。",
+          "english": "I'm coming, OK!",
+          "cloze_target": "ってば",
+          "accepted_answers": [
+            "ってば"
+          ],
+          "hint": "(insisting)"
         }
       ]
     },
@@ -487,6 +655,167 @@
       ]
     },
     {
+      "id": "n3-kai-dai",
+      "level": "N3",
+      "title": "〜かい／〜だい",
+      "meaning": "casual, masculine question endings",
+      "structure": [
+        "Yes/no question: Plain form + かい",
+        "Question word question: Plain form + (ん)だい"
+      ],
+      "formality": "casual",
+      "explanation": "かい and だい are friendly, somewhat masculine or old-fashioned question endings. かい is for yes/no questions: 元気かい？, \"You doing OK?\" だい is used with question words: 何だい？, \"What is it?\" どこに行くんだい？, \"Where are you off to?\"\n\nThey sound warm and a little fatherly; older men and characters in stories use them a lot.",
+      "nuances": [
+        "With verbs, だい usually comes after の／ん: 何を食べるんだい？",
+        "Using かい with a question word (何かい) is a common learner slip."
+      ],
+      "common_mistakes": [
+        "Mixing them up: 誰かい ✗ → 誰だい; 本当だい ✗ → 本当かい.",
+        "Using them in polite speech."
+      ],
+      "related_ids": [
+        "n5-ka-question",
+        "n4-no-question"
+      ],
+      "examples": [
+        {
+          "id": "n3-kai-dai-1",
+          "japanese": "元気かい？",
+          "furigana": "{元気|げんき}かい？",
+          "english": "You doing well?",
+          "cloze_target": "かい",
+          "accepted_answers": [
+            "かい"
+          ],
+          "hint": "(yes/no question, casual)"
+        },
+        {
+          "id": "n3-kai-dai-2",
+          "japanese": "それは本当かい？",
+          "furigana": "それは{本当|ほんとう}かい？",
+          "english": "Is that true?",
+          "cloze_target": "かい",
+          "accepted_answers": [
+            "かい"
+          ],
+          "hint": "(yes/no question, casual)"
+        },
+        {
+          "id": "n3-kai-dai-3",
+          "japanese": "何だい、その顔は。",
+          "furigana": "{何|なん}だい、その{顔|かお}は。",
+          "english": "What's with that face?",
+          "cloze_target": "だい",
+          "accepted_answers": [
+            "だい"
+          ],
+          "hint": "(question-word question, casual)"
+        },
+        {
+          "id": "n3-kai-dai-4",
+          "japanese": "どこに行くんだい？",
+          "furigana": "どこに{行|い}くんだい？",
+          "english": "Where are you going?",
+          "cloze_target": "だい",
+          "accepted_answers": [
+            "だい"
+          ],
+          "hint": "(question-word question, casual)"
+        },
+        {
+          "id": "n3-kai-dai-5",
+          "japanese": "君も一緒に来るかい？",
+          "furigana": "{君|きみ}も{一緒|いっしょ}に{来|く}るかい？",
+          "english": "Want to come along too?",
+          "cloze_target": "かい",
+          "accepted_answers": [
+            "かい"
+          ],
+          "hint": "(yes/no question, casual)"
+        }
+      ]
+    },
+    {
+      "id": "n3-yagaru",
+      "level": "N3",
+      "title": "〜やがる",
+      "meaning": "(the jerk) goes and does… — contemptuous",
+      "structure": [
+        "Verb (ます-stem) + やがる"
+      ],
+      "formality": "casual",
+      "explanation": "やがる after a verb stem shows contempt or anger toward the person doing the action: あいつ、また嘘をつきやがった, \"That jerk lied again.\" It's rough, rude slang, heard in anime, films and angry speech.\n\nIt conjugates like a regular う-verb: 〜やがって, 〜やがれ (command, e.g. ふざけやがって, 覚えてやがれ).",
+      "nuances": [
+        "覚えてやがれ, \"You'll pay for this!\", is a classic villain line.",
+        "Usually about someone else, never polite."
+      ],
+      "common_mistakes": [
+        "Using it about yourself or people you respect.",
+        "Using it in any polite context — it's genuinely rude."
+      ],
+      "related_ids": [
+        "n4-chau",
+        "n4-imperative"
+      ],
+      "examples": [
+        {
+          "id": "n3-yagaru-1",
+          "japanese": "あいつ、また嘘をつきやがった。",
+          "furigana": "あいつ、また{嘘|うそ}をつきやがった。",
+          "english": "That jerk lied again.",
+          "cloze_target": "やがった",
+          "accepted_answers": [
+            "やがった"
+          ],
+          "hint": "(contempt, past)"
+        },
+        {
+          "id": "n3-yagaru-2",
+          "japanese": "人の金を勝手に使いやがって！",
+          "furigana": "{人|ひと}の{金|かね}を{勝手|かって}に{使|つか}いやがって！",
+          "english": "How dare you spend my money without asking!",
+          "cloze_target": "やがって",
+          "accepted_answers": [
+            "やがって"
+          ],
+          "hint": "(contempt, angry)"
+        },
+        {
+          "id": "n3-yagaru-3",
+          "japanese": "ふざけやがって、許さないぞ。",
+          "furigana": "ふざけやがって、{許|ゆる}さないぞ。",
+          "english": "Messing with me — I won't forgive you.",
+          "cloze_target": "やがって",
+          "accepted_answers": [
+            "やがって"
+          ],
+          "hint": "(contempt, angry)"
+        },
+        {
+          "id": "n3-yagaru-4",
+          "japanese": "覚えてやがれ！",
+          "furigana": "{覚|おぼ}えてやがれ！",
+          "english": "You'll pay for this!",
+          "cloze_target": "やがれ",
+          "accepted_answers": [
+            "やがれ"
+          ],
+          "hint": "(contempt, command)"
+        },
+        {
+          "id": "n3-yagaru-5",
+          "japanese": "雨まで降ってきやがった。",
+          "furigana": "{雨|あめ}まで{降|ふ}ってきやがった。",
+          "english": "And now the damn rain's started.",
+          "cloze_target": "やがった",
+          "accepted_answers": [
+            "やがった"
+          ],
+          "hint": "(annoyance, past)"
+        }
+      ]
+    },
+    {
       "id": "n3-janai-ka",
       "level": "N3",
       "title": "〜じゃないか／〜じゃない？",
@@ -564,6 +893,86 @@
             "じゃない"
           ],
           "hint": "(surprise / praise)"
+        }
+      ]
+    },
+    {
+      "id": "n3-jan",
+      "level": "N3",
+      "title": "〜じゃん",
+      "meaning": "…, right? / see? — very casual じゃないか",
+      "structure": [
+        "Plain form + じゃん (な-adj / noun: no だ)"
+      ],
+      "formality": "casual",
+      "explanation": "じゃん is a slangy contraction of じゃないか / じゃない. It points out something the listener should see or agree with: いいじゃん, \"That's nice, isn't it!\" / \"What's wrong with that?\" 言ったじゃん, \"I told you, didn't I!\"\n\nIt started in the Yokohama area and is now common casual speech all over Japan.",
+      "nuances": [
+        "Tone matters: it can sound cheerful (いいじゃん!) or accusing (遅いじゃん).",
+        "じゃんか is an even more emphatic variant."
+      ],
+      "common_mistakes": [
+        "Using it with superiors or in writing.",
+        "Adding だ before it: 簡単だじゃん ✗ → 簡単じゃん."
+      ],
+      "related_ids": [
+        "n3-janai-ka",
+        "n4-sa-particle"
+      ],
+      "examples": [
+        {
+          "id": "n3-jan-1",
+          "japanese": "その服、いいじゃん。",
+          "furigana": "その{服|ふく}、いいじゃん。",
+          "english": "That outfit looks great!",
+          "cloze_target": "じゃん",
+          "accepted_answers": [
+            "じゃん"
+          ],
+          "hint": "(right? — very casual)"
+        },
+        {
+          "id": "n3-jan-2",
+          "japanese": "だから言ったじゃん。",
+          "furigana": "だから{言|い}ったじゃん。",
+          "english": "See, I told you!",
+          "cloze_target": "じゃん",
+          "accepted_answers": [
+            "じゃん"
+          ],
+          "hint": "(see? — very casual)"
+        },
+        {
+          "id": "n3-jan-3",
+          "japanese": "意外と簡単じゃん。",
+          "furigana": "{意外|いがい}と{簡単|かんたん}じゃん。",
+          "english": "Hey, it's easier than I thought.",
+          "cloze_target": "じゃん",
+          "accepted_answers": [
+            "じゃん"
+          ],
+          "hint": "(right? — very casual)"
+        },
+        {
+          "id": "n3-jan-4",
+          "japanese": "遅いじゃん、何してたの？",
+          "furigana": "{遅|おそ}いじゃん、{何|なに}してたの？",
+          "english": "You're late — what were you doing?",
+          "cloze_target": "じゃん",
+          "accepted_answers": [
+            "じゃん"
+          ],
+          "hint": "(accusing, very casual)"
+        },
+        {
+          "id": "n3-jan-5",
+          "japanese": "彼、料理上手じゃん。",
+          "furigana": "{彼|かれ}、{料理|りょうり}{上手|じょうず}じゃん。",
+          "english": "He's actually a good cook!",
+          "cloze_target": "じゃん",
+          "accepted_answers": [
+            "じゃん"
+          ],
+          "hint": "(surprise, very casual)"
         }
       ]
     },
@@ -3537,6 +3946,89 @@
       ]
     },
     {
+      "id": "n3-beki",
+      "level": "N3",
+      "title": "〜べきだ／〜べきではない",
+      "meaning": "should / ought to (strong moral judgement)",
+      "structure": [
+        "Verb (dictionary form) + べきだ",
+        "する → するべき／すべき",
+        "Verb + べきではない (should not)"
+      ],
+      "formality": "neutral",
+      "explanation": "べき expresses what someone should do because it's right, sensible or expected — stronger than 〜たほうがいい: 約束は守るべきだ, \"You should keep your promises.\" The negative べきではない says something is wrong to do: 人の悪口を言うべきではない.\n\nIt's also used about the past with regret: もっと勉強するべきだった, \"I should have studied more.\"",
+      "nuances": [
+        "For advice to one person, 〜たほうがいい is softer; べき sounds like a principle.",
+        "As a noun modifier: 読むべき本, \"a book you ought to read\"."
+      ],
+      "common_mistakes": [
+        "Using the negative form before べき: 言わないべき ✗ → 言うべきではない.",
+        "Using it for rules or laws — that's 〜なければならない."
+      ],
+      "related_ids": [
+        "n5-ta-hou-ga-ii",
+        "n1-bekarazu",
+        "n1-beku"
+      ],
+      "examples": [
+        {
+          "id": "n3-beki-1",
+          "japanese": "約束は守るべきだ。",
+          "furigana": "{約束|やくそく}は{守|まも}るべきだ。",
+          "english": "You should keep your promises.",
+          "cloze_target": "べき",
+          "accepted_answers": [
+            "べき"
+          ],
+          "hint": "should (principle)"
+        },
+        {
+          "id": "n3-beki-2",
+          "japanese": "人の悪口を言うべきではない。",
+          "furigana": "{人|ひと}の{悪口|わるぐち}を{言|い}うべきではない。",
+          "english": "You shouldn't speak ill of others.",
+          "cloze_target": "べき",
+          "accepted_answers": [
+            "べき"
+          ],
+          "hint": "should not"
+        },
+        {
+          "id": "n3-beki-3",
+          "japanese": "もっと早く相談するべきだった。",
+          "furigana": "もっと{早|はや}く{相談|そうだん}するべきだった。",
+          "english": "I should have talked to you sooner.",
+          "cloze_target": "べき",
+          "accepted_answers": [
+            "べき"
+          ],
+          "hint": "should have"
+        },
+        {
+          "id": "n3-beki-4",
+          "japanese": "これは学生が読むべき本です。",
+          "furigana": "これは{学生|がくせい}が{読|よ}むべき{本|ほん}です。",
+          "english": "This is a book students ought to read.",
+          "cloze_target": "べき",
+          "accepted_answers": [
+            "べき"
+          ],
+          "hint": "(ought to — modifying a noun)"
+        },
+        {
+          "id": "n3-beki-5",
+          "japanese": "子どもにはもっと自由を与えるべきだと思う。",
+          "furigana": "{子|こ}どもにはもっと{自由|じゆう}を{与|あた}えるべきだと{思|おも}う。",
+          "english": "I think children should be given more freedom.",
+          "cloze_target": "べき",
+          "accepted_answers": [
+            "べき"
+          ],
+          "hint": "should (opinion)"
+        }
+      ]
+    },
+    {
       "id": "n3-rashii-typical",
       "level": "N3",
       "title": "Noun + らしい (typical of)",
@@ -3863,6 +4355,92 @@
             "ぎみ"
           ],
           "hint": "a bit"
+        }
+      ]
+    },
+    {
+      "id": "n3-zurai",
+      "level": "N3",
+      "title": "〜づらい",
+      "meaning": "hard to do (for personal, physical or emotional reasons)",
+      "structure": [
+        "Verb (ます-stem) + づらい"
+      ],
+      "formality": "neutral",
+      "explanation": "づらい means something is hard or uncomfortable for the person doing it: この靴は歩きづらい, \"These shoes are hard to walk in.\" 言いづらいんですが…, \"This is hard to say, but…\"\n\nCompared with 〜にくい, which is more objective, づらい stresses the doer's discomfort or emotional difficulty.",
+      "nuances": [
+        "From 辛い (つらい, painful).",
+        "Very common in softening phrases: 言いづらい, 頼みづらい, 聞きづらい."
+      ],
+      "common_mistakes": [
+        "Using it for things with no human doer: この紙は燃えづらい ✗ → 燃えにくい.",
+        "Writing it with つ: 言いつらい ✗ → 言いづらい."
+      ],
+      "related_ids": [
+        "n4-yasui-nikui",
+        "n2-gatai"
+      ],
+      "examples": [
+        {
+          "id": "n3-zurai-1",
+          "japanese": "この靴は歩きづらい。",
+          "furigana": "この{靴|くつ}は{歩|ある}きづらい。",
+          "english": "These shoes are hard to walk in.",
+          "cloze_target": "づらい",
+          "accepted_answers": [
+            "づらい"
+          ],
+          "hint": "hard to (for me)"
+        },
+        {
+          "id": "n3-zurai-2",
+          "japanese": "言いづらいんですが、来週休ませてください。",
+          "furigana": "{言|い}いづらいんですが、{来週|らいしゅう}{休|やす}ませてください。",
+          "english": "This is hard to say, but please let me have next week off.",
+          "cloze_target": "づらい",
+          "accepted_answers": [
+            "づらい"
+          ],
+          "hint": "hard to (emotionally)"
+        },
+        {
+          "id": "n3-zurai-3",
+          "japanese": "小さい字は読みづらいです。",
+          "furigana": "{小|ちい}さい{字|じ}は{読|よ}みづらいです。",
+          "english": "Small print is hard to read.",
+          "cloze_target": "づらい",
+          "accepted_answers": [
+            "づらい"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "にくい",
+              "note": "Also correct — but this review wants the one stressing the reader's discomfort."
+            }
+          ],
+          "hint": "hard to (for me)"
+        },
+        {
+          "id": "n3-zurai-4",
+          "japanese": "先輩にはお金のことを頼みづらい。",
+          "furigana": "{先輩|せんぱい}にはお{金|かね}のことを{頼|たの}みづらい。",
+          "english": "It's awkward to ask my senior for money.",
+          "cloze_target": "づらい",
+          "accepted_answers": [
+            "づらい"
+          ],
+          "hint": "hard to (emotionally)"
+        },
+        {
+          "id": "n3-zurai-5",
+          "japanese": "風邪で息がしづらい。",
+          "furigana": "{風邪|かぜ}で{息|いき}がしづらい。",
+          "english": "I've got a cold and it's hard to breathe.",
+          "cloze_target": "づらい",
+          "accepted_answers": [
+            "づらい"
+          ],
+          "hint": "hard to (physically)"
         }
       ]
     },
@@ -4544,6 +5122,86 @@
             "度に"
           ],
           "hint": "every time"
+        }
+      ]
+    },
+    {
+      "id": "n3-totan",
+      "level": "N3",
+      "title": "〜たとたん(に)",
+      "meaning": "the moment… / as soon as… (and unexpectedly)",
+      "structure": [
+        "Verb (た-form) + とたん(に)"
+      ],
+      "formality": "neutral",
+      "explanation": "とたん(に) says that the instant one thing happened, something else happened — usually something sudden or unexpected: 立ち上がったとたん、めまいがした, \"The moment I stood up, I felt dizzy.\"\n\nThe second part is something that happened, not something the speaker chose to do.",
+      "nuances": [
+        "Written 途端 in kanji.",
+        "Often for surprises: 家を出たとたん、雨が降り出した."
+      ],
+      "common_mistakes": [
+        "Using it for your own intentional follow-up action: 家に帰ったとたん、宿題をしよう ✗ — use すぐ or 〜てすぐ.",
+        "Using the dictionary form: 立つとたん ✗ → 立ったとたん."
+      ],
+      "related_ids": [
+        "n3-tabi-ni",
+        "n1-ga-hayai-ka"
+      ],
+      "examples": [
+        {
+          "id": "n3-totan-1",
+          "japanese": "立ち上がったとたん、めまいがした。",
+          "furigana": "{立|た}ち{上|あ}がったとたん、めまいがした。",
+          "english": "The moment I stood up, I felt dizzy.",
+          "cloze_target": "とたん",
+          "accepted_answers": [
+            "とたん"
+          ],
+          "hint": "the moment…"
+        },
+        {
+          "id": "n3-totan-2",
+          "japanese": "家を出たとたんに、雨が降り出した。",
+          "furigana": "{家|いえ}を{出|で}たとたんに、{雨|あめ}が{降|ふ}り{出|だ}した。",
+          "english": "The moment I left the house, it started raining.",
+          "cloze_target": "とたん",
+          "accepted_answers": [
+            "とたん"
+          ],
+          "hint": "the moment…"
+        },
+        {
+          "id": "n3-totan-3",
+          "japanese": "窓を開けたとたん、猫が飛び出した。",
+          "furigana": "{窓|まど}を{開|あ}けたとたん、{猫|ねこ}が{飛|と}び{出|だ}した。",
+          "english": "As soon as I opened the window, the cat leapt out.",
+          "cloze_target": "とたん",
+          "accepted_answers": [
+            "とたん"
+          ],
+          "hint": "the moment…"
+        },
+        {
+          "id": "n3-totan-4",
+          "japanese": "有名になったとたん、彼は態度が変わった。",
+          "furigana": "{有名|ゆうめい}になったとたん、{彼|かれ}は{態度|たいど}が{変|か}わった。",
+          "english": "The moment he became famous, his attitude changed.",
+          "cloze_target": "とたん",
+          "accepted_answers": [
+            "とたん"
+          ],
+          "hint": "the moment…"
+        },
+        {
+          "id": "n3-totan-5",
+          "japanese": "ベッドに入ったとたんに寝てしまった。",
+          "furigana": "ベッドに{入|はい}ったとたんに{寝|ね}てしまった。",
+          "english": "I fell asleep the moment I got into bed.",
+          "cloze_target": "とたん",
+          "accepted_answers": [
+            "とたん"
+          ],
+          "hint": "the moment…"
         }
       ]
     },
@@ -5746,6 +6404,96 @@
       ]
     },
     {
+      "id": "n3-to-shitara",
+      "level": "N3",
+      "title": "〜としたら／〜とすれば",
+      "meaning": "if we suppose that / assuming…",
+      "structure": [
+        "Plain form + としたら／とすれば／とすると"
+      ],
+      "formality": "neutral",
+      "explanation": "としたら and とすれば set up a hypothetical and reason from it: もし宝くじが当たったとしたら、何を買う？, \"Supposing you won the lottery, what would you buy?\" They also draw a conclusion from what you've heard: 彼が犯人だとすれば、話が合う, \"If he's the culprit, the story adds up.\"",
+      "nuances": [
+        "Often with もし or 仮に: 仮に〜としたら.",
+        "としても (N3) is \"even if\"; としたら is \"if\"."
+      ],
+      "common_mistakes": [
+        "Using it for real, fixed conditions — plain 〜たら is enough.",
+        "Mixing up としても (even if) and としたら (if)."
+      ],
+      "related_ids": [
+        "n3-to-shitemo",
+        "n4-tara"
+      ],
+      "examples": [
+        {
+          "id": "n3-to-shitara-1",
+          "japanese": "もし宝くじが当たったとしたら、何を買う？",
+          "furigana": "もし{宝|たから}くじが{当|あ}たったとしたら、{何|なに}を{買|か}う？",
+          "english": "Supposing you won the lottery, what would you buy?",
+          "cloze_target": "としたら",
+          "accepted_answers": [
+            "としたら",
+            "とすれば",
+            "とすると"
+          ],
+          "hint": "if we suppose"
+        },
+        {
+          "id": "n3-to-shitara-2",
+          "japanese": "彼が犯人だとすれば、すべて説明がつく。",
+          "furigana": "{彼|かれ}が{犯人|はんにん}だとすれば、すべて{説明|せつめい}がつく。",
+          "english": "If he's the culprit, it all makes sense.",
+          "cloze_target": "とすれば",
+          "accepted_answers": [
+            "とすれば",
+            "としたら",
+            "とすると"
+          ],
+          "hint": "assuming that"
+        },
+        {
+          "id": "n3-to-shitara-3",
+          "japanese": "仮に明日雨が降るとしたら、試合はどうなりますか。",
+          "furigana": "{仮|かり}に{明日|あした}{雨|あめ}が{降|ふ}るとしたら、{試合|しあい}はどうなりますか。",
+          "english": "Say it rains tomorrow — what happens to the match?",
+          "cloze_target": "としたら",
+          "accepted_answers": [
+            "としたら",
+            "とすれば",
+            "とすると"
+          ],
+          "hint": "if we suppose"
+        },
+        {
+          "id": "n3-to-shitara-4",
+          "japanese": "無人島に一つだけ持っていくとしたら、何にする？",
+          "furigana": "{無人島|むじんとう}に{一|ひと}つだけ{持|も}っていくとしたら、{何|なに}にする？",
+          "english": "If you could take just one thing to a desert island, what would it be?",
+          "cloze_target": "としたら",
+          "accepted_answers": [
+            "としたら",
+            "とすれば",
+            "とすると"
+          ],
+          "hint": "if we suppose"
+        },
+        {
+          "id": "n3-to-shitara-5",
+          "japanese": "電車が遅れているとすると、会議に間に合わないかもしれない。",
+          "furigana": "{電車|でんしゃ}が{遅|おく}れているとすると、{会議|かいぎ}に{間|ま}に{合|あ}わないかもしれない。",
+          "english": "If the trains are delayed, I might not make the meeting.",
+          "cloze_target": "とすると",
+          "accepted_answers": [
+            "とすると",
+            "としたら",
+            "とすれば"
+          ],
+          "hint": "assuming that"
+        }
+      ]
+    },
+    {
       "id": "n3-kuse-ni",
       "level": "N3",
       "title": "〜くせに",
@@ -6086,6 +6834,174 @@
             "ば良いのに"
           ],
           "hint": "(you) could just"
+        }
+      ]
+    },
+    {
+      "id": "n3-zu",
+      "level": "N3",
+      "title": "〜ず (formal negative)",
+      "meaning": "without / not … and — written form of 〜ないで／〜なくて",
+      "structure": [
+        "Verb ない-stem + ず (する → せず)",
+        "〜ず、… (not …, and / without …ing)"
+      ],
+      "formality": "formal",
+      "explanation": "ず is the classical negative, still common in writing and set expressions. It connects clauses like 〜ないで or 〜なくて: 何も言わず、部屋を出た, \"She left the room without saying anything.\" 雨が止まず、試合は中止になった, \"The rain didn't let up, so the match was cancelled.\"\n\nする becomes せず.",
+      "nuances": [
+        "Many fixed phrases use it: 相変わらず (as always), 思わず (without thinking), 知らず知らず.",
+        "〜ずに (N4) is the same form with に, closer to 〜ないで."
+      ],
+      "common_mistakes": [
+        "Using しず for する — it's せず.",
+        "Using ず to end a sentence in modern Japanese — it links clauses or appears in set phrases."
+      ],
+      "related_ids": [
+        "n4-zu-ni",
+        "n4-naide",
+        "n2-nu"
+      ],
+      "examples": [
+        {
+          "id": "n3-zu-1",
+          "japanese": "彼女は何も言わず、部屋を出た。",
+          "furigana": "{彼女|かのじょ}は{何|なに}も{言|い}わず、{部屋|へや}を{出|で}た。",
+          "english": "She left the room without saying anything.",
+          "cloze_target": "言わず",
+          "accepted_answers": [
+            "言わず",
+            "いわず"
+          ],
+          "hint": "言う + (without, formal)"
+        },
+        {
+          "id": "n3-zu-2",
+          "japanese": "雨が止まず、試合は中止になった。",
+          "furigana": "{雨|あめ}が{止|や}まず、{試合|しあい}は{中止|ちゅうし}になった。",
+          "english": "The rain didn't stop, so the match was cancelled.",
+          "cloze_target": "止まず",
+          "accepted_answers": [
+            "止まず",
+            "やまず"
+          ],
+          "hint": "止む + (not, and…)"
+        },
+        {
+          "id": "n3-zu-3",
+          "japanese": "連絡もせず、会社を休んだ。",
+          "furigana": "{連絡|れんらく}もせず、{会社|かいしゃ}を{休|やす}んだ。",
+          "english": "He took the day off without even getting in touch.",
+          "cloze_target": "せず",
+          "accepted_answers": [
+            "せず"
+          ],
+          "hint": "する + (without, formal)"
+        },
+        {
+          "id": "n3-zu-4",
+          "japanese": "面白くて、思わず笑ってしまった。",
+          "furigana": "{面白|おもしろ}くて、{思|おも}わず{笑|わら}ってしまった。",
+          "english": "It was so funny I laughed before I knew it.",
+          "cloze_target": "思わず",
+          "accepted_answers": [
+            "思わず",
+            "おもわず"
+          ],
+          "hint": "(set phrase) without thinking"
+        },
+        {
+          "id": "n3-zu-5",
+          "japanese": "誰にも知られず、計画は進められた。",
+          "furigana": "{誰|だれ}にも{知|し}られず、{計画|けいかく}は{進|すす}められた。",
+          "english": "The plan went ahead without anyone knowing.",
+          "cloze_target": "知られず",
+          "accepted_answers": [
+            "知られず",
+            "しられず"
+          ],
+          "hint": "知られる + (without, formal)"
+        }
+      ]
+    },
+    {
+      "id": "n3-de-aru",
+      "level": "N3",
+      "title": "〜である",
+      "meaning": "is (formal written です／だ)",
+      "structure": [
+        "Noun / な-adj + である",
+        "〜であり、… (is …, and)",
+        "〜ではない (negative)"
+      ],
+      "formality": "formal",
+      "explanation": "である is the formal written copula used in essays, reports, newspapers and academic writing, where it replaces だ／です: 東京は日本の首都である, \"Tokyo is the capital of Japan.\" Its connective form であり links clauses: 彼は医者であり、作家でもある, \"He is a doctor, and also a writer.\"\n\nIt's also heard in speeches and old-fashioned narration: 吾輩は猫である, \"I am a cat.\"",
+      "nuances": [
+        "Don't mix である with です／ます in the same piece of writing.",
+        "であろう is the formal guess form (N2)."
+      ],
+      "common_mistakes": [
+        "Using である in everyday conversation — it sounds like reading an essay aloud.",
+        "Using it after い-adjectives: 高いである ✗ → 高い."
+      ],
+      "related_ids": [
+        "n5-da",
+        "n2-de-arou"
+      ],
+      "examples": [
+        {
+          "id": "n3-de-aru-1",
+          "japanese": "東京は日本の首都である。",
+          "furigana": "{東京|とうきょう}は{日本|にほん}の{首都|しゅと}である。",
+          "english": "Tokyo is the capital of Japan.",
+          "cloze_target": "である",
+          "accepted_answers": [
+            "である"
+          ],
+          "hint": "is (formal written)"
+        },
+        {
+          "id": "n3-de-aru-2",
+          "japanese": "吾輩は猫である。",
+          "furigana": "{吾輩|わがはい}は{猫|ねこ}である。",
+          "english": "I am a cat.",
+          "cloze_target": "である",
+          "accepted_answers": [
+            "である"
+          ],
+          "hint": "is (formal written)"
+        },
+        {
+          "id": "n3-de-aru-3",
+          "japanese": "彼は医者であり、作家でもある。",
+          "furigana": "{彼|かれ}は{医者|いしゃ}であり、{作家|さっか}でもある。",
+          "english": "He is a doctor, and also a writer.",
+          "cloze_target": "であり",
+          "accepted_answers": [
+            "であり"
+          ],
+          "hint": "is …, and (formal)"
+        },
+        {
+          "id": "n3-de-aru-4",
+          "japanese": "健康が最も大切である。",
+          "furigana": "{健康|けんこう}が{最|もっと}も{大切|たいせつ}である。",
+          "english": "Health is the most important thing.",
+          "cloze_target": "である",
+          "accepted_answers": [
+            "である"
+          ],
+          "hint": "is (formal written)"
+        },
+        {
+          "id": "n3-de-aru-5",
+          "japanese": "この問題の原因は明らかではない。",
+          "furigana": "この{問題|もんだい}の{原因|げんいん}は{明|あき}らかではない。",
+          "english": "The cause of this problem is not clear.",
+          "cloze_target": "ではない",
+          "accepted_answers": [
+            "ではない"
+          ],
+          "hint": "is not (formal written)"
         }
       ]
     }

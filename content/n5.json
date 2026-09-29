@@ -517,6 +517,92 @@
       ]
     },
     {
+      "id": "n5-name-suffixes",
+      "level": "N5",
+      "title": "さん／くん／ちゃん／様",
+      "meaning": "name suffixes — how to address people",
+      "structure": [
+        "Family / given name + さん (general polite)",
+        "+ くん (boys, juniors) / ちゃん (children, close friends)",
+        "+ 様 (very polite: customers, letters)",
+        "+ 先生 (teachers, doctors)"
+      ],
+      "formality": "neutral",
+      "explanation": "Japanese attaches a suffix to people's names. さん is the all-purpose polite one: 田中さん. くん is for boys and younger men, or juniors at work; ちゃん is affectionate, for children, close friends and pets. 様 is very polite, used for customers and in letters: 山田様. Titles like 先生 work as suffixes too: 佐藤先生.\n\nNever use a suffix on your own name.",
+      "nuances": [
+        "With close friends you can drop the suffix (呼び捨て), but that's intimate.",
+        "Job titles can replace a name: 社長, 部長, 先生."
+      ],
+      "common_mistakes": [
+        "Adding さん to yourself: 私はジョンさんです ✗ → 私はジョンです.",
+        "Using ちゃん with a superior — it's too familiar."
+      ],
+      "related_ids": [
+        "n5-desu"
+      ],
+      "examples": [
+        {
+          "id": "n5-name-suffixes-1",
+          "japanese": "田中さんは会社員です。",
+          "furigana": "{田中|たなか}さんは{会社員|かいしゃいん}です。",
+          "english": "Tanaka-san is an office worker.",
+          "cloze_target": "さん",
+          "accepted_answers": [
+            "さん"
+          ],
+          "hint": "(polite, general)"
+        },
+        {
+          "id": "n5-name-suffixes-2",
+          "japanese": "健太くん、宿題は終わった？",
+          "furigana": "{健太|けんた}くん、{宿題|しゅくだい}は{終|お}わった？",
+          "english": "Kenta, have you finished your homework?",
+          "cloze_target": "くん",
+          "accepted_answers": [
+            "くん",
+            "君"
+          ],
+          "hint": "(boy, junior)"
+        },
+        {
+          "id": "n5-name-suffixes-3",
+          "japanese": "はなちゃんは五歳です。",
+          "furigana": "はなちゃんは{五歳|ごさい}です。",
+          "english": "Hana-chan is five years old.",
+          "cloze_target": "ちゃん",
+          "accepted_answers": [
+            "ちゃん"
+          ],
+          "hint": "(child, affectionate)"
+        },
+        {
+          "id": "n5-name-suffixes-4",
+          "japanese": "山田様、お待たせいたしました。",
+          "furigana": "{山田|やまだ}{様|さま}、お{待|ま}たせいたしました。",
+          "english": "Mr/Ms Yamada, thank you for waiting.",
+          "cloze_target": "様",
+          "accepted_answers": [
+            "様",
+            "さま"
+          ],
+          "hint": "(very polite, customer)"
+        },
+        {
+          "id": "n5-name-suffixes-5",
+          "japanese": "佐藤先生は日本語の先生です。",
+          "furigana": "{佐藤|さとう}{先生|せんせい}は{日本語|にほんご}の{先生|せんせい}です。",
+          "english": "Professor Sato is a Japanese teacher.",
+          "cloze_target": "先生",
+          "cloze_occurrence": 1,
+          "accepted_answers": [
+            "先生",
+            "せんせい"
+          ],
+          "hint": "(teacher title)"
+        }
+      ]
+    },
+    {
       "id": "n5-koko-soko-asoko",
       "level": "N5",
       "title": "ここ／そこ／あそこ／どこ",
@@ -3216,6 +3302,88 @@
       ]
     },
     {
+      "id": "n5-ga-subject",
+      "level": "N5",
+      "title": "が (subject / identifier)",
+      "meaning": "marks the subject — new information, or \"it's X (who/that)…\"",
+      "structure": [
+        "Noun + が + Verb / Adjective",
+        "AはBが〜 (A has a B that is…)"
+      ],
+      "formality": "neutral",
+      "explanation": "が marks the subject of a sentence. Where は sets up a topic (\"as for X…\"), が points at exactly which thing does the action or has the quality: 田中さんが来ました, \"Tanaka-san came\" — or, answering \"who came?\", \"it was Tanaka-san who came.\"\n\nが is used for things you're noticing or reporting as new: 雨が降っています, \"It's raining.\" In AはBが… sentences, は gives the topic and が the part being described: 象は鼻が長い, \"Elephants have long trunks.\"",
+      "nuances": [
+        "Question words take が, never は: 誰が来ましたか.",
+        "Inside a describing clause the subject takes が: 私が作ったケーキ, \"the cake I made\"."
+      ],
+      "common_mistakes": [
+        "Answering a が-question with は: 誰が行きますか → 私は行きます ✗ → 私が行きます.",
+        "Using は for something you've just noticed: あ、バスは来た ✗ → あ、バスが来た."
+      ],
+      "related_ids": [
+        "n5-wa-topic",
+        "n5-question-ga",
+        "n5-ga-arimasu-imasu"
+      ],
+      "examples": [
+        {
+          "id": "n5-ga-subject-1",
+          "japanese": "雨が降っています。",
+          "furigana": "{雨|あめ}が{降|ふ}っています。",
+          "english": "It's raining.",
+          "cloze_target": "が",
+          "accepted_answers": [
+            "が"
+          ],
+          "hint": "(subject, new information)"
+        },
+        {
+          "id": "n5-ga-subject-2",
+          "japanese": "田中さんが来ました。",
+          "furigana": "{田中|たなか}さんが{来|き}ました。",
+          "english": "Tanaka-san came. / It was Tanaka-san who came.",
+          "cloze_target": "が",
+          "accepted_answers": [
+            "が"
+          ],
+          "hint": "(identifies who)"
+        },
+        {
+          "id": "n5-ga-subject-3",
+          "japanese": "私が払います。",
+          "furigana": "{私|わたし}が{払|はら}います。",
+          "english": "I'll pay. (I'm the one paying.)",
+          "cloze_target": "が",
+          "accepted_answers": [
+            "が"
+          ],
+          "hint": "(identifies who)"
+        },
+        {
+          "id": "n5-ga-subject-4",
+          "japanese": "象は鼻が長いです。",
+          "furigana": "{象|ぞう}は{鼻|はな}が{長|なが}いです。",
+          "english": "Elephants have long trunks.",
+          "cloze_target": "が",
+          "accepted_answers": [
+            "が"
+          ],
+          "hint": "A は B __ (the part described)"
+        },
+        {
+          "id": "n5-ga-subject-5",
+          "japanese": "あ、バスが来ましたよ。",
+          "furigana": "あ、バスが{来|き}ましたよ。",
+          "english": "Oh, the bus is here.",
+          "cloze_target": "が",
+          "accepted_answers": [
+            "が"
+          ],
+          "hint": "(something just noticed)"
+        }
+      ]
+    },
+    {
       "id": "n5-ka-or",
       "level": "N5",
       "title": "か (or)",
@@ -3638,6 +3806,110 @@
             "くらい"
           ],
           "hint": "about (an amount)"
+        }
+      ]
+    },
+    {
+      "id": "n5-counters",
+      "level": "N5",
+      "title": "Counters (〜つ／〜人／〜枚…)",
+      "meaning": "counting things — number + counter",
+      "structure": [
+        "Number + counter (つ・人・枚・本・冊・匹・台…)",
+        "Noun + を + Number + counter + Verb"
+      ],
+      "formality": "neutral",
+      "explanation": "Japanese counts with counters that depend on the shape or kind of thing: 〜枚 for flat things (paper, shirts), 〜本 for long thin things (bottles, pens), 〜冊 for books, 〜匹 for small animals, 〜台 for machines, 〜人 for people. The native series ひとつ、ふたつ、みっつ… (〜つ) works for general objects up to ten.\n\nThe number and counter usually come after the noun and particle, right before the verb: りんごを三つください, \"Three apples, please.\"",
+      "nuances": [
+        "People: ひとり、ふたり, then さんにん、よにん…",
+        "Sound changes are common: いっぽん、にほん、さんぼん; いっさつ; いっぴき、さんびき."
+      ],
+      "common_mistakes": [
+        "Using the number alone: 本を三買った ✗ → 本を三冊買った.",
+        "Saying いちにん／ににん for one or two people — it's ひとり／ふたり."
+      ],
+      "related_ids": [
+        "n4-zutsu",
+        "n4-me-ordinal"
+      ],
+      "examples": [
+        {
+          "id": "n5-counters-1",
+          "japanese": "りんごを三つください。",
+          "furigana": "りんごを{三|みっ}つください。",
+          "english": "Three apples, please.",
+          "cloze_target": "三つ",
+          "accepted_answers": [
+            "三つ",
+            "みっつ",
+            "3つ"
+          ],
+          "hint": "3 (general things)"
+        },
+        {
+          "id": "n5-counters-2",
+          "japanese": "教室に学生が五人います。",
+          "furigana": "{教室|きょうしつ}に{学生|がくせい}が{五人|ごにん}います。",
+          "english": "There are five students in the classroom.",
+          "cloze_target": "五人",
+          "accepted_answers": [
+            "五人",
+            "ごにん",
+            "5人"
+          ],
+          "hint": "5 (people)"
+        },
+        {
+          "id": "n5-counters-3",
+          "japanese": "切手を二枚買いました。",
+          "furigana": "{切手|きって}を{二枚|にまい}{買|か}いました。",
+          "english": "I bought two stamps.",
+          "cloze_target": "二枚",
+          "accepted_answers": [
+            "二枚",
+            "にまい",
+            "2枚"
+          ],
+          "hint": "2 (flat things)"
+        },
+        {
+          "id": "n5-counters-4",
+          "japanese": "ビールを一本飲みました。",
+          "furigana": "ビールを{一本|いっぽん}{飲|の}みました。",
+          "english": "I drank one bottle of beer.",
+          "cloze_target": "一本",
+          "accepted_answers": [
+            "一本",
+            "いっぽん",
+            "1本"
+          ],
+          "hint": "1 (long things)"
+        },
+        {
+          "id": "n5-counters-5",
+          "japanese": "兄弟が二人います。",
+          "furigana": "{兄弟|きょうだい}が{二人|ふたり}います。",
+          "english": "I have two brothers and sisters.",
+          "cloze_target": "二人",
+          "accepted_answers": [
+            "二人",
+            "ふたり",
+            "2人"
+          ],
+          "hint": "2 (people)"
+        },
+        {
+          "id": "n5-counters-6",
+          "japanese": "先週、本を三冊読みました。",
+          "furigana": "{先週|せんしゅう}、{本|ほん}を{三冊|さんさつ}{読|よ}みました。",
+          "english": "Last week I read three books.",
+          "cloze_target": "三冊",
+          "accepted_answers": [
+            "三冊",
+            "さんさつ",
+            "3冊"
+          ],
+          "hint": "3 (books)"
         }
       ]
     },

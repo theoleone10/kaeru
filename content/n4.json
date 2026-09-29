@@ -189,6 +189,91 @@
       ]
     },
     {
+      "id": "n4-mieru-kikoeru",
+      "level": "N4",
+      "title": "見える／聞こえる",
+      "meaning": "can be seen / can be heard (naturally, without effort)",
+      "structure": [
+        "Noun + が + 見える",
+        "Noun + が + 聞こえる"
+      ],
+      "formality": "neutral",
+      "explanation": "見える and 聞こえる mean something is visible or audible — it reaches your eyes or ears on its own: 窓から富士山が見えます, \"You can see Mt Fuji from the window.\"\n\nThe potential forms 見られる and 聞ける are different: they mean you have the chance or ability to watch or listen on purpose: ネットで映画が見られます, \"You can watch films online.\"",
+      "nuances": [
+        "The thing seen or heard is marked with が.",
+        "見える also means \"seem / look\": 若く見える, \"look young\"."
+      ],
+      "common_mistakes": [
+        "Using 見られる for something just in view: 窓から海が見られる sounds like an arranged opportunity — 見える is natural.",
+        "Marking the object with を: 音を聞こえる ✗ → 音が聞こえる."
+      ],
+      "related_ids": [
+        "n4-potential"
+      ],
+      "examples": [
+        {
+          "id": "n4-mieru-kikoeru-1",
+          "japanese": "窓から富士山が見えます。",
+          "furigana": "{窓|まど}から{富士山|ふじさん}が{見|み}えます。",
+          "english": "You can see Mt Fuji from the window.",
+          "cloze_target": "見えます",
+          "accepted_answers": [
+            "見えます",
+            "みえます"
+          ],
+          "hint": "visible"
+        },
+        {
+          "id": "n4-mieru-kikoeru-2",
+          "japanese": "隣の部屋から音楽が聞こえます。",
+          "furigana": "{隣|となり}の{部屋|へや}から{音楽|おんがく}が{聞|き}こえます。",
+          "english": "I can hear music from the next room.",
+          "cloze_target": "聞こえます",
+          "accepted_answers": [
+            "聞こえます",
+            "きこえます"
+          ],
+          "hint": "audible"
+        },
+        {
+          "id": "n4-mieru-kikoeru-3",
+          "japanese": "眼鏡がないと、よく見えません。",
+          "furigana": "{眼鏡|めがね}がないと、よく{見|み}えません。",
+          "english": "I can't see well without my glasses.",
+          "cloze_target": "見えません",
+          "accepted_answers": [
+            "見えません",
+            "みえません"
+          ],
+          "hint": "not visible"
+        },
+        {
+          "id": "n4-mieru-kikoeru-4",
+          "japanese": "すみません、声が小さくて聞こえません。",
+          "furigana": "すみません、{声|こえ}が{小|ちい}さくて{聞|き}こえません。",
+          "english": "Sorry, your voice is too quiet to hear.",
+          "cloze_target": "聞こえません",
+          "accepted_answers": [
+            "聞こえません",
+            "きこえません"
+          ],
+          "hint": "not audible"
+        },
+        {
+          "id": "n4-mieru-kikoeru-5",
+          "japanese": "遠くに海が見えてきました。",
+          "furigana": "{遠|とお}くに{海|うみ}が{見|み}えてきました。",
+          "english": "The sea has come into view in the distance.",
+          "cloze_target": "見えて",
+          "accepted_answers": [
+            "見えて",
+            "みえて"
+          ],
+          "hint": "visible (て-form)"
+        }
+      ]
+    },
+    {
       "id": "n4-volitional",
       "level": "N4",
       "title": "Volitional form (〜よう／〜おう)",
@@ -613,6 +698,347 @@
       ]
     },
     {
+      "id": "n4-na-naa",
+      "level": "N4",
+      "title": "〜な／〜なあ (sentence-ending)",
+      "meaning": "emotion or musing — \"I wish…\", \"how…\", \"isn't it…\"",
+      "structure": [
+        "Plain form + なあ (emotion / wishing)",
+        "Plain form + な (casual ね, often masculine)"
+      ],
+      "formality": "casual",
+      "explanation": "At the end of a sentence, なあ expresses feeling — admiration, envy or wishing, often said to yourself: いいなあ, \"Lucky you / I wish.\" 早く夏休みにならないかなあ, \"I wish summer holidays would hurry up.\"\n\nShort な works like a casual ね, mostly in men's speech: 今日は寒いな, \"Cold today, isn't it.\"",
+      "nuances": [
+        "Don't confuse it with prohibitive な after the dictionary form: 行くな! \"Don't go!\"",
+        "〜たいなあ is a common way to muse about a wish."
+      ],
+      "common_mistakes": [
+        "Using it in polite conversation with superiors.",
+        "Confusing sentence-ending な (after plain adjectives or た-form) with the prohibitive な."
+      ],
+      "related_ids": [
+        "n5-ne",
+        "n4-ka-na",
+        "n4-na-prohibitive"
+      ],
+      "examples": [
+        {
+          "id": "n4-na-naa-1",
+          "japanese": "新しい車？いいなあ。",
+          "furigana": "{新|あたら}しい{車|くるま}？いいなあ。",
+          "english": "A new car? I'm jealous.",
+          "cloze_target": "なあ",
+          "accepted_answers": [
+            "なあ",
+            "なぁ"
+          ],
+          "hint": "(envy / admiration)"
+        },
+        {
+          "id": "n4-na-naa-2",
+          "japanese": "今日は本当に暑いな。",
+          "furigana": "{今日|きょう}は{本当|ほんとう}に{暑|あつ}いな。",
+          "english": "It's really hot today, huh.",
+          "cloze_target": "な",
+          "accepted_answers": [
+            "な"
+          ],
+          "hint": "(casual ね)"
+        },
+        {
+          "id": "n4-na-naa-3",
+          "japanese": "日本に行きたいなあ。",
+          "furigana": "{日本|にほん}に{行|い}きたいなあ。",
+          "english": "I'd love to go to Japan.",
+          "cloze_target": "なあ",
+          "accepted_answers": [
+            "なあ",
+            "なぁ"
+          ],
+          "hint": "(wishing)"
+        },
+        {
+          "id": "n4-na-naa-4",
+          "japanese": "きれいな夕日だなあ。",
+          "furigana": "きれいな{夕日|ゆうひ}だなあ。",
+          "english": "What a beautiful sunset.",
+          "cloze_target": "なあ",
+          "accepted_answers": [
+            "なあ",
+            "なぁ"
+          ],
+          "hint": "(admiration)"
+        },
+        {
+          "id": "n4-na-naa-5",
+          "japanese": "早く週末にならないかなあ。",
+          "furigana": "{早|はや}く{週末|しゅうまつ}にならないかなあ。",
+          "english": "I wish the weekend would hurry up.",
+          "cloze_target": "かなあ",
+          "accepted_answers": [
+            "かなあ",
+            "かなぁ"
+          ],
+          "hint": "I wish… (musing)"
+        }
+      ]
+    },
+    {
+      "id": "n4-zo-ze",
+      "level": "N4",
+      "title": "〜ぞ／〜ぜ",
+      "meaning": "emphatic, masculine sentence endings",
+      "structure": [
+        "Plain form + ぞ (strong assertion / warning)",
+        "Plain form + ぜ (friendly emphasis, let's)"
+      ],
+      "formality": "casual",
+      "explanation": "ぞ and ぜ are rough, masculine sentence endings. ぞ adds force or a warning: 行くぞ!, \"Let's go!\" / \"Here we go!\" 危ないぞ, \"Watch out, it's dangerous.\" ぜ is similar but friendlier and more buddy-like: 飲みに行こうぜ, \"Let's go for a drink.\"\n\nYou'll hear them a lot in anime, games and among male friends.",
+      "nuances": [
+        "ぞ can be used to yourself to psych yourself up: よし、頑張るぞ!",
+        "ぜ often follows the volitional form: 〜うぜ, \"let's\"."
+      ],
+      "common_mistakes": [
+        "Using them in polite speech — they're strictly casual.",
+        "Putting ぞ after です: this is rare and sounds odd outside fiction."
+      ],
+      "related_ids": [
+        "n5-yo",
+        "n4-sa-particle"
+      ],
+      "examples": [
+        {
+          "id": "n4-zo-ze-1",
+          "japanese": "よし、行くぞ！",
+          "furigana": "よし、{行|い}くぞ！",
+          "english": "Right, let's go!",
+          "cloze_target": "ぞ",
+          "accepted_answers": [
+            "ぞ"
+          ],
+          "hint": "(strong, masculine)"
+        },
+        {
+          "id": "n4-zo-ze-2",
+          "japanese": "危ないぞ、気をつけろ！",
+          "furigana": "{危|あぶ}ないぞ、{気|き}をつけろ！",
+          "english": "It's dangerous — watch out!",
+          "cloze_target": "ぞ",
+          "accepted_answers": [
+            "ぞ"
+          ],
+          "hint": "(warning, masculine)"
+        },
+        {
+          "id": "n4-zo-ze-3",
+          "japanese": "今夜、飲みに行こうぜ。",
+          "furigana": "{今夜|こんや}、{飲|の}みに{行|い}こうぜ。",
+          "english": "Let's go for drinks tonight.",
+          "cloze_target": "ぜ",
+          "accepted_answers": [
+            "ぜ"
+          ],
+          "hint": "(friendly, masculine)"
+        },
+        {
+          "id": "n4-zo-ze-4",
+          "japanese": "明日は絶対勝つぞ。",
+          "furigana": "{明日|あした}は{絶対|ぜったい}{勝|か}つぞ。",
+          "english": "We're definitely winning tomorrow.",
+          "cloze_target": "ぞ",
+          "accepted_answers": [
+            "ぞ"
+          ],
+          "hint": "(resolve, masculine)"
+        },
+        {
+          "id": "n4-zo-ze-5",
+          "japanese": "このゲーム、めちゃくちゃ面白いぜ。",
+          "furigana": "このゲーム、めちゃくちゃ{面白|おもしろ}いぜ。",
+          "english": "This game is crazy fun.",
+          "cloze_target": "ぜ",
+          "accepted_answers": [
+            "ぜ"
+          ],
+          "hint": "(friendly, masculine)"
+        }
+      ]
+    },
+    {
+      "id": "n4-sa-particle",
+      "level": "N4",
+      "title": "〜さ (sentence-ending / filler)",
+      "meaning": "casual, offhand emphasis — \"you know\"",
+      "structure": [
+        "Plain form + さ (な-adj / noun: no だ)",
+        "Phrase + さ、… (filler: \"like, …\")"
+      ],
+      "formality": "casual",
+      "explanation": "さ at the end of a sentence gives a light, offhand emphasis, like a shrug: 大丈夫さ, \"It'll be fine.\" 当然さ, \"Of course.\" In the middle of speech it works as a filler, like \"you know\" or \"like\": それでさ、昨日さ…\n\nIt's casual and slightly masculine, and common in some dialects.",
+      "nuances": [
+        "Nouns and な-adjectives take さ directly: 簡単さ, not 簡単ださ.",
+        "Mid-sentence さ is very casual; overusing it sounds childish."
+      ],
+      "common_mistakes": [
+        "Putting だ before it: 平気ださ ✗ → 平気さ.",
+        "Using it in polite speech."
+      ],
+      "related_ids": [
+        "n4-zo-ze",
+        "n5-yo"
+      ],
+      "examples": [
+        {
+          "id": "n4-sa-particle-1",
+          "japanese": "心配しないで。大丈夫さ。",
+          "furigana": "{心配|しんぱい}しないで。{大丈夫|だいじょうぶ}さ。",
+          "english": "Don't worry. It'll be fine.",
+          "cloze_target": "さ",
+          "accepted_answers": [
+            "さ"
+          ],
+          "hint": "(offhand emphasis)"
+        },
+        {
+          "id": "n4-sa-particle-2",
+          "japanese": "そんなの、簡単さ。",
+          "furigana": "そんなの、{簡単|かんたん}さ。",
+          "english": "That's easy.",
+          "cloze_target": "さ",
+          "accepted_answers": [
+            "さ"
+          ],
+          "hint": "(offhand emphasis)"
+        },
+        {
+          "id": "n4-sa-particle-3",
+          "japanese": "人生はいろいろあるさ。",
+          "furigana": "{人生|じんせい}はいろいろあるさ。",
+          "english": "That's life — all sorts of things happen.",
+          "cloze_target": "さ",
+          "accepted_answers": [
+            "さ"
+          ],
+          "hint": "(offhand emphasis)"
+        },
+        {
+          "id": "n4-sa-particle-4",
+          "japanese": "昨日さ、駅で先生に会ったんだ。",
+          "furigana": "{昨日|きのう}さ、{駅|えき}で{先生|せんせい}に{会|あ}ったんだ。",
+          "english": "So, like, yesterday I ran into our teacher at the station.",
+          "cloze_target": "さ",
+          "accepted_answers": [
+            "さ"
+          ],
+          "hint": "(filler)"
+        },
+        {
+          "id": "n4-sa-particle-5",
+          "japanese": "誰だって間違えるさ。",
+          "furigana": "{誰|だれ}だって{間違|まちが}えるさ。",
+          "english": "Anyone makes mistakes.",
+          "cloze_target": "さ",
+          "accepted_answers": [
+            "さ"
+          ],
+          "hint": "(offhand emphasis)"
+        }
+      ]
+    },
+    {
+      "id": "n4-wa-kashira",
+      "level": "N4",
+      "title": "〜わ／〜かしら",
+      "meaning": "feminine sentence endings — emphasis / \"I wonder\"",
+      "structure": [
+        "Plain form + わ (soft emphasis)",
+        "Plain form + かしら (I wonder)"
+      ],
+      "formality": "casual",
+      "explanation": "わ (with rising intonation) is a soft, traditionally feminine emphasis: すてきだわ, \"How lovely.\" かしら is the feminine counterpart of かな, \"I wonder\": 明日は晴れるかしら, \"I wonder if it'll be sunny tomorrow.\"\n\nToday they sound somewhat old-fashioned or elegant and appear a lot in fiction. In western Japan, わ with falling intonation is used by everyone.",
+      "nuances": [
+        "かしら can soften a request: 手伝ってくれないかしら.",
+        "Kansai わ (falling) is gender-neutral: 行くわ, \"I'm going.\""
+      ],
+      "common_mistakes": [
+        "Assuming all women talk this way — many younger speakers use かな instead of かしら.",
+        "Using かしら with です/ます oddly: 来ますかしら is rare; use 来るかしら or 来るでしょうか."
+      ],
+      "related_ids": [
+        "n4-ka-na",
+        "n4-na-naa"
+      ],
+      "examples": [
+        {
+          "id": "n4-wa-kashira-1",
+          "japanese": "まあ、すてきなドレスだわ。",
+          "furigana": "まあ、すてきなドレスだわ。",
+          "english": "Oh, what a lovely dress.",
+          "cloze_target": "わ",
+          "accepted_answers": [
+            "わ"
+          ],
+          "hint": "(soft emphasis, feminine)"
+        },
+        {
+          "id": "n4-wa-kashira-2",
+          "japanese": "明日は晴れるかしら。",
+          "furigana": "{明日|あした}は{晴|は}れるかしら。",
+          "english": "I wonder if it'll be sunny tomorrow.",
+          "cloze_target": "かしら",
+          "accepted_answers": [
+            "かしら"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "かな",
+              "note": "Correct, but this review wants the feminine かしら."
+            }
+          ],
+          "hint": "I wonder (feminine)"
+        },
+        {
+          "id": "n4-wa-kashira-3",
+          "japanese": "私、もう帰るわ。",
+          "furigana": "{私|わたし}、もう{帰|かえ}るわ。",
+          "english": "I'm going home now.",
+          "cloze_target": "わ",
+          "accepted_answers": [
+            "わ"
+          ],
+          "hint": "(soft emphasis)"
+        },
+        {
+          "id": "n4-wa-kashira-4",
+          "japanese": "誰か手伝ってくれないかしら。",
+          "furigana": "{誰|だれ}か{手伝|てつだ}ってくれないかしら。",
+          "english": "I wonder if someone could help me.",
+          "cloze_target": "かしら",
+          "accepted_answers": [
+            "かしら"
+          ],
+          "hint": "I wonder (feminine)"
+        },
+        {
+          "id": "n4-wa-kashira-5",
+          "japanese": "この服、私に似合うかしら。",
+          "furigana": "この{服|ふく}、{私|わたし}に{似合|にあ}うかしら。",
+          "english": "I wonder if this outfit suits me.",
+          "cloze_target": "かしら",
+          "accepted_answers": [
+            "かしら"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "かな",
+              "note": "Correct, but this review wants the feminine かしら."
+            }
+          ],
+          "hint": "I wonder (feminine)"
+        }
+      ]
+    },
+    {
       "id": "n4-te-miru",
       "level": "N4",
       "title": "〜てみる",
@@ -789,6 +1215,110 @@
       ]
     },
     {
+      "id": "n4-chau",
+      "level": "N4",
+      "title": "〜ちゃう／〜じゃう",
+      "meaning": "casual 〜てしまう — end up doing / do completely",
+      "structure": [
+        "Verb て-form: 〜て → 〜ちゃう, 〜で → 〜じゃう",
+        "Past: 〜ちゃった／〜じゃった"
+      ],
+      "formality": "casual",
+      "explanation": "In speech, 〜てしまう shortens to 〜ちゃう, and 〜でしまう to 〜じゃう. They conjugate as う-verbs: 忘れちゃった, \"I forgot (oops)\", 飲んじゃう, \"I'll drink it all up.\"\n\nThe meaning is the same as てしまう: regret, something unintended, or doing something completely.",
+      "nuances": [
+        "〜ちゃった／〜じゃった is by far the most common form.",
+        "Polite speech can still use it: 忘れちゃいました."
+      ],
+      "common_mistakes": [
+        "Mixing up ちゃう and じゃう: 読んちゃった ✗ → 読んじゃった (from 読んで).",
+        "Using it in formal writing."
+      ],
+      "related_ids": [
+        "n4-te-shimau",
+        "n4-toku"
+      ],
+      "examples": [
+        {
+          "id": "n4-chau-1",
+          "japanese": "あ、宿題を忘れちゃった。",
+          "furigana": "あ、{宿題|しゅくだい}を{忘|わす}れちゃった。",
+          "english": "Oh no, I forgot my homework.",
+          "cloze_target": "忘れちゃった",
+          "accepted_answers": [
+            "忘れちゃった",
+            "わすれちゃった"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "忘れてしまった",
+              "note": "Correct, but this review wants the casual contraction."
+            }
+          ],
+          "hint": "忘れる + (oops, casual)"
+        },
+        {
+          "id": "n4-chau-2",
+          "japanese": "ケーキ、全部食べちゃった。",
+          "furigana": "ケーキ、{全部|ぜんぶ}{食|た}べちゃった。",
+          "english": "I ate all the cake.",
+          "cloze_target": "食べちゃった",
+          "accepted_answers": [
+            "食べちゃった",
+            "たべちゃった"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "食べてしまった",
+              "note": "Correct, but this review wants the casual contraction."
+            }
+          ],
+          "hint": "食べる + (completely, casual)"
+        },
+        {
+          "id": "n4-chau-3",
+          "japanese": "弟が私のジュースを飲んじゃった。",
+          "furigana": "{弟|おとうと}が{私|わたし}のジュースを{飲|の}んじゃった。",
+          "english": "My brother drank my juice.",
+          "cloze_target": "飲んじゃった",
+          "accepted_answers": [
+            "飲んじゃった",
+            "のんじゃった"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "飲んでしまった",
+              "note": "Correct, but this review wants the casual contraction."
+            }
+          ],
+          "hint": "飲む + (annoyingly, casual)"
+        },
+        {
+          "id": "n4-chau-4",
+          "japanese": "急がないと、電車が行っちゃうよ。",
+          "furigana": "{急|いそ}がないと、{電車|でんしゃ}が{行|い}っちゃうよ。",
+          "english": "If we don't hurry, the train will leave.",
+          "cloze_target": "行っちゃう",
+          "accepted_answers": [
+            "行っちゃう",
+            "いっちゃう"
+          ],
+          "hint": "行く + (will end up, casual)"
+        },
+        {
+          "id": "n4-chau-5",
+          "japanese": "眠くて、授業中に寝ちゃった。",
+          "furigana": "{眠|ねむ}くて、{授業中|じゅぎょうちゅう}に{寝|ね}ちゃった。",
+          "english": "I was so sleepy I fell asleep in class.",
+          "cloze_target": "寝ちゃった",
+          "accepted_answers": [
+            "寝ちゃった",
+            "ねちゃった"
+          ],
+          "hint": "寝る + (unintended, casual)"
+        }
+      ]
+    },
+    {
       "id": "n4-te-oku",
       "level": "N4",
       "title": "〜ておく",
@@ -869,6 +1399,201 @@
             "しておきます"
           ],
           "hint": "する + (take care of it)"
+        }
+      ]
+    },
+    {
+      "id": "n4-toku",
+      "level": "N4",
+      "title": "〜とく／〜どく",
+      "meaning": "casual 〜ておく — do in advance / leave as is",
+      "structure": [
+        "Verb て-form: 〜ておく → 〜とく, 〜でおく → 〜どく",
+        "〜といて (please do it in advance)"
+      ],
+      "formality": "casual",
+      "explanation": "In speech, 〜ておく shortens to 〜とく and 〜でおく to 〜どく. It keeps the meaning of doing something in preparation, or leaving something as it is: ビール、冷やしとくね, \"I'll put the beer in the fridge (for later).\"\n\nIt conjugates like a regular う-verb: 買っといた, 読んどいて.",
+      "nuances": [
+        "〜といて is a common casual request: 窓、開けといて.",
+        "Negative: 〜とかない, \"don't bother doing it in advance\"."
+      ],
+      "common_mistakes": [
+        "Forgetting the voiced form after ん: 読んとく ✗ → 読んどく.",
+        "Using it in formal writing — write 〜ておく."
+      ],
+      "related_ids": [
+        "n4-te-oku",
+        "n4-chau"
+      ],
+      "examples": [
+        {
+          "id": "n4-toku-1",
+          "japanese": "ビール、冷やしとくね。",
+          "furigana": "ビール、{冷|ひ}やしとくね。",
+          "english": "I'll chill the beer (for later).",
+          "cloze_target": "冷やしとく",
+          "accepted_answers": [
+            "冷やしとく",
+            "ひやしとく"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "冷やしておく",
+              "note": "Correct, but this review wants the casual contraction."
+            }
+          ],
+          "hint": "冷やす + (in advance, casual)"
+        },
+        {
+          "id": "n4-toku-2",
+          "japanese": "チケットはもう買っといたよ。",
+          "furigana": "チケットはもう{買|か}っといたよ。",
+          "english": "I've already bought the tickets.",
+          "cloze_target": "買っといた",
+          "accepted_answers": [
+            "買っといた",
+            "かっといた"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "買っておいた",
+              "note": "Correct, but this review wants the casual contraction."
+            }
+          ],
+          "hint": "買う + (in advance, casual past)"
+        },
+        {
+          "id": "n4-toku-3",
+          "japanese": "明日までにこれ、読んどいて。",
+          "furigana": "{明日|あした}までにこれ、{読|よ}んどいて。",
+          "english": "Read this before tomorrow.",
+          "cloze_target": "読んどいて",
+          "accepted_answers": [
+            "読んどいて",
+            "よんどいて"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "読んでおいて",
+              "note": "Correct, but this review wants the casual contraction."
+            }
+          ],
+          "hint": "読む + (in advance, casual request)"
+        },
+        {
+          "id": "n4-toku-4",
+          "japanese": "窓は開けといてください。",
+          "furigana": "{窓|まど}は{開|あ}けといてください。",
+          "english": "Please leave the window open.",
+          "cloze_target": "開けといて",
+          "accepted_answers": [
+            "開けといて",
+            "あけといて"
+          ],
+          "hint": "開ける + (leave as is, casual)"
+        },
+        {
+          "id": "n4-toku-5",
+          "japanese": "名前、ここに書いとくね。",
+          "furigana": "{名前|なまえ}、ここに{書|か}いとくね。",
+          "english": "I'll write my name here.",
+          "cloze_target": "書いとく",
+          "accepted_answers": [
+            "書いとく",
+            "かいとく"
+          ],
+          "hint": "書く + (for later, casual)"
+        }
+      ]
+    },
+    {
+      "id": "n4-teru",
+      "level": "N4",
+      "title": "〜てる／〜でる",
+      "meaning": "casual 〜ている — is doing / is in a state",
+      "structure": [
+        "Verb て-form + る (い dropped): 〜ている → 〜てる",
+        "〜でいる → 〜でる"
+      ],
+      "formality": "casual",
+      "explanation": "In speech, the い of 〜ている almost always drops: 何してる？, \"What are you doing?\" The result conjugates like an る-verb: 〜てた, 〜てない, 〜てて.\n\nThe meanings are the same as ている: an ongoing action or a continuing state.",
+      "nuances": [
+        "Polite speech drops it too: 知ってます, 住んでます.",
+        "〜てない is the casual negative: まだ食べてない."
+      ],
+      "common_mistakes": [
+        "Using ている forms in casual chat sounds stiff; using てる in formal writing sounds sloppy.",
+        "Mixing up てる and でる: 読んてる ✗ → 読んでる."
+      ],
+      "related_ids": [
+        "n5-te-imasu",
+        "n5-te-imasu-state"
+      ],
+      "examples": [
+        {
+          "id": "n4-teru-1",
+          "japanese": "今、何してる？",
+          "furigana": "{今|いま}、{何|なに}してる？",
+          "english": "What are you doing right now?",
+          "cloze_target": "してる",
+          "accepted_answers": [
+            "してる"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "している",
+              "note": "Correct, but this review wants the casual contraction."
+            }
+          ],
+          "hint": "する + (in progress, casual)"
+        },
+        {
+          "id": "n4-teru-2",
+          "japanese": "雨、まだ降ってる？",
+          "furigana": "{雨|あめ}、まだ{降|ふ}ってる？",
+          "english": "Is it still raining?",
+          "cloze_target": "降ってる",
+          "accepted_answers": [
+            "降ってる",
+            "ふってる"
+          ],
+          "hint": "降る + (in progress, casual)"
+        },
+        {
+          "id": "n4-teru-3",
+          "japanese": "彼女の名前、知ってる？",
+          "furigana": "{彼女|かのじょ}の{名前|なまえ}、{知|し}ってる？",
+          "english": "Do you know her name?",
+          "cloze_target": "知ってる",
+          "accepted_answers": [
+            "知ってる",
+            "しってる"
+          ],
+          "hint": "知る + (state, casual)"
+        },
+        {
+          "id": "n4-teru-4",
+          "japanese": "兄は東京に住んでる。",
+          "furigana": "{兄|あに}は{東京|とうきょう}に{住|す}んでる。",
+          "english": "My older brother lives in Tokyo.",
+          "cloze_target": "住んでる",
+          "accepted_answers": [
+            "住んでる",
+            "すんでる"
+          ],
+          "hint": "住む + (state, casual)"
+        },
+        {
+          "id": "n4-teru-5",
+          "japanese": "ごめん、まだ食べてない。",
+          "furigana": "ごめん、まだ{食|た}べてない。",
+          "english": "Sorry, I haven't eaten yet.",
+          "cloze_target": "食べてない",
+          "accepted_answers": [
+            "食べてない",
+            "たべてない"
+          ],
+          "hint": "食べる + (not yet, casual)"
         }
       ]
     },
@@ -959,6 +1684,104 @@
             "かいてありません"
           ],
           "hint": "書く + (resulting state, negative)"
+        }
+      ]
+    },
+    {
+      "id": "n4-transitive-intransitive",
+      "level": "N4",
+      "title": "Transitive & intransitive verbs (開ける／開く)",
+      "meaning": "doing something to a thing vs. something happening by itself",
+      "structure": [
+        "Transitive: Noun + を + 開ける／閉める／つける／始める…",
+        "Intransitive: Noun + が + 開く／閉まる／つく／始まる…"
+      ],
+      "formality": "neutral",
+      "explanation": "Many Japanese verbs come in pairs. The transitive verb (他動詞) has someone acting on an object marked with を: ドアを開けました, \"I opened the door.\" The intransitive partner (自動詞) just says what happened, with the thing as the subject marked with が: ドアが開きました, \"The door opened.\"\n\nCommon pairs: 開ける／開く, 閉める／閉まる, つける／つく, 消す／消える, 始める／始まる, 止める／止まる, 入れる／入る, 出す／出る, 落とす／落ちる, 壊す／壊れる.",
+      "nuances": [
+        "Intransitive + ている describes a resulting state: 窓が開いている, \"the window is open.\"",
+        "Transitive + てある says someone left it that way on purpose: 窓が開けてある."
+      ],
+      "common_mistakes": [
+        "Using を with an intransitive verb: ドアを開いた (as \"the door opened\") ✗ → ドアが開いた.",
+        "Using the intransitive when you did it yourself: 電気が消えた sounds like it went out by itself."
+      ],
+      "related_ids": [
+        "n4-te-aru",
+        "n5-te-imasu-state"
+      ],
+      "examples": [
+        {
+          "id": "n4-transitive-intransitive-1",
+          "japanese": "寒いから、窓を閉めてください。",
+          "furigana": "{寒|さむ}いから、{窓|まど}を{閉|し}めてください。",
+          "english": "It's cold, so please close the window.",
+          "cloze_target": "閉めて",
+          "accepted_answers": [
+            "閉めて",
+            "しめて"
+          ],
+          "hint": "閉める／閉まる (you do it)"
+        },
+        {
+          "id": "n4-transitive-intransitive-2",
+          "japanese": "風でドアが開きました。",
+          "furigana": "{風|かぜ}でドアが{開|あ}きました。",
+          "english": "The door opened in the wind.",
+          "cloze_target": "開きました",
+          "accepted_answers": [
+            "開きました",
+            "あきました"
+          ],
+          "hint": "開ける／開く (by itself)"
+        },
+        {
+          "id": "n4-transitive-intransitive-3",
+          "japanese": "授業は九時に始まります。",
+          "furigana": "{授業|じゅぎょう}は{九時|くじ}に{始|はじ}まります。",
+          "english": "Class starts at nine.",
+          "cloze_target": "始まります",
+          "accepted_answers": [
+            "始まります",
+            "はじまります"
+          ],
+          "hint": "始める／始まる (by itself)"
+        },
+        {
+          "id": "n4-transitive-intransitive-4",
+          "japanese": "部屋を出る時、電気を消してください。",
+          "furigana": "{部屋|へや}を{出|で}る{時|とき}、{電気|でんき}を{消|け}してください。",
+          "english": "Please turn off the light when you leave the room.",
+          "cloze_target": "消して",
+          "accepted_answers": [
+            "消して",
+            "けして"
+          ],
+          "hint": "消す／消える (you do it)"
+        },
+        {
+          "id": "n4-transitive-intransitive-5",
+          "japanese": "地震で棚からお皿が落ちました。",
+          "furigana": "{地震|じしん}で{棚|たな}からお{皿|さら}が{落|お}ちました。",
+          "english": "The plates fell off the shelf in the earthquake.",
+          "cloze_target": "落ちました",
+          "accepted_answers": [
+            "落ちました",
+            "おちました"
+          ],
+          "hint": "落とす／落ちる (by itself)"
+        },
+        {
+          "id": "n4-transitive-intransitive-6",
+          "japanese": "弟が私のカメラを壊しました。",
+          "furigana": "{弟|おとうと}が{私|わたし}のカメラを{壊|こわ}しました。",
+          "english": "My little brother broke my camera.",
+          "cloze_target": "壊しました",
+          "accepted_answers": [
+            "壊しました",
+            "こわしました"
+          ],
+          "hint": "壊す／壊れる (someone did it)"
         }
       ]
     },
@@ -1836,6 +2659,169 @@
       ]
     },
     {
+      "id": "n4-te-choudai",
+      "level": "N4",
+      "title": "〜てちょうだい",
+      "meaning": "please do… (casual, warm request)",
+      "structure": [
+        "Verb て-form + ちょうだい",
+        "Noun + (を) + ちょうだい (give me…)"
+      ],
+      "formality": "casual",
+      "explanation": "ちょうだい is a friendly, casual \"please\" — the kind of thing a parent says to a child, or friends and family say to each other: ちょっと待ってちょうだい, \"Wait a sec, please.\" After a noun it means \"give me\": それ、ちょうだい.",
+      "nuances": [
+        "It sounds soft and a bit motherly; women and older speakers use it more.",
+        "Written in hiragana in this pattern (頂戴 is the kanji)."
+      ],
+      "common_mistakes": [
+        "Using it with superiors — use 〜てください or 〜ていただけませんか.",
+        "Forgetting the て-form: 待つちょうだい ✗ → 待ってちょうだい."
+      ],
+      "related_ids": [
+        "n5-te-kudasai",
+        "n4-te-kure"
+      ],
+      "examples": [
+        {
+          "id": "n4-te-choudai-1",
+          "japanese": "ちょっと待ってちょうだい。",
+          "furigana": "ちょっと{待|ま}ってちょうだい。",
+          "english": "Wait a moment, please.",
+          "cloze_target": "ちょうだい",
+          "accepted_answers": [
+            "ちょうだい"
+          ],
+          "hint": "please (casual, warm)"
+        },
+        {
+          "id": "n4-te-choudai-2",
+          "japanese": "お母さん、そのりんご、ちょうだい。",
+          "furigana": "お{母|かあ}さん、そのりんご、ちょうだい。",
+          "english": "Mum, give me that apple, please.",
+          "cloze_target": "ちょうだい",
+          "accepted_answers": [
+            "ちょうだい"
+          ],
+          "hint": "give me (casual)"
+        },
+        {
+          "id": "n4-te-choudai-3",
+          "japanese": "早く寝てちょうだいね。",
+          "furigana": "{早|はや}く{寝|ね}てちょうだいね。",
+          "english": "Go to bed soon, OK?",
+          "cloze_target": "ちょうだい",
+          "accepted_answers": [
+            "ちょうだい"
+          ],
+          "hint": "please (casual, warm)"
+        },
+        {
+          "id": "n4-te-choudai-4",
+          "japanese": "帰りに牛乳を買ってきてちょうだい。",
+          "furigana": "{帰|かえ}りに{牛乳|ぎゅうにゅう}を{買|か}ってきてちょうだい。",
+          "english": "Please pick up some milk on the way home.",
+          "cloze_target": "ちょうだい",
+          "accepted_answers": [
+            "ちょうだい"
+          ],
+          "hint": "please (casual, warm)"
+        },
+        {
+          "id": "n4-te-choudai-5",
+          "japanese": "窓を閉めてちょうだい。",
+          "furigana": "{窓|まど}を{閉|し}めてちょうだい。",
+          "english": "Close the window, please.",
+          "cloze_target": "ちょうだい",
+          "accepted_answers": [
+            "ちょうだい"
+          ],
+          "hint": "please (casual, warm)"
+        }
+      ]
+    },
+    {
+      "id": "n4-te-kure",
+      "level": "N4",
+      "title": "〜てくれ",
+      "meaning": "do it (for me) — blunt, masculine request",
+      "structure": [
+        "Verb て-form + くれ",
+        "Negative: Verb ない-form + でくれ"
+      ],
+      "formality": "casual",
+      "explanation": "くれ is the imperative of くれる. 〜てくれ is a blunt request, mostly used by men to close friends or people below them: 手伝ってくれ, \"Give me a hand.\" The negative is 〜ないでくれ: 心配しないでくれ, \"Don't worry.\"\n\nIt's more direct than 〜てください but softer than a bare command like 手伝え.",
+      "nuances": [
+        "〜てくれない？ and 〜てくれる？ are the softer casual versions.",
+        "Common in anime and fiction; use with care in real life."
+      ],
+      "common_mistakes": [
+        "Using it to a superior — it's rude.",
+        "Mixing it with ください: 手伝ってくれください ✗."
+      ],
+      "related_ids": [
+        "n4-te-kureru",
+        "n4-imperative",
+        "n4-te-choudai"
+      ],
+      "examples": [
+        {
+          "id": "n4-te-kure-1",
+          "japanese": "ちょっと手伝ってくれ。",
+          "furigana": "ちょっと{手伝|てつだ}ってくれ。",
+          "english": "Give me a hand here.",
+          "cloze_target": "くれ",
+          "accepted_answers": [
+            "くれ"
+          ],
+          "hint": "do for me (blunt)"
+        },
+        {
+          "id": "n4-te-kure-2",
+          "japanese": "一人にしてくれ。",
+          "furigana": "{一人|ひとり}にしてくれ。",
+          "english": "Leave me alone.",
+          "cloze_target": "くれ",
+          "accepted_answers": [
+            "くれ"
+          ],
+          "hint": "do for me (blunt)"
+        },
+        {
+          "id": "n4-te-kure-3",
+          "japanese": "心配しないでくれ。",
+          "furigana": "{心配|しんぱい}しないでくれ。",
+          "english": "Don't worry about me.",
+          "cloze_target": "くれ",
+          "accepted_answers": [
+            "くれ"
+          ],
+          "hint": "don't (blunt)"
+        },
+        {
+          "id": "n4-te-kure-4",
+          "japanese": "早く教えてくれよ。",
+          "furigana": "{早|はや}く{教|おし}えてくれよ。",
+          "english": "Come on, tell me already.",
+          "cloze_target": "くれ",
+          "accepted_answers": [
+            "くれ"
+          ],
+          "hint": "do for me (blunt)"
+        },
+        {
+          "id": "n4-te-kure-5",
+          "japanese": "その本、貸してくれ。",
+          "furigana": "その{本|ほん}、{貸|か}してくれ。",
+          "english": "Lend me that book.",
+          "cloze_target": "くれ",
+          "accepted_answers": [
+            "くれ"
+          ],
+          "hint": "do for me (blunt)"
+        }
+      ]
+    },
+    {
       "id": "n4-te-hoshii",
       "level": "N4",
       "title": "〜てほしい",
@@ -2497,6 +3483,92 @@
       ]
     },
     {
+      "id": "n4-cha-dame",
+      "level": "N4",
+      "title": "〜ちゃだめ／〜ちゃいけない",
+      "meaning": "casual \"you mustn't\" — contraction of ては",
+      "structure": [
+        "Verb て-form: 〜ては → 〜ちゃ, 〜では → 〜じゃ",
+        "+ だめ／いけない"
+      ],
+      "formality": "casual",
+      "explanation": "In speech, ては shortens to ちゃ and では to じゃ. So 〜てはいけない becomes 〜ちゃいけない and 〜てはだめ becomes 〜ちゃだめ: ここで泳いじゃだめ, \"You can't swim here.\"\n\nThe same contraction appears in 〜なくちゃ (from なくては), \"have to\".",
+      "nuances": [
+        "だめ is even more casual than いけない and common with children.",
+        "Polite: 〜ちゃいけません."
+      ],
+      "common_mistakes": [
+        "Mixing up ちゃ and じゃ: 飲んちゃだめ ✗ → 飲んじゃだめ.",
+        "Using it in formal writing — write 〜てはいけない."
+      ],
+      "related_ids": [
+        "n5-te-wa-ikemasen",
+        "n3-nakucha"
+      ],
+      "examples": [
+        {
+          "id": "n4-cha-dame-1",
+          "japanese": "ここで泳いじゃだめ。",
+          "furigana": "ここで{泳|およ}いじゃだめ。",
+          "english": "You can't swim here.",
+          "cloze_target": "泳いじゃ",
+          "accepted_answers": [
+            "泳いじゃ",
+            "およいじゃ"
+          ],
+          "hint": "泳ぐ + (mustn't, casual)"
+        },
+        {
+          "id": "n4-cha-dame-2",
+          "japanese": "授業中に寝ちゃいけないよ。",
+          "furigana": "{授業中|じゅぎょうちゅう}に{寝|ね}ちゃいけないよ。",
+          "english": "You mustn't sleep in class.",
+          "cloze_target": "寝ちゃ",
+          "accepted_answers": [
+            "寝ちゃ",
+            "ねちゃ"
+          ],
+          "hint": "寝る + (mustn't, casual)"
+        },
+        {
+          "id": "n4-cha-dame-3",
+          "japanese": "まだ食べちゃだめよ。",
+          "furigana": "まだ{食|た}べちゃだめよ。",
+          "english": "Don't eat it yet.",
+          "cloze_target": "食べちゃ",
+          "accepted_answers": [
+            "食べちゃ",
+            "たべちゃ"
+          ],
+          "hint": "食べる + (mustn't, casual)"
+        },
+        {
+          "id": "n4-cha-dame-4",
+          "japanese": "薬をお酒と飲んじゃいけません。",
+          "furigana": "{薬|くすり}をお{酒|さけ}と{飲|の}んじゃいけません。",
+          "english": "You mustn't take the medicine with alcohol.",
+          "cloze_target": "飲んじゃ",
+          "accepted_answers": [
+            "飲んじゃ",
+            "のんじゃ"
+          ],
+          "hint": "飲む + (mustn't)"
+        },
+        {
+          "id": "n4-cha-dame-5",
+          "japanese": "人の日記を読んじゃだめだよ。",
+          "furigana": "{人|ひと}の{日記|にっき}を{読|よ}んじゃだめだよ。",
+          "english": "You shouldn't read other people's diaries.",
+          "cloze_target": "読んじゃ",
+          "accepted_answers": [
+            "読んじゃ",
+            "よんじゃ"
+          ],
+          "hint": "読む + (mustn't, casual)"
+        }
+      ]
+    },
+    {
       "id": "n4-temo",
       "level": "N4",
       "title": "〜ても",
@@ -2660,6 +3732,169 @@
             "でも"
           ],
           "hint": "any (question word + でも)"
+        }
+      ]
+    },
+    {
+      "id": "n4-question-word-demo",
+      "level": "N4",
+      "title": "何でも／誰でも／どこでも",
+      "meaning": "anything / anyone / anywhere",
+      "structure": [
+        "Question word + でも (何・誰・どこ・いつ・どれ・どんな〜)"
+      ],
+      "formality": "neutral",
+      "explanation": "Question words plus でも mean \"any … at all\": 何でもいいです, \"Anything is fine.\" 誰でも参加できます, \"Anyone can join.\" いつでも来てください, \"Come any time.\"\n\nCompare: + か = some (何か, something); + も + negative = no (何も〜ない, nothing).",
+      "nuances": [
+        "With a particle it goes before でも: 誰とでも話せる, どこにでもある.",
+        "何でも is read なんでも."
+      ],
+      "common_mistakes": [
+        "Confusing 何でも (anything) with 何も (nothing, with a negative).",
+        "Putting the particle after でも: 誰でもと ✗ → 誰とでも."
+      ],
+      "related_ids": [
+        "n5-question-word-ka",
+        "n5-question-word-mo",
+        "n4-demo-suggestion"
+      ],
+      "examples": [
+        {
+          "id": "n4-question-word-demo-1",
+          "japanese": "飲み物は何でもいいです。",
+          "furigana": "{飲|の}み{物|もの}は{何|なん}でもいいです。",
+          "english": "Any drink is fine.",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "question word + (any)"
+        },
+        {
+          "id": "n4-question-word-demo-2",
+          "japanese": "この教室は誰でも参加できます。",
+          "furigana": "この{教室|きょうしつ}は{誰|だれ}でも{参加|さんか}できます。",
+          "english": "Anyone can join this class.",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "question word + (any)"
+        },
+        {
+          "id": "n4-question-word-demo-3",
+          "japanese": "困ったら、いつでも電話してね。",
+          "furigana": "{困|こま}ったら、いつでも{電話|でんわ}してね。",
+          "english": "If you're in trouble, call me any time.",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "question word + (any)"
+        },
+        {
+          "id": "n4-question-word-demo-4",
+          "japanese": "コンビニはどこにでもあります。",
+          "furigana": "コンビニはどこにでもあります。",
+          "english": "Convenience stores are everywhere.",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "question word + particle + (any)"
+        },
+        {
+          "id": "n4-question-word-demo-5",
+          "japanese": "彼は誰とでもすぐ仲良くなる。",
+          "furigana": "{彼|かれ}は{誰|だれ}とでもすぐ{仲良|なかよ}くなる。",
+          "english": "He makes friends with anyone right away.",
+          "cloze_target": "でも",
+          "accepted_answers": [
+            "でも"
+          ],
+          "hint": "question word + particle + (any)"
+        }
+      ]
+    },
+    {
+      "id": "n4-number-mo",
+      "level": "N4",
+      "title": "Number + も (as many as / not even)",
+      "meaning": "emphasising that an amount is large (or, with a negative, small)",
+      "structure": [
+        "Number + counter + も (as many as)",
+        "一 + counter + も + negative (not a single)"
+      ],
+      "formality": "neutral",
+      "explanation": "も after an amount stresses that it's surprisingly large: 三時間も待った, \"I waited a whole three hours.\" ビールを十本も飲んだ, \"He drank as many as ten beers.\"\n\nWith one and a negative it means \"not even one\": 一度も行ったことがない, \"I've never been even once.\" 一人も来なかった, \"Not a single person came.\"",
+      "nuances": [
+        "The speaker's feeling is \"that's a lot!\"",
+        "Compare しか〜ない, which stresses that an amount is small."
+      ],
+      "common_mistakes": [
+        "Using it for normal, unremarkable amounts.",
+        "Forgetting the negative in 一〜も: 一人も来た ✗ → 一人も来なかった."
+      ],
+      "related_ids": [
+        "n5-counters",
+        "n5-shika-nai",
+        "n5-mo"
+      ],
+      "examples": [
+        {
+          "id": "n4-number-mo-1",
+          "japanese": "駅で三時間も待ちました。",
+          "furigana": "{駅|えき}で{三時間|さんじかん}も{待|ま}ちました。",
+          "english": "I waited a whole three hours at the station.",
+          "cloze_target": "も",
+          "accepted_answers": [
+            "も"
+          ],
+          "hint": "amount + (that many!)"
+        },
+        {
+          "id": "n4-number-mo-2",
+          "japanese": "彼はビールを十本も飲んだ。",
+          "furigana": "{彼|かれ}はビールを{十本|じゅっぽん}も{飲|の}んだ。",
+          "english": "He drank as many as ten beers.",
+          "cloze_target": "も",
+          "accepted_answers": [
+            "も"
+          ],
+          "hint": "amount + (that many!)"
+        },
+        {
+          "id": "n4-number-mo-3",
+          "japanese": "北海道には一度も行ったことがありません。",
+          "furigana": "{北海道|ほっかいどう}には{一度|いちど}も{行|い}ったことがありません。",
+          "english": "I've never been to Hokkaido even once.",
+          "cloze_target": "も",
+          "accepted_answers": [
+            "も"
+          ],
+          "hint": "one + (not even)"
+        },
+        {
+          "id": "n4-number-mo-4",
+          "japanese": "パーティーに一人も来なかった。",
+          "furigana": "パーティーに{一人|ひとり}も{来|こ}なかった。",
+          "english": "Not a single person came to the party.",
+          "cloze_target": "も",
+          "accepted_answers": [
+            "も"
+          ],
+          "hint": "one + (not even)"
+        },
+        {
+          "id": "n4-number-mo-5",
+          "japanese": "この本は五千円もした。",
+          "furigana": "この{本|ほん}は{五千円|ごせんえん}もした。",
+          "english": "This book cost a whopping 5,000 yen.",
+          "cloze_target": "も",
+          "accepted_answers": [
+            "も"
+          ],
+          "hint": "amount + (that much!)"
         }
       ]
     },
@@ -4282,6 +5517,92 @@
       ]
     },
     {
+      "id": "n4-me-ordinal",
+      "level": "N4",
+      "title": "〜目 (ordinal: first, second…)",
+      "meaning": "the Nth — turning a count into an order",
+      "structure": [
+        "Number + counter + 目",
+        "一つ目、二人目、三回目、四日目、五番目"
+      ],
+      "formality": "neutral",
+      "explanation": "Adding 目 after a number and counter makes it ordinal: 二回目, \"the second time\"; 三つ目の駅, \"the third station\"; 一番目, \"the first\". It works with most counters: 二人目の子ども, \"our second child\"; 三日目, \"the third day\".",
+      "nuances": [
+        "番目 is the general way to say \"Nth in order\": 右から二番目.",
+        "The number keeps its counter reading: 一本目 (いっぽんめ)."
+      ],
+      "common_mistakes": [
+        "Leaving out the counter: 二目 ✗ → 二つ目 / 二番目.",
+        "Confusing 二日 (two days / the 2nd) with 二日目 (the second day)."
+      ],
+      "related_ids": [
+        "n5-counters",
+        "n4-zutsu"
+      ],
+      "examples": [
+        {
+          "id": "n4-me-ordinal-1",
+          "japanese": "日本に来たのは二回目です。",
+          "furigana": "{日本|にほん}に{来|き}たのは{二回|にかい}{目|め}です。",
+          "english": "This is my second time in Japan.",
+          "cloze_target": "目",
+          "accepted_answers": [
+            "目",
+            "め"
+          ],
+          "hint": "(ordinal) 2nd time"
+        },
+        {
+          "id": "n4-me-ordinal-2",
+          "japanese": "三つ目の角を右に曲がってください。",
+          "furigana": "{三|みっ}つ{目|め}の{角|かど}を{右|みぎ}に{曲|ま}がってください。",
+          "english": "Turn right at the third corner.",
+          "cloze_target": "目",
+          "accepted_answers": [
+            "目",
+            "め"
+          ],
+          "hint": "(ordinal) 3rd"
+        },
+        {
+          "id": "n4-me-ordinal-3",
+          "japanese": "右から二番目の人が兄です。",
+          "furigana": "{右|みぎ}から{二番|にばん}{目|め}の{人|ひと}が{兄|あに}です。",
+          "english": "The second person from the right is my brother.",
+          "cloze_target": "目",
+          "accepted_answers": [
+            "目",
+            "め"
+          ],
+          "hint": "(ordinal) 2nd"
+        },
+        {
+          "id": "n4-me-ordinal-4",
+          "japanese": "旅行の三日目に雨が降りました。",
+          "furigana": "{旅行|りょこう}の{三日|みっか}{目|め}に{雨|あめ}が{降|ふ}りました。",
+          "english": "It rained on the third day of the trip.",
+          "cloze_target": "目",
+          "accepted_answers": [
+            "目",
+            "め"
+          ],
+          "hint": "(ordinal) 3rd day"
+        },
+        {
+          "id": "n4-me-ordinal-5",
+          "japanese": "これで五杯目のコーヒーです。",
+          "furigana": "これで{五杯|ごはい}{目|め}のコーヒーです。",
+          "english": "This is my fifth cup of coffee.",
+          "cloze_target": "目",
+          "accepted_answers": [
+            "目",
+            "め"
+          ],
+          "hint": "(ordinal) 5th cup"
+        }
+      ]
+    },
+    {
       "id": "n4-ga-suru",
       "level": "N4",
       "title": "〜がする (sensations)",
@@ -4867,6 +6188,169 @@
             "かも"
           ],
           "hint": "might (casual)"
+        }
+      ]
+    },
+    {
+      "id": "n4-darou",
+      "level": "N4",
+      "title": "〜だろう",
+      "meaning": "probably / I suppose — plain form of でしょう",
+      "structure": [
+        "Plain form + だろう (な-adj / noun: no だ)",
+        "〜だろう？ (right? — seeking agreement)",
+        "〜だろうか (I wonder…)"
+      ],
+      "formality": "casual",
+      "explanation": "だろう is the plain form of でしょう. It marks a guess: 明日は晴れるだろう, \"It'll probably be sunny tomorrow.\" With rising intonation it asks for agreement: 言っただろう？, \"I told you, didn't I?\"\n\nだろうか turns it into wondering: 本当だろうか, \"I wonder if it's true.\" In writing, だろう is the neutral way to state a guess.",
+      "nuances": [
+        "Men often use だろう in speech; others tend to use でしょ.",
+        "Often with たぶん or きっと: たぶん来るだろう."
+      ],
+      "common_mistakes": [
+        "Putting だ before it: 静かだだろう ✗ → 静かだろう.",
+        "Using it in polite speech — switch to でしょう."
+      ],
+      "related_ids": [
+        "n5-deshou",
+        "n4-kamo-shirenai"
+      ],
+      "examples": [
+        {
+          "id": "n4-darou-1",
+          "japanese": "明日はたぶん晴れるだろう。",
+          "furigana": "{明日|あした}はたぶん{晴|は}れるだろう。",
+          "english": "It'll probably be sunny tomorrow.",
+          "cloze_target": "だろう",
+          "accepted_answers": [
+            "だろう"
+          ],
+          "hint": "probably (plain)"
+        },
+        {
+          "id": "n4-darou-2",
+          "japanese": "彼はもう家に着いただろう。",
+          "furigana": "{彼|かれ}はもう{家|いえ}に{着|つ}いただろう。",
+          "english": "He has probably got home by now.",
+          "cloze_target": "だろう",
+          "accepted_answers": [
+            "だろう"
+          ],
+          "hint": "probably (plain)"
+        },
+        {
+          "id": "n4-darou-3",
+          "japanese": "だから言っただろう？",
+          "furigana": "だから{言|い}っただろう？",
+          "english": "I told you so, didn't I?",
+          "cloze_target": "だろう",
+          "accepted_answers": [
+            "だろう"
+          ],
+          "hint": "right? (plain)"
+        },
+        {
+          "id": "n4-darou-4",
+          "japanese": "この話は本当だろうか。",
+          "furigana": "この{話|はなし}は{本当|ほんとう}だろうか。",
+          "english": "I wonder if this story is true.",
+          "cloze_target": "だろうか",
+          "accepted_answers": [
+            "だろうか"
+          ],
+          "hint": "I wonder"
+        },
+        {
+          "id": "n4-darou-5",
+          "japanese": "駅の近くだから、便利だろう。",
+          "furigana": "{駅|えき}の{近|ちか}くだから、{便利|べんり}だろう。",
+          "english": "It's near the station, so it must be convenient.",
+          "cloze_target": "だろう",
+          "accepted_answers": [
+            "だろう"
+          ],
+          "hint": "probably (plain)"
+        }
+      ]
+    },
+    {
+      "id": "n4-no-question",
+      "level": "N4",
+      "title": "〜の？／〜の (casual explanatory)",
+      "meaning": "casual questions asking for an explanation / casual explanations",
+      "structure": [
+        "Plain form + の？ (な-adj / noun + なの？)",
+        "Plain form + の。 (explaining)"
+      ],
+      "formality": "casual",
+      "explanation": "In casual speech, の at the end of a sentence is the short form of んですか / んです. With rising intonation it asks for an explanation: どうしたの？, \"What's wrong?\" 行かないの？, \"Aren't you going?\"\n\nWith falling intonation it explains or gives a reason softly: 頭が痛いの, \"I've got a headache (that's why).\"",
+      "nuances": [
+        "After nouns and な-adjectives use なの: 学生なの？",
+        "Men use 〜のか or 〜んだ more; の alone sounds soft."
+      ],
+      "common_mistakes": [
+        "Forgetting な after nouns: 休みの？ ✗ → 休みなの？",
+        "Using it where no explanation is involved, e.g. to ask plain facts formally."
+      ],
+      "related_ids": [
+        "n5-n-desu",
+        "n5-ka-question"
+      ],
+      "examples": [
+        {
+          "id": "n4-no-question-1",
+          "japanese": "どうしたの？元気がないね。",
+          "furigana": "どうしたの？{元気|げんき}がないね。",
+          "english": "What's wrong? You seem down.",
+          "cloze_target": "の",
+          "accepted_answers": [
+            "の"
+          ],
+          "hint": "(asking for an explanation, casual)"
+        },
+        {
+          "id": "n4-no-question-2",
+          "japanese": "パーティー、行かないの？",
+          "furigana": "パーティー、{行|い}かないの？",
+          "english": "Aren't you going to the party?",
+          "cloze_target": "の",
+          "accepted_answers": [
+            "の"
+          ],
+          "hint": "(asking for an explanation, casual)"
+        },
+        {
+          "id": "n4-no-question-3",
+          "japanese": "今日は休みなの？",
+          "furigana": "{今日|きょう}は{休|やす}みなの？",
+          "english": "Are you off today?",
+          "cloze_target": "なの",
+          "accepted_answers": [
+            "なの"
+          ],
+          "hint": "noun + (casual question)"
+        },
+        {
+          "id": "n4-no-question-4",
+          "japanese": "ごめん、頭が痛いの。",
+          "furigana": "ごめん、{頭|あたま}が{痛|いた}いの。",
+          "english": "Sorry, I've got a headache.",
+          "cloze_target": "の",
+          "accepted_answers": [
+            "の"
+          ],
+          "hint": "(explaining, casual)"
+        },
+        {
+          "id": "n4-no-question-5",
+          "japanese": "どこに住んでるの？",
+          "furigana": "どこに{住|す}んでるの？",
+          "english": "Where do you live?",
+          "cloze_target": "の",
+          "accepted_answers": [
+            "の"
+          ],
+          "hint": "(casual question)"
         }
       ]
     },
@@ -6060,6 +7544,100 @@
             "おっしゃいました"
           ],
           "hint": "言う → honorific"
+        }
+      ]
+    },
+    {
+      "id": "n4-gozaimasu",
+      "level": "N4",
+      "title": "ございます／でございます",
+      "meaning": "very polite ある / です",
+      "structure": [
+        "Noun + でございます (= です)",
+        "〜がございます (= あります)",
+        "い-adj: おはようございます、ありがとうございます"
+      ],
+      "formality": "polite",
+      "explanation": "ございます is the very polite (丁寧語) form of ある, and でございます replaces です. Shop and hotel staff use it constantly: お手洗いはあちらでございます, \"The restroom is over there.\" 何かご質問はございますか, \"Do you have any questions?\"\n\nIt's also frozen into set phrases: おはようございます, ありがとうございます, おめでとうございます.",
+      "nuances": [
+        "It's polite, not honorific — you can use it about yourself: 私は田中でございます.",
+        "い-adjectives change form before it: 高い → 高うございます (rare today)."
+      ],
+      "common_mistakes": [
+        "Using it about a customer's actions — that needs honorific verbs like いらっしゃる.",
+        "Doubling politeness: でございますです ✗."
+      ],
+      "related_ids": [
+        "n4-special-keigo",
+        "n4-honorific-o-ni-naru"
+      ],
+      "examples": [
+        {
+          "id": "n4-gozaimasu-1",
+          "japanese": "お手洗いはあちらでございます。",
+          "furigana": "お{手洗|てあら}いはあちらでございます。",
+          "english": "The restroom is over there.",
+          "cloze_target": "でございます",
+          "accepted_answers": [
+            "でございます"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "です",
+              "note": "Correct, but this review wants the very polite form."
+            }
+          ],
+          "hint": "です (very polite)"
+        },
+        {
+          "id": "n4-gozaimasu-2",
+          "japanese": "何かご質問はございますか。",
+          "furigana": "{何|なに}かご{質問|しつもん}はございますか。",
+          "english": "Do you have any questions?",
+          "cloze_target": "ございます",
+          "accepted_answers": [
+            "ございます"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "あります",
+              "note": "Correct, but this review wants the very polite form."
+            }
+          ],
+          "hint": "あります (very polite)"
+        },
+        {
+          "id": "n4-gozaimasu-3",
+          "japanese": "お客様、こちらが新しいメニューでございます。",
+          "furigana": "お{客様|きゃくさま}、こちらが{新|あたら}しいメニューでございます。",
+          "english": "Sir/Madam, this is our new menu.",
+          "cloze_target": "でございます",
+          "accepted_answers": [
+            "でございます"
+          ],
+          "hint": "です (very polite)"
+        },
+        {
+          "id": "n4-gozaimasu-4",
+          "japanese": "申し訳ございません、本日は満席でございます。",
+          "furigana": "{申|もう}し{訳|わけ}ございません、{本日|ほんじつ}は{満席|まんせき}でございます。",
+          "english": "We're terribly sorry, we're fully booked today.",
+          "cloze_target": "ございません",
+          "accepted_answers": [
+            "ございません"
+          ],
+          "hint": "ありません (very polite)"
+        },
+        {
+          "id": "n4-gozaimasu-5",
+          "japanese": "二階にもお席がございます。",
+          "furigana": "{二階|にかい}にもお{席|せき}がございます。",
+          "english": "There are seats upstairs as well.",
+          "cloze_target": "ございます",
+          "accepted_answers": [
+            "ございます"
+          ],
+          "hint": "あります (very polite)"
         }
       ]
     },

@@ -1,5 +1,1248 @@
 {
   "$schema": "./grammar.schema.json",
   "level": "N1",
-  "points": []
+  "points": [
+    {
+      "id": "n1-beku",
+      "level": "N1",
+      "title": "〜べく",
+      "meaning": "in order to (formal, literary)",
+      "structure": [
+        "Verb (dictionary form) + べく (する → すべく)"
+      ],
+      "formality": "formal",
+      "explanation": "べく is a literary way to say \"in order to\", linking an aim to an action: 夢を実現すべく、毎日努力している, \"She works hard every day in order to realise her dream.\" It's the connective form of べき and sounds determined and formal.",
+      "nuances": [
+        "する usually becomes すべく.",
+        "Mostly in writing, news and speeches; ために is the everyday form."
+      ],
+      "common_mistakes": [
+        "Using it for everyday purposes in casual speech.",
+        "Using the ない-form: 行かないべく ✗."
+      ],
+      "related_ids": [
+        "n3-beki",
+        "n4-tame-ni",
+        "n1-bekarazu"
+      ],
+      "examples": [
+        {
+          "id": "n1-beku-1",
+          "japanese": "夢を実現すべく、毎日努力している。",
+          "furigana": "{夢|ゆめ}を{実現|じつげん}すべく、{毎日|まいにち}{努力|どりょく}している。",
+          "english": "She works hard every day in order to realise her dream.",
+          "cloze_target": "べく",
+          "accepted_answers": [
+            "べく"
+          ],
+          "hint": "in order to (literary)"
+        },
+        {
+          "id": "n1-beku-2",
+          "japanese": "真相を明らかにすべく、調査が始まった。",
+          "furigana": "{真相|しんそう}を{明|あき}らかにすべく、{調査|ちょうさ}が{始|はじ}まった。",
+          "english": "An investigation began in order to uncover the truth.",
+          "cloze_target": "べく",
+          "accepted_answers": [
+            "べく"
+          ],
+          "hint": "in order to (literary)"
+        },
+        {
+          "id": "n1-beku-3",
+          "japanese": "彼は医者になるべく、猛勉強した。",
+          "furigana": "{彼|かれ}は{医者|いしゃ}になるべく、{猛勉強|もうべんきょう}した。",
+          "english": "He studied fiercely in order to become a doctor.",
+          "cloze_target": "べく",
+          "accepted_answers": [
+            "べく"
+          ],
+          "hint": "in order to (literary)"
+        },
+        {
+          "id": "n1-beku-4",
+          "japanese": "新しい市場を開拓すべく、海外に進出した。",
+          "furigana": "{新|あたら}しい{市場|しじょう}を{開拓|かいたく}すべく、{海外|かいがい}に{進出|しんしゅつ}した。",
+          "english": "They expanded overseas in order to open up new markets.",
+          "cloze_target": "べく",
+          "accepted_answers": [
+            "べく"
+          ],
+          "hint": "in order to (literary)"
+        },
+        {
+          "id": "n1-beku-5",
+          "japanese": "約束を果たすべく、彼女は故郷に戻った。",
+          "furigana": "{約束|やくそく}を{果|は}たすべく、{彼女|かのじょ}は{故郷|こきょう}に{戻|もど}った。",
+          "english": "She returned to her hometown to keep her promise.",
+          "cloze_target": "べく",
+          "accepted_answers": [
+            "べく"
+          ],
+          "hint": "in order to (literary)"
+        }
+      ]
+    },
+    {
+      "id": "n1-bekarazu",
+      "level": "N1",
+      "title": "〜べからず／〜べからざる",
+      "meaning": "must not (prohibition on signs, rules)",
+      "structure": [
+        "Verb (dictionary form) + べからず (する → すべからず)",
+        "Verb + べからざる + Noun (that must not be…)"
+      ],
+      "formality": "formal",
+      "explanation": "べからず is a classical, stern prohibition — \"must not\" — seen on old-style signs and in rules: 芝生に入るべからず, \"Keep off the grass.\" べからざる modifies nouns: 欠くべからざる存在, \"an indispensable presence\" (literally, one that must not be lacking).",
+      "nuances": [
+        "Found in proverbs: 働かざる者食うべからず, \"He who does not work shall not eat.\"",
+        "Very formal and old-fashioned; modern signs usually say 〜ないでください or 禁止."
+      ],
+      "common_mistakes": [
+        "Using it in conversation, except jokingly.",
+        "Mixing it with べきではない in formal writing — べからず is far stronger."
+      ],
+      "related_ids": [
+        "n3-beki",
+        "n1-beku",
+        "n4-na-prohibitive"
+      ],
+      "examples": [
+        {
+          "id": "n1-bekarazu-1",
+          "japanese": "芝生に入るべからず。",
+          "furigana": "{芝生|しばふ}に{入|はい}るべからず。",
+          "english": "Keep off the grass.",
+          "cloze_target": "べからず",
+          "accepted_answers": [
+            "べからず"
+          ],
+          "hint": "must not (sign)"
+        },
+        {
+          "id": "n1-bekarazu-2",
+          "japanese": "ここにゴミを捨てるべからず。",
+          "furigana": "ここにゴミを{捨|す}てるべからず。",
+          "english": "Do not dump rubbish here.",
+          "cloze_target": "べからず",
+          "accepted_answers": [
+            "べからず"
+          ],
+          "hint": "must not (sign)"
+        },
+        {
+          "id": "n1-bekarazu-3",
+          "japanese": "働かざる者食うべからず。",
+          "furigana": "{働|はたら}かざる{者|もの}{食|く}うべからず。",
+          "english": "He who does not work shall not eat.",
+          "cloze_target": "べからず",
+          "accepted_answers": [
+            "べからず"
+          ],
+          "hint": "must not (proverb)"
+        },
+        {
+          "id": "n1-bekarazu-4",
+          "japanese": "水は生活に欠くべからざるものだ。",
+          "furigana": "{水|みず}は{生活|せいかつ}に{欠|か}くべからざるものだ。",
+          "english": "Water is indispensable to life.",
+          "cloze_target": "べからざる",
+          "accepted_answers": [
+            "べからざる"
+          ],
+          "hint": "must not (+ noun)"
+        },
+        {
+          "id": "n1-bekarazu-5",
+          "japanese": "初心忘るべからず。",
+          "furigana": "{初心|しょしん}{忘|わす}るべからず。",
+          "english": "Never forget your beginner's spirit.",
+          "cloze_target": "べからず",
+          "accepted_answers": [
+            "べからず"
+          ],
+          "hint": "must not (proverb)"
+        }
+      ]
+    },
+    {
+      "id": "n1-sura",
+      "level": "N1",
+      "title": "〜すら／〜ですら",
+      "meaning": "even (emphatic, formal さえ)",
+      "structure": [
+        "Noun (+ particle) + すら",
+        "Noun + ですら"
+      ],
+      "formality": "formal",
+      "explanation": "すら means \"even\", stressing an extreme example — like さえ but more literary and emphatic: 疲れすぎて、立つことすらできなかった, \"I was so exhausted I couldn't even stand.\" ですら is used after nouns, especially people: 専門家ですら分からない, \"Even experts don't know.\"",
+      "nuances": [
+        "Usually with negative or surprising statements.",
+        "さえ is more common in speech; すら sounds written."
+      ],
+      "common_mistakes": [
+        "Using it for ordinary \"also\" — that's も.",
+        "Forgetting that it emphasises an extreme case."
+      ],
+      "related_ids": [
+        "n3-sae"
+      ],
+      "examples": [
+        {
+          "id": "n1-sura-1",
+          "japanese": "疲れすぎて、立つことすらできなかった。",
+          "furigana": "{疲|つか}れすぎて、{立|た}つことすらできなかった。",
+          "english": "I was so exhausted I couldn't even stand.",
+          "cloze_target": "すら",
+          "accepted_answers": [
+            "すら"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "さえ",
+              "note": "Correct, but this review wants the more literary form."
+            }
+          ],
+          "hint": "even (emphatic)"
+        },
+        {
+          "id": "n1-sura-2",
+          "japanese": "この問題は専門家ですら分からない。",
+          "furigana": "この{問題|もんだい}は{専門家|せんもんか}ですら{分|わ}からない。",
+          "english": "Even experts don't understand this problem.",
+          "cloze_target": "ですら",
+          "accepted_answers": [
+            "ですら"
+          ],
+          "valid_alternatives": [
+            {
+              "answer": "でさえ",
+              "note": "Correct, but this review wants the more literary form."
+            }
+          ],
+          "hint": "even (after a noun)"
+        },
+        {
+          "id": "n1-sura-3",
+          "japanese": "忙しくて、食事をする時間すらない。",
+          "furigana": "{忙|いそが}しくて、{食事|しょくじ}をする{時間|じかん}すらない。",
+          "english": "I'm so busy I don't even have time to eat.",
+          "cloze_target": "すら",
+          "accepted_answers": [
+            "すら"
+          ],
+          "hint": "even (emphatic)"
+        },
+        {
+          "id": "n1-sura-4",
+          "japanese": "彼は自分の名前すら書けなかった。",
+          "furigana": "{彼|かれ}は{自分|じぶん}の{名前|なまえ}すら{書|か}けなかった。",
+          "english": "He couldn't even write his own name.",
+          "cloze_target": "すら",
+          "accepted_answers": [
+            "すら"
+          ],
+          "hint": "even (emphatic)"
+        },
+        {
+          "id": "n1-sura-5",
+          "japanese": "そんなことは子どもですら知っている。",
+          "furigana": "そんなことは{子|こ}どもですら{知|し}っている。",
+          "english": "Even a child knows that.",
+          "cloze_target": "ですら",
+          "accepted_answers": [
+            "ですら"
+          ],
+          "hint": "even (after a noun)"
+        }
+      ]
+    },
+    {
+      "id": "n1-meku",
+      "level": "N1",
+      "title": "〜めく",
+      "meaning": "show signs of / become like…",
+      "structure": [
+        "Noun + めく (めいて、めいた + Noun)"
+      ],
+      "formality": "formal",
+      "explanation": "めく after a noun means something starts to have that quality or show signs of it: 春めいてきた, \"It's starting to feel like spring.\" 皮肉めいた言い方, \"a remark with an ironic ring to it.\"\n\nIt's used with a limited set of nouns, especially seasons and words like 謎, 冗談, 皮肉, 秘密.",
+      "nuances": [
+        "Common fixed words: 春めく, 秋めく, 謎めいた, 冗談めいた, 皮肉めいた.",
+        "めいた + Noun is the most common form."
+      ],
+      "common_mistakes": [
+        "Using it freely with any noun — it sticks to a handful of words.",
+        "Using it for something that fully is that thing: 春めく means \"spring-like\", not \"it is spring.\""
+      ],
+      "related_ids": [
+        "n3-ppoi",
+        "n4-rashii"
+      ],
+      "examples": [
+        {
+          "id": "n1-meku-1",
+          "japanese": "最近、ずいぶん春めいてきた。",
+          "furigana": "{最近|さいきん}、ずいぶん{春|はる}めいてきた。",
+          "english": "It's really started to feel like spring lately.",
+          "cloze_target": "めいて",
+          "accepted_answers": [
+            "めいて"
+          ],
+          "hint": "show signs of"
+        },
+        {
+          "id": "n1-meku-2",
+          "japanese": "彼女は謎めいた笑みを浮かべた。",
+          "furigana": "{彼女|かのじょ}は{謎|なぞ}めいた{笑|え}みを{浮|う}かべた。",
+          "english": "She gave a mysterious smile.",
+          "cloze_target": "めいた",
+          "accepted_answers": [
+            "めいた"
+          ],
+          "hint": "-like (+ noun)"
+        },
+        {
+          "id": "n1-meku-3",
+          "japanese": "冗談めいた口調で本音を言った。",
+          "furigana": "{冗談|じょうだん}めいた{口調|くちょう}で{本音|ほんね}を{言|い}った。",
+          "english": "He said what he really thought in a half-joking tone.",
+          "cloze_target": "めいた",
+          "accepted_answers": [
+            "めいた"
+          ],
+          "hint": "-like (+ noun)"
+        },
+        {
+          "id": "n1-meku-4",
+          "japanese": "皮肉めいた言い方はやめてください。",
+          "furigana": "{皮肉|ひにく}めいた{言|い}い{方|かた}はやめてください。",
+          "english": "Please stop talking so sarcastically.",
+          "cloze_target": "めいた",
+          "accepted_answers": [
+            "めいた"
+          ],
+          "hint": "-like (+ noun)"
+        },
+        {
+          "id": "n1-meku-5",
+          "japanese": "木々の葉が色づき、秋めいてきた。",
+          "furigana": "{木々|きぎ}の{葉|は}が{色|いろ}づき、{秋|あき}めいてきた。",
+          "english": "The leaves are turning and it's beginning to feel like autumn.",
+          "cloze_target": "めいて",
+          "accepted_answers": [
+            "めいて"
+          ],
+          "hint": "show signs of"
+        }
+      ]
+    },
+    {
+      "id": "n1-kirai-ga-aru",
+      "level": "N1",
+      "title": "〜きらいがある",
+      "meaning": "have a (bad) tendency to",
+      "structure": [
+        "Verb (dictionary / ない-form) + きらいがある",
+        "Noun + の + きらいがある"
+      ],
+      "formality": "formal",
+      "explanation": "きらいがある says someone or something has an unfortunate tendency: 彼は物事を大げさに言うきらいがある, \"He has a tendency to exaggerate.\" It's critical but written in a measured, formal tone.",
+      "nuances": [
+        "Written in hiragana (嫌い is the kanji but isn't normally used here).",
+        "Close to 〜がちだ and 〜傾向がある."
+      ],
+      "common_mistakes": [
+        "Using it for good tendencies.",
+        "Confusing it with 嫌い (dislike): 彼は野菜のきらいがある doesn't mean he dislikes vegetables."
+      ],
+      "related_ids": [
+        "n3-gachi"
+      ],
+      "examples": [
+        {
+          "id": "n1-kirai-ga-aru-1",
+          "japanese": "彼は物事を大げさに言うきらいがある。",
+          "furigana": "{彼|かれ}は{物事|ものごと}を{大|おお}げさに{言|い}うきらいがある。",
+          "english": "He has a tendency to exaggerate things.",
+          "cloze_target": "きらいがある",
+          "accepted_answers": [
+            "きらいがある"
+          ],
+          "hint": "(bad) tendency"
+        },
+        {
+          "id": "n1-kirai-ga-aru-2",
+          "japanese": "最近の若者は本を読まないきらいがある。",
+          "furigana": "{最近|さいきん}の{若者|わかもの}は{本|ほん}を{読|よ}まないきらいがある。",
+          "english": "Young people these days tend not to read books.",
+          "cloze_target": "きらいがある",
+          "accepted_answers": [
+            "きらいがある"
+          ],
+          "hint": "(bad) tendency"
+        },
+        {
+          "id": "n1-kirai-ga-aru-3",
+          "japanese": "彼女は一人で抱え込むきらいがある。",
+          "furigana": "{彼女|かのじょ}は{一人|ひとり}で{抱|かか}え{込|こ}むきらいがある。",
+          "english": "She tends to keep her problems to herself.",
+          "cloze_target": "きらいがある",
+          "accepted_answers": [
+            "きらいがある"
+          ],
+          "hint": "(bad) tendency"
+        },
+        {
+          "id": "n1-kirai-ga-aru-4",
+          "japanese": "この会社は前例にこだわるきらいがある。",
+          "furigana": "この{会社|かいしゃ}は{前例|ぜんれい}にこだわるきらいがある。",
+          "english": "This company tends to cling to precedent.",
+          "cloze_target": "きらいがある",
+          "accepted_answers": [
+            "きらいがある"
+          ],
+          "hint": "(bad) tendency"
+        },
+        {
+          "id": "n1-kirai-ga-aru-5",
+          "japanese": "人は自分に甘くなるきらいがある。",
+          "furigana": "{人|ひと}は{自分|じぶん}に{甘|あま}くなるきらいがある。",
+          "english": "People tend to go easy on themselves.",
+          "cloze_target": "きらいがある",
+          "accepted_answers": [
+            "きらいがある"
+          ],
+          "hint": "(bad) tendency"
+        }
+      ]
+    },
+    {
+      "id": "n1-karou",
+      "level": "N1",
+      "title": "〜かろう",
+      "meaning": "probably is / may be (classical い-adjective guess)",
+      "structure": [
+        "い-adj stem + かろう (よい → よかろう)",
+        "〜かろうが〜かろうが (whether … or …)"
+      ],
+      "formality": "formal",
+      "explanation": "かろう is the old volitional/presumptive form of い-adjectives, equivalent to 〜いだろう: さぞ寒かろう, \"It must be very cold.\" It survives in set phrases and dramatic or old-fashioned speech: それでよかろう, \"That will do, I suppose.\"\n\nIn 〜かろうが〜かろうが it means \"whether… or…\": 高かろうが安かろうが、必要なものは買う.",
+      "nuances": [
+        "よかろう is common in samurai-drama style speech.",
+        "Modern equivalent: 〜いだろう／〜いでしょう."
+      ],
+      "common_mistakes": [
+        "Using it with な-adjectives — that's であろう.",
+        "Using it in normal conversation, except for effect."
+      ],
+      "related_ids": [
+        "n4-darou",
+        "n2-de-arou",
+        "n2-mai"
+      ],
+      "examples": [
+        {
+          "id": "n1-karou-1",
+          "japanese": "一人で暮らすのはさぞ寂しかろう。",
+          "furigana": "{一人|ひとり}で{暮|く}らすのはさぞ{寂|さび}しかろう。",
+          "english": "Living alone must be very lonely.",
+          "cloze_target": "かろう",
+          "accepted_answers": [
+            "かろう"
+          ],
+          "hint": "probably (classical い-adj)"
+        },
+        {
+          "id": "n1-karou-2",
+          "japanese": "まあ、それでよかろう。",
+          "furigana": "まあ、それでよかろう。",
+          "english": "Well, that will do, I suppose.",
+          "cloze_target": "かろう",
+          "accepted_answers": [
+            "かろう"
+          ],
+          "hint": "probably (classical い-adj)"
+        },
+        {
+          "id": "n1-karou-3",
+          "japanese": "高かろうが安かろうが、必要なものは買う。",
+          "furigana": "{高|たか}かろうが{安|やす}かろうが、{必要|ひつよう}なものは{買|か}う。",
+          "english": "Expensive or cheap, I buy what I need.",
+          "cloze_target": "かろう",
+          "cloze_occurrence": 1,
+          "accepted_answers": [
+            "かろう"
+          ],
+          "hint": "whether (it's) …"
+        },
+        {
+          "id": "n1-karou-4",
+          "japanese": "山の上は寒かろうから、上着を持っていけ。",
+          "furigana": "{山|やま}の{上|うえ}は{寒|さむ}かろうから、{上着|うわぎ}を{持|も}っていけ。",
+          "english": "It'll probably be cold up the mountain, so take a jacket.",
+          "cloze_target": "かろう",
+          "accepted_answers": [
+            "かろう"
+          ],
+          "hint": "probably (classical い-adj)"
+        },
+        {
+          "id": "n1-karou-5",
+          "japanese": "若者には難しかろうと思ったが、意外と簡単だった。",
+          "furigana": "{若者|わかもの}には{難|むずか}しかろうと{思|おも}ったが、{意外|いがい}と{簡単|かんたん}だった。",
+          "english": "I thought it might be hard for young people, but it was surprisingly easy.",
+          "cloze_target": "かろう",
+          "accepted_answers": [
+            "かろう"
+          ],
+          "hint": "probably (classical い-adj)"
+        }
+      ]
+    },
+    {
+      "id": "n1-mamire",
+      "level": "N1",
+      "title": "〜まみれ",
+      "meaning": "covered in (something messy)",
+      "structure": [
+        "Noun + まみれ (+ だ / の + Noun / になる)"
+      ],
+      "formality": "neutral",
+      "explanation": "まみれ means covered all over with something wet, sticky or dirty: 泥まみれ, \"covered in mud\"; 汗まみれ, \"drenched in sweat\"; 血まみれ, \"covered in blood.\" It can also be figurative: 借金まみれ, \"drowning in debt.\"",
+      "nuances": [
+        "Compare だらけ (full of, including abstract things like mistakes) — まみれ is about being smeared or soaked.",
+        "Usually unpleasant."
+      ],
+      "common_mistakes": [
+        "Using it for things that don't coat a surface: 間違いまみれ ✗ → 間違いだらけ.",
+        "Using it for positive things."
+      ],
+      "related_ids": [
+        "n3-darake",
+        "n1-zukume"
+      ],
+      "examples": [
+        {
+          "id": "n1-mamire-1",
+          "japanese": "子どもたちは泥まみれになって遊んでいた。",
+          "furigana": "{子|こ}どもたちは{泥|どろ}まみれになって{遊|あそ}んでいた。",
+          "english": "The kids were playing, covered in mud.",
+          "cloze_target": "まみれ",
+          "accepted_answers": [
+            "まみれ"
+          ],
+          "hint": "covered in (messy)"
+        },
+        {
+          "id": "n1-mamire-2",
+          "japanese": "汗まみれのシャツを洗った。",
+          "furigana": "{汗|あせ}まみれのシャツを{洗|あら}った。",
+          "english": "I washed my sweat-soaked shirt.",
+          "cloze_target": "まみれ",
+          "accepted_answers": [
+            "まみれ"
+          ],
+          "hint": "covered in (messy)"
+        },
+        {
+          "id": "n1-mamire-3",
+          "japanese": "彼は油まみれの手で車を直していた。",
+          "furigana": "{彼|かれ}は{油|あぶら}まみれの{手|て}で{車|くるま}を{直|なお}していた。",
+          "english": "He was fixing the car with oil-smeared hands.",
+          "cloze_target": "まみれ",
+          "accepted_answers": [
+            "まみれ"
+          ],
+          "hint": "covered in (messy)"
+        },
+        {
+          "id": "n1-mamire-4",
+          "japanese": "会社は借金まみれだった。",
+          "furigana": "{会社|かいしゃ}は{借金|しゃっきん}まみれだった。",
+          "english": "The company was drowning in debt.",
+          "cloze_target": "まみれ",
+          "accepted_answers": [
+            "まみれ"
+          ],
+          "hint": "covered in (figurative)"
+        },
+        {
+          "id": "n1-mamire-5",
+          "japanese": "台所で粉まみれになってパンを作った。",
+          "furigana": "{台所|だいどころ}で{粉|こな}まみれになってパンを{作|つく}った。",
+          "english": "I baked bread in the kitchen, covered in flour.",
+          "cloze_target": "まみれ",
+          "accepted_answers": [
+            "まみれ"
+          ],
+          "hint": "covered in (messy)"
+        }
+      ]
+    },
+    {
+      "id": "n1-zukume",
+      "level": "N1",
+      "title": "〜ずくめ",
+      "meaning": "nothing but / entirely",
+      "structure": [
+        "Noun + ずくめ (+ だ / の + Noun)"
+      ],
+      "formality": "neutral",
+      "explanation": "ずくめ means something is made up entirely of one thing, or full of it: 黒ずくめの服, \"dressed all in black\"; いいことずくめの一年, \"a year full of nothing but good things.\" Unlike だらけ and まみれ, it's often used for positive things.",
+      "nuances": [
+        "Common with 黒, 白, いいこと, ごちそう, 規則.",
+        "Sometimes written づくめ."
+      ],
+      "common_mistakes": [
+        "Using it for mess or dirt — that's まみれ.",
+        "Using it for mistakes — that's だらけ."
+      ],
+      "related_ids": [
+        "n1-mamire",
+        "n3-darake"
+      ],
+      "examples": [
+        {
+          "id": "n1-zukume-1",
+          "japanese": "黒ずくめの男が立っていた。",
+          "furigana": "{黒|くろ}ずくめの{男|おとこ}が{立|た}っていた。",
+          "english": "A man dressed all in black was standing there.",
+          "cloze_target": "ずくめ",
+          "accepted_answers": [
+            "ずくめ",
+            "づくめ"
+          ],
+          "hint": "entirely"
+        },
+        {
+          "id": "n1-zukume-2",
+          "japanese": "今年はいいことずくめの一年だった。",
+          "furigana": "{今年|ことし}はいいことずくめの{一年|いちねん}だった。",
+          "english": "This year was full of nothing but good things.",
+          "cloze_target": "ずくめ",
+          "accepted_answers": [
+            "ずくめ",
+            "づくめ"
+          ],
+          "hint": "nothing but"
+        },
+        {
+          "id": "n1-zukume-3",
+          "japanese": "結婚式はごちそうずくめだった。",
+          "furigana": "{結婚式|けっこんしき}はごちそうずくめだった。",
+          "english": "The wedding was one delicious dish after another.",
+          "cloze_target": "ずくめ",
+          "accepted_answers": [
+            "ずくめ",
+            "づくめ"
+          ],
+          "hint": "nothing but"
+        },
+        {
+          "id": "n1-zukume-4",
+          "japanese": "この学校は規則ずくめで息が詰まる。",
+          "furigana": "この{学校|がっこう}は{規則|きそく}ずくめで{息|いき}が{詰|つ}まる。",
+          "english": "This school is all rules — it's suffocating.",
+          "cloze_target": "ずくめ",
+          "accepted_answers": [
+            "ずくめ",
+            "づくめ"
+          ],
+          "hint": "nothing but"
+        },
+        {
+          "id": "n1-zukume-5",
+          "japanese": "白ずくめの部屋は清潔に見える。",
+          "furigana": "{白|しろ}ずくめの{部屋|へや}は{清潔|せいけつ}に{見|み}える。",
+          "english": "An all-white room looks clean.",
+          "cloze_target": "ずくめ",
+          "accepted_answers": [
+            "ずくめ",
+            "づくめ"
+          ],
+          "hint": "entirely"
+        }
+      ]
+    },
+    {
+      "id": "n1-ga-hayai-ka",
+      "level": "N1",
+      "title": "〜が早いか",
+      "meaning": "no sooner … than",
+      "structure": [
+        "Verb (dictionary / た-form) + が早いか"
+      ],
+      "formality": "formal",
+      "explanation": "が早いか says the second action happened immediately after the first — almost simultaneously: ベルが鳴るが早いか、生徒たちは教室を飛び出した, \"No sooner had the bell rung than the students burst out of the classroom.\"\n\nIt's literary and describes actual past events, not the speaker's plans.",
+      "nuances": [
+        "The second part is usually a vivid, quick action.",
+        "Compare や否や (almost the same) and とたん (N3)."
+      ],
+      "common_mistakes": [
+        "Using it for future plans or commands.",
+        "Using it to describe your own feelings rather than actions."
+      ],
+      "related_ids": [
+        "n1-ya-inaya",
+        "n3-totan",
+        "n1-sobakara"
+      ],
+      "examples": [
+        {
+          "id": "n1-ga-hayai-ka-1",
+          "japanese": "ベルが鳴るが早いか、生徒たちは教室を飛び出した。",
+          "furigana": "ベルが{鳴|な}るが{早|はや}いか、{生徒|せいと}たちは{教室|きょうしつ}を{飛|と}び{出|だ}した。",
+          "english": "No sooner had the bell rung than the students burst out of the classroom.",
+          "cloze_target": "が早いか",
+          "accepted_answers": [
+            "が早いか",
+            "がはやいか"
+          ],
+          "hint": "no sooner … than"
+        },
+        {
+          "id": "n1-ga-hayai-ka-2",
+          "japanese": "彼は家に帰るが早いか、ベッドに倒れ込んだ。",
+          "furigana": "{彼|かれ}は{家|いえ}に{帰|かえ}るが{早|はや}いか、ベッドに{倒|たお}れ{込|こ}んだ。",
+          "english": "No sooner did he get home than he collapsed onto the bed.",
+          "cloze_target": "が早いか",
+          "accepted_answers": [
+            "が早いか",
+            "がはやいか"
+          ],
+          "hint": "no sooner … than"
+        },
+        {
+          "id": "n1-ga-hayai-ka-3",
+          "japanese": "店が開くが早いか、客が押し寄せた。",
+          "furigana": "{店|みせ}が{開|ひら}くが{早|はや}いか、{客|きゃく}が{押|お}し{寄|よ}せた。",
+          "english": "The moment the shop opened, customers flooded in.",
+          "cloze_target": "が早いか",
+          "accepted_answers": [
+            "が早いか",
+            "がはやいか"
+          ],
+          "hint": "no sooner … than"
+        },
+        {
+          "id": "n1-ga-hayai-ka-4",
+          "japanese": "料理が出てくるが早いか、子どもたちは食べ始めた。",
+          "furigana": "{料理|りょうり}が{出|で}てくるが{早|はや}いか、{子|こ}どもたちは{食|た}べ{始|はじ}めた。",
+          "english": "The instant the food came out, the kids started eating.",
+          "cloze_target": "が早いか",
+          "accepted_answers": [
+            "が早いか",
+            "がはやいか"
+          ],
+          "hint": "no sooner … than"
+        },
+        {
+          "id": "n1-ga-hayai-ka-5",
+          "japanese": "彼女は手紙を読むが早いか、泣き出した。",
+          "furigana": "{彼女|かのじょ}は{手紙|てがみ}を{読|よ}むが{早|はや}いか、{泣|な}き{出|だ}した。",
+          "english": "No sooner had she read the letter than she burst into tears.",
+          "cloze_target": "が早いか",
+          "accepted_answers": [
+            "が早いか",
+            "がはやいか"
+          ],
+          "hint": "no sooner … than"
+        }
+      ]
+    },
+    {
+      "id": "n1-ya-inaya",
+      "level": "N1",
+      "title": "〜や否や／〜や",
+      "meaning": "as soon as / the instant",
+      "structure": [
+        "Verb (dictionary form) + や否や",
+        "Verb (dictionary form) + や"
+      ],
+      "formality": "formal",
+      "explanation": "や否や means the second event happened the instant the first one did: ドアが開くや否や、犬が飛び出してきた, \"The instant the door opened, the dog came running out.\" Literally, \"whether (it happened) or not\" — i.e. before you could tell.\n\nや alone is a shorter literary version.",
+      "nuances": [
+        "否や is read いなや.",
+        "Written, narrative style; describes past events."
+      ],
+      "common_mistakes": [
+        "Using it for requests, plans or the future.",
+        "Using the た-form: 開いたや否や ✗ → 開くや否や."
+      ],
+      "related_ids": [
+        "n1-ga-hayai-ka",
+        "n3-totan"
+      ],
+      "examples": [
+        {
+          "id": "n1-ya-inaya-1",
+          "japanese": "ドアが開くや否や、犬が飛び出してきた。",
+          "furigana": "ドアが{開|ひら}くや{否|いな}や、{犬|いぬ}が{飛|と}び{出|だ}してきた。",
+          "english": "The instant the door opened, the dog came running out.",
+          "cloze_target": "や否や",
+          "accepted_answers": [
+            "や否や",
+            "やいなや"
+          ],
+          "hint": "the instant"
+        },
+        {
+          "id": "n1-ya-inaya-2",
+          "japanese": "彼は席に着くや否や、話し始めた。",
+          "furigana": "{彼|かれ}は{席|せき}に{着|つ}くや{否|いな}や、{話|はな}し{始|はじ}めた。",
+          "english": "As soon as he sat down, he started talking.",
+          "cloze_target": "や否や",
+          "accepted_answers": [
+            "や否や",
+            "やいなや"
+          ],
+          "hint": "the instant"
+        },
+        {
+          "id": "n1-ya-inaya-3",
+          "japanese": "新製品は発売されるや否や、売り切れた。",
+          "furigana": "{新製品|しんせいひん}は{発売|はつばい}されるや{否|いな}や、{売|う}り{切|き}れた。",
+          "english": "The new product sold out the moment it was released.",
+          "cloze_target": "や否や",
+          "accepted_answers": [
+            "や否や",
+            "やいなや"
+          ],
+          "hint": "the instant"
+        },
+        {
+          "id": "n1-ya-inaya-4",
+          "japanese": "知らせを聞くや否や、母は病院へ向かった。",
+          "furigana": "{知|し}らせを{聞|き}くや{否|いな}や、{母|はは}は{病院|びょういん}へ{向|む}かった。",
+          "english": "The instant she heard the news, my mother headed for the hospital.",
+          "cloze_target": "や否や",
+          "accepted_answers": [
+            "や否や",
+            "やいなや"
+          ],
+          "hint": "the instant"
+        },
+        {
+          "id": "n1-ya-inaya-5",
+          "japanese": "雨が止むや否や、子どもたちは外に出た。",
+          "furigana": "{雨|あめ}が{止|や}むや{否|いな}や、{子|こ}どもたちは{外|そと}に{出|で}た。",
+          "english": "The moment the rain stopped, the children went outside.",
+          "cloze_target": "や否や",
+          "accepted_answers": [
+            "や否や",
+            "やいなや"
+          ],
+          "hint": "the instant"
+        }
+      ]
+    },
+    {
+      "id": "n1-sobakara",
+      "level": "N1",
+      "title": "〜そばから",
+      "meaning": "no sooner … than (again and again)",
+      "structure": [
+        "Verb (dictionary / た-form) + そばから"
+      ],
+      "formality": "neutral",
+      "explanation": "そばから describes something that keeps being undone as soon as it's done, over and over: 片付けるそばから、子どもが散らかす, \"No sooner do I tidy up than the kids make a mess again.\" 聞いたそばから忘れる, \"I forget things as soon as I hear them.\"\n\nThe key difference from が早いか／や否や is repetition, usually with frustration.",
+      "nuances": [
+        "Written in hiragana; そば means \"right beside\".",
+        "Often used about habits, chores and memory."
+      ],
+      "common_mistakes": [
+        "Using it for a one-off event — that's が早いか or や否や.",
+        "Using it for positive outcomes."
+      ],
+      "related_ids": [
+        "n1-ga-hayai-ka",
+        "n3-tabi-ni"
+      ],
+      "examples": [
+        {
+          "id": "n1-sobakara-1",
+          "japanese": "片付けるそばから、子どもが散らかす。",
+          "furigana": "{片付|かたづ}けるそばから、{子|こ}どもが{散|ち}らかす。",
+          "english": "No sooner do I tidy up than the kids make a mess again.",
+          "cloze_target": "そばから",
+          "accepted_answers": [
+            "そばから"
+          ],
+          "hint": "as soon as (again and again)"
+        },
+        {
+          "id": "n1-sobakara-2",
+          "japanese": "単語を覚えたそばから忘れてしまう。",
+          "furigana": "{単語|たんご}を{覚|おぼ}えたそばから{忘|わす}れてしまう。",
+          "english": "I forget words as soon as I've learned them.",
+          "cloze_target": "そばから",
+          "accepted_answers": [
+            "そばから"
+          ],
+          "hint": "as soon as (again and again)"
+        },
+        {
+          "id": "n1-sobakara-3",
+          "japanese": "お金をもらうそばから使ってしまう。",
+          "furigana": "お{金|かね}をもらうそばから{使|つか}ってしまう。",
+          "english": "I spend money as soon as I get it.",
+          "cloze_target": "そばから",
+          "accepted_answers": [
+            "そばから"
+          ],
+          "hint": "as soon as (again and again)"
+        },
+        {
+          "id": "n1-sobakara-4",
+          "japanese": "雪かきをするそばから、また積もっていく。",
+          "furigana": "{雪|ゆき}かきをするそばから、また{積|つ}もっていく。",
+          "english": "No sooner do I shovel the snow than it piles up again.",
+          "cloze_target": "そばから",
+          "accepted_answers": [
+            "そばから"
+          ],
+          "hint": "as soon as (again and again)"
+        },
+        {
+          "id": "n1-sobakara-5",
+          "japanese": "注意したそばから、同じミスをする。",
+          "furigana": "{注意|ちゅうい}したそばから、{同|おな}じミスをする。",
+          "english": "He makes the same mistake right after I've warned him.",
+          "cloze_target": "そばから",
+          "accepted_answers": [
+            "そばから"
+          ],
+          "hint": "as soon as (again and again)"
+        }
+      ]
+    },
+    {
+      "id": "n1-omoikiya",
+      "level": "N1",
+      "title": "〜と思いきや",
+      "meaning": "just when I thought… / contrary to expectations",
+      "structure": [
+        "Plain form + と思いきや"
+      ],
+      "formality": "formal",
+      "explanation": "と思いきや means \"I thought … but actually…\", introducing a surprising turn: 雨が止んだと思いきや、また降り出した, \"Just when I thought the rain had stopped, it started again.\" It's lively written style, common in essays, blogs and headlines.",
+      "nuances": [
+        "The second part states the unexpected reality.",
+        "Always refers to the speaker's (or writer's) expectation."
+      ],
+      "common_mistakes": [
+        "Using it for expectations that turned out right.",
+        "Using it in formal business writing — it's literary but chatty."
+      ],
+      "related_ids": [
+        "n4-to-omou",
+        "n3-tokoro-datta"
+      ],
+      "examples": [
+        {
+          "id": "n1-omoikiya-1",
+          "japanese": "雨が止んだと思いきや、また降り出した。",
+          "furigana": "{雨|あめ}が{止|や}んだと{思|おも}いきや、また{降|ふ}り{出|だ}した。",
+          "english": "Just when I thought the rain had stopped, it started again.",
+          "cloze_target": "と思いきや",
+          "accepted_answers": [
+            "と思いきや",
+            "とおもいきや"
+          ],
+          "hint": "just when I thought"
+        },
+        {
+          "id": "n1-omoikiya-2",
+          "japanese": "簡単な試験かと思いきや、とても難しかった。",
+          "furigana": "{簡単|かんたん}な{試験|しけん}かと{思|おも}いきや、とても{難|むずか}しかった。",
+          "english": "I thought the exam would be easy, but it was really hard.",
+          "cloze_target": "と思いきや",
+          "accepted_answers": [
+            "と思いきや",
+            "とおもいきや"
+          ],
+          "hint": "contrary to expectations"
+        },
+        {
+          "id": "n1-omoikiya-3",
+          "japanese": "彼は怒ると思いきや、笑って許してくれた。",
+          "furigana": "{彼|かれ}は{怒|おこ}ると{思|おも}いきや、{笑|わら}って{許|ゆる}してくれた。",
+          "english": "I expected him to get angry, but he just laughed and forgave me.",
+          "cloze_target": "と思いきや",
+          "accepted_answers": [
+            "と思いきや",
+            "とおもいきや"
+          ],
+          "hint": "contrary to expectations"
+        },
+        {
+          "id": "n1-omoikiya-4",
+          "japanese": "もう終わりかと思いきや、まだ続きがあった。",
+          "furigana": "もう{終|お}わりかと{思|おも}いきや、まだ{続|つづ}きがあった。",
+          "english": "Just when I thought it was over, there was more.",
+          "cloze_target": "と思いきや",
+          "accepted_answers": [
+            "と思いきや",
+            "とおもいきや"
+          ],
+          "hint": "just when I thought"
+        },
+        {
+          "id": "n1-omoikiya-5",
+          "japanese": "高いと思いきや、意外に安かった。",
+          "furigana": "{高|たか}いと{思|おも}いきや、{意外|いがい}に{安|やす}かった。",
+          "english": "I assumed it'd be expensive, but it was surprisingly cheap.",
+          "cloze_target": "と思いきや",
+          "accepted_answers": [
+            "と思いきや",
+            "とおもいきや"
+          ],
+          "hint": "contrary to expectations"
+        }
+      ]
+    },
+    {
+      "id": "n1-gatera",
+      "level": "N1",
+      "title": "〜がてら",
+      "meaning": "while (taking the chance to) / combined with",
+      "structure": [
+        "Noun (する-verb) + がてら",
+        "Verb (ます-stem) + がてら"
+      ],
+      "formality": "neutral",
+      "explanation": "がてら means doing one thing and using the opportunity to do another at the same time: 散歩がてら、パンを買いに行った, \"I went to buy bread, as part of a walk.\" The first action is the main one or the excuse; the second piggybacks on it.",
+      "nuances": [
+        "Common with 散歩, 買い物, 見物, 運動.",
+        "Close to 〜ついでに."
+      ],
+      "common_mistakes": [
+        "Using it for two unrelated simultaneous actions — that's ながら.",
+        "Using it with い-adjectives or non-action nouns."
+      ],
+      "related_ids": [
+        "n5-nagara",
+        "n2-tsutsu"
+      ],
+      "examples": [
+        {
+          "id": "n1-gatera-1",
+          "japanese": "散歩がてら、パンを買いに行った。",
+          "furigana": "{散歩|さんぽ}がてら、パンを{買|か}いに{行|い}った。",
+          "english": "I went for a walk and picked up some bread on the way.",
+          "cloze_target": "がてら",
+          "accepted_answers": [
+            "がてら"
+          ],
+          "hint": "while (taking the chance)"
+        },
+        {
+          "id": "n1-gatera-2",
+          "japanese": "買い物がてら、駅前の新しいカフェに寄った。",
+          "furigana": "{買|か}い{物|もの}がてら、{駅前|えきまえ}の{新|あたら}しいカフェに{寄|よ}った。",
+          "english": "While out shopping, I dropped by the new café by the station.",
+          "cloze_target": "がてら",
+          "accepted_answers": [
+            "がてら"
+          ],
+          "hint": "while (taking the chance)"
+        },
+        {
+          "id": "n1-gatera-3",
+          "japanese": "運動がてら、自転車で通勤している。",
+          "furigana": "{運動|うんどう}がてら、{自転車|じてんしゃ}で{通勤|つうきん}している。",
+          "english": "I cycle to work — it doubles as exercise.",
+          "cloze_target": "がてら",
+          "accepted_answers": [
+            "がてら"
+          ],
+          "hint": "combined with"
+        },
+        {
+          "id": "n1-gatera-4",
+          "japanese": "京都へ出張がてら、お寺を見て回った。",
+          "furigana": "{京都|きょうと}へ{出張|しゅっちょう}がてら、お{寺|てら}を{見|み}て{回|まわ}った。",
+          "english": "I toured some temples while on a business trip to Kyoto.",
+          "cloze_target": "がてら",
+          "accepted_answers": [
+            "がてら"
+          ],
+          "hint": "while (taking the chance)"
+        },
+        {
+          "id": "n1-gatera-5",
+          "japanese": "駅まで友達を送りがてら、郵便局に寄った。",
+          "furigana": "{駅|えき}まで{友達|ともだち}を{送|おく}りがてら、{郵便局|ゆうびんきょく}に{寄|よ}った。",
+          "english": "I dropped my friend off at the station and swung by the post office.",
+          "cloze_target": "がてら",
+          "accepted_answers": [
+            "がてら"
+          ],
+          "hint": "while (taking the chance)"
+        }
+      ]
+    },
+    {
+      "id": "n1-n-bakari",
+      "level": "N1",
+      "title": "〜んばかり(に)",
+      "meaning": "as if about to / almost",
+      "structure": [
+        "Verb ない-stem + んばかり(に／の) (する → せんばかり)"
+      ],
+      "formality": "formal",
+      "explanation": "んばかり describes something that looks as if it is just about to happen: 泣き出さんばかりの顔, \"a face that looked about to burst into tears\"; 割れんばかりの拍手, \"thunderous applause (fit to split the hall).\"\n\nIt's vivid, literary description, and the action doesn't actually happen.",
+      "nuances": [
+        "The ん is a classical volitional; 言わんばかり means \"as if to say\".",
+        "Common set phrases: 割れんばかりの拍手, あふれんばかりの笑顔."
+      ],
+      "common_mistakes": [
+        "Using the normal volitional: 泣こうばかり ✗ → 泣かんばかり.",
+        "Using it for something that really did happen."
+      ],
+      "related_ids": [
+        "n3-bakari",
+        "n4-sou-appearance"
+      ],
+      "examples": [
+        {
+          "id": "n1-n-bakari-1",
+          "japanese": "彼女は今にも泣き出さんばかりの顔をしていた。",
+          "furigana": "{彼女|かのじょ}は{今|いま}にも{泣|な}き{出|だ}さんばかりの{顔|かお}をしていた。",
+          "english": "She looked as if she might burst into tears at any moment.",
+          "cloze_target": "んばかり",
+          "accepted_answers": [
+            "んばかり"
+          ],
+          "hint": "as if about to"
+        },
+        {
+          "id": "n1-n-bakari-2",
+          "japanese": "会場は割れんばかりの拍手に包まれた。",
+          "furigana": "{会場|かいじょう}は{割|わ}れんばかりの{拍手|はくしゅ}に{包|つつ}まれた。",
+          "english": "The hall was filled with thunderous applause.",
+          "cloze_target": "んばかり",
+          "accepted_answers": [
+            "んばかり"
+          ],
+          "hint": "(fit to) almost"
+        },
+        {
+          "id": "n1-n-bakari-3",
+          "japanese": "彼は「出ていけ」と言わんばかりにドアを指差した。",
+          "furigana": "{彼|かれ}は「{出|で}ていけ」と{言|い}わんばかりにドアを{指差|ゆびさ}した。",
+          "english": "He pointed at the door as if to say \"get out\".",
+          "cloze_target": "んばかり",
+          "accepted_answers": [
+            "んばかり"
+          ],
+          "hint": "as if to (say)"
+        },
+        {
+          "id": "n1-n-bakari-4",
+          "japanese": "子どもはあふれんばかりの笑顔で走ってきた。",
+          "furigana": "{子|こ}どもはあふれんばかりの{笑顔|えがお}で{走|はし}ってきた。",
+          "english": "The child came running with a beaming smile.",
+          "cloze_target": "んばかり",
+          "accepted_answers": [
+            "んばかり"
+          ],
+          "hint": "(overflowing) almost"
+        },
+        {
+          "id": "n1-n-bakari-5",
+          "japanese": "犬は飛びつかんばかりに喜んだ。",
+          "furigana": "{犬|いぬ}は{飛|と}びつかんばかりに{喜|よろこ}んだ。",
+          "english": "The dog was so happy it almost leapt at me.",
+          "cloze_target": "んばかり",
+          "accepted_answers": [
+            "んばかり"
+          ],
+          "hint": "as if about to"
+        }
+      ]
+    },
+    {
+      "id": "n1-wa-oroka",
+      "level": "N1",
+      "title": "〜はおろか",
+      "meaning": "let alone / not to mention",
+      "structure": [
+        "Noun + はおろか、… も／さえ／まで"
+      ],
+      "formality": "formal",
+      "explanation": "はおろか says that if even the bigger (or more basic) case fails, the obvious one certainly does: 漢字はおろか、ひらがなも書けない, \"He can't write hiragana, let alone kanji.\" The second part uses も, さえ or まで and is often negative.\n\nIt emphasises how extreme the situation is, usually with surprise or disapproval.",
+      "nuances": [
+        "Close to 〜どころか and 〜は言うまでもなく.",
+        "Written in hiragana (愚か is the kanji)."
+      ],
+      "common_mistakes": [
+        "Using it for requests or wishes: 旅行はおろか、休みたい ✗.",
+        "Forgetting も／さえ in the second half."
+      ],
+      "related_ids": [
+        "n1-sura",
+        "n3-sae",
+        "n3-dake-de-naku"
+      ],
+      "examples": [
+        {
+          "id": "n1-wa-oroka-1",
+          "japanese": "彼は漢字はおろか、ひらがなも書けない。",
+          "furigana": "{彼|かれ}は{漢字|かんじ}はおろか、ひらがなも{書|か}けない。",
+          "english": "He can't write hiragana, let alone kanji.",
+          "cloze_target": "はおろか",
+          "accepted_answers": [
+            "はおろか"
+          ],
+          "hint": "let alone"
+        },
+        {
+          "id": "n1-wa-oroka-2",
+          "japanese": "忙しくて、旅行はおろか散歩する時間もない。",
+          "furigana": "{忙|いそが}しくて、{旅行|りょこう}はおろか{散歩|さんぽ}する{時間|じかん}もない。",
+          "english": "I'm so busy I don't even have time for a walk, let alone a trip.",
+          "cloze_target": "はおろか",
+          "accepted_answers": [
+            "はおろか"
+          ],
+          "hint": "let alone"
+        },
+        {
+          "id": "n1-wa-oroka-3",
+          "japanese": "海外はおろか、隣の県にも行ったことがない。",
+          "furigana": "{海外|かいがい}はおろか、{隣|となり}の{県|けん}にも{行|い}ったことがない。",
+          "english": "I've never even been to the next prefecture, let alone abroad.",
+          "cloze_target": "はおろか",
+          "accepted_answers": [
+            "はおろか"
+          ],
+          "hint": "let alone"
+        },
+        {
+          "id": "n1-wa-oroka-4",
+          "japanese": "彼女は英語はおろか、フランス語も話せる。",
+          "furigana": "{彼女|かのじょ}は{英語|えいご}はおろか、フランス{語|ご}も{話|はな}せる。",
+          "english": "She speaks not only English but French too.",
+          "cloze_target": "はおろか",
+          "accepted_answers": [
+            "はおろか"
+          ],
+          "hint": "not to mention"
+        },
+        {
+          "id": "n1-wa-oroka-5",
+          "japanese": "風邪で、食事はおろか水さえ飲めなかった。",
+          "furigana": "{風邪|かぜ}で、{食事|しょくじ}はおろか{水|みず}さえ{飲|の}めなかった。",
+          "english": "With my cold I couldn't even drink water, let alone eat.",
+          "cloze_target": "はおろか",
+          "accepted_answers": [
+            "はおろか"
+          ],
+          "hint": "let alone"
+        }
+      ]
+    }
+  ]
 }
