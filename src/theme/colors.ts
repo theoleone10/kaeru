@@ -104,13 +104,29 @@ export const TAP = 52;
 /** Height of the 3D lip under chunky buttons and cards. */
 export const LIP = 4;
 
-/** JLPT line colours for the grammar train map (like Tokyo's line colours). */
-export const LEVEL_COLORS: Record<string, { line: string; ink: string; soft: string }> = {
+export interface LineColors {
+  line: string;
+  /** Text on `soft` or on the surface. */
+  ink: string;
+  soft: string;
+}
+
+/** JLPT line colours for the grammar train map (like Tokyo's line colours). Read them from `useApp().lines` so dark mode gets `LEVEL_COLORS_DARK`. */
+export const LEVEL_COLORS: Record<string, LineColors> = {
   N5: { line: '#3FA34D', ink: '#25702F', soft: '#E3F3E6' },
   N4: { line: '#2A9D8F', ink: '#1F6F66', soft: '#DDF1EE' },
   N3: { line: '#2F7FC1', ink: '#1F5F95', soft: '#E3EFFA' },
   N2: { line: '#8E5BB5', ink: '#6B3FA0', soft: '#F1E8FB' },
   N1: { line: '#D9663D', ink: '#A3431F', soft: '#FCE6DA' },
+};
+
+/** Same lines on dark surfaces: deep tinted chips with light text. */
+export const LEVEL_COLORS_DARK: Record<string, LineColors> = {
+  N5: { line: '#3FA34D', ink: '#86D891', soft: '#1F3323' },
+  N4: { line: '#2A9D8F', ink: '#7FD1C6', soft: '#17302D' },
+  N3: { line: '#2F7FC1', ink: '#9CCBF2', soft: '#1D2C3A' },
+  N2: { line: '#8E5BB5', ink: '#C9A8EA', soft: '#2C2238' },
+  N1: { line: '#D9663D', ink: '#F2A07F', soft: '#3E2A20' },
 };
 
 export const FONTS = {

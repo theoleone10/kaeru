@@ -31,7 +31,7 @@ import {
 } from '@/time/model';
 import { importEntries } from '@/time/repo';
 import { useTime } from '@/time/TimeProvider';
-import { LEVEL_COLORS, radius, spacing, TAP } from '@/theme/colors';
+import { radius, spacing, TAP } from '@/theme/colors';
 
 const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS_SHOWN = 14;
@@ -313,7 +313,7 @@ function TimeLog() {
 /** Everything together: streak, the last week across grammar, flashcards and time, and each JLPT line. */
 function Overview() {
   const db = useSQLiteContext();
-  const { colors, cards } = useApp();
+  const { colors, lines, cards } = useApp();
   const { entries } = useTime();
   const today = useToday();
   const { now, streak } = today;
@@ -403,8 +403,8 @@ function Overview() {
             <Pressable key={l.level} onPress={() => router.navigate({ pathname: '/grammar', params: { level: l.level } })} accessibilityRole="button" style={{ gap: 6 }}>
               <View style={styles.rowBetween}>
                 <View style={styles.inline}>
-                  <View style={[styles.lineBadge, { borderColor: LEVEL_COLORS[l.level].line }]}>
-                    <T variant="small" color={LEVEL_COLORS[l.level].ink} style={{ fontSize: 11, fontWeight: '900' }}>
+                  <View style={[styles.lineBadge, { borderColor: lines[l.level].line }]}>
+                    <T variant="small" color={lines[l.level].ink} style={{ fontSize: 11, fontWeight: '900' }}>
                       {l.level}
                     </T>
                   </View>
@@ -414,7 +414,7 @@ function Overview() {
                 </View>
                 <T variant="small">{l.mastered} mastered</T>
               </View>
-              <ProgressBar value={l.learned / l.total} secondary={l.mastered / l.total} color={LEVEL_COLORS[l.level].line} />
+              <ProgressBar value={l.learned / l.total} secondary={l.mastered / l.total} color={lines[l.level].line} />
             </Pressable>
           ))}
         <T variant="small">Bright = learned, green = mastered (next review 3+ weeks away).</T>

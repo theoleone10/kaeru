@@ -12,7 +12,7 @@ import { stationCode, unitsFor, type Station } from '@/content/units';
 import { katakanaToHiragana } from '@/review/normalize';
 import { isMastered } from '@/srs/scheduler';
 import { useApp } from '@/state/AppProvider';
-import { LEVEL_COLORS, radius, spacing, TAP } from '@/theme/colors';
+import { radius, spacing, TAP, type LineColors } from '@/theme/colors';
 
 const fold = (s: string) => katakanaToHiragana(s.toLowerCase());
 // Japanese side (title + structure) and English side (meaning) are searched separately
@@ -37,7 +37,7 @@ type Status = 'mastered' | 'learned' | 'current' | 'ahead';
 type Row = { kind: 'unit'; unit: number; first: boolean; count: number } | { kind: 'station'; station: Station; status: Status; last: boolean };
 
 /** Round station marker in the Tokyo subway style: line-coloured ring with the station number. */
-function StationMarker({ station, status, line }: { station: Station; status: Status; line: (typeof LEVEL_COLORS)[string] }) {
+function StationMarker({ station, status, line }: { station: Station; status: Status; line: LineColors }) {
   const { colors } = useApp();
   if (status === 'current') {
     return (
@@ -79,14 +79,14 @@ function Track({ solid, color, dots }: { solid: boolean; color: string; dots: st
 
 export default function GrammarMap() {
   const insets = useSafeAreaInsets();
-  const { colors, cardsById } = useApp();
+  const { colors, lines, cardsById } = useApp();
   const params = useLocalSearchParams<{ level?: string }>();
   const nextGlobal = useMemo(() => curriculum.find((p) => !cardsById.has(p.id)), [cardsById]);
   const [chosen, setLevel] = useState<JlptLevel | null>(null);
   const level: JlptLevel = chosen ?? ((LEVELS as readonly string[]).includes(params.level ?? '') ? (params.level as JlptLevel) : (nextGlobal?.level ?? 'N5'));
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
-  const line = LEVEL_COLORS[level];
+  const line = lines[level];
 
   const { rows, current, prev, next } = useMemo(() => {
     const units = unitsFor(level);
@@ -184,7 +184,7 @@ export default function GrammarMap() {
           <View style={styles.lines} accessibilityRole="tablist">
             {LEVELS.map((l) => {
               const active = l === level;
-              const c = LEVEL_COLORS[l];
+              const c = lines[l];
               return (
                 <Pressable
                   key={l}
@@ -235,7 +235,7 @@ export default function GrammarMap() {
                 onPress={() => router.push(`/grammar/${item.id}`)}
                 style={({ pressed }) => [styles.result, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
               >
-                <View style={[styles.lineDot, { borderColor: LEVEL_COLORS[item.level].line }]} />
+                <View style={[styles.lineDot, { borderColor: lines[item.level].line }]} />
                 <View style={{ flex: 1 }}>
                   <T variant="body" style={{ fontSize: 18, fontWeight: '700' }}>
                     {item.title}

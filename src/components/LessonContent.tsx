@@ -4,7 +4,7 @@ import { getPoint } from '../content/loader';
 import type { GrammarPoint } from '../content/types';
 import { useApp } from '../state/AppProvider';
 import { stationCode, stationOf } from '../content/units';
-import { LEVEL_COLORS, radius, spacing } from '../theme/colors';
+import { radius, spacing } from '../theme/colors';
 import { FuriganaText } from './Furigana';
 import { Card, Pill, RichText, T } from './ui';
 
@@ -68,9 +68,9 @@ export function FuriganaToggle() {
 
 /** Full lesson content for a grammar point (used by lessons and the grammar detail screen). */
 export function LessonContent({ point }: { point: GrammarPoint }) {
-  const { colors } = useApp();
+  const { colors, lines } = useApp();
   const station = stationOf(point.id);
-  const line = LEVEL_COLORS[point.level] ?? LEVEL_COLORS.N5;
+  const line = lines[point.level] ?? lines.N5;
   return (
     <View style={{ gap: spacing.xl }}>
       <View style={[styles.sign, { backgroundColor: colors.surface, borderColor: colors.borderStrong }]}>

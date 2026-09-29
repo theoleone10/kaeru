@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
@@ -151,21 +151,19 @@ function AccountCard() {
 
 function LinkRow({ label, icon, onPress, href }: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress?: () => void; href?: '/legal/privacy' | '/legal/terms' }) {
   const { colors } = useApp();
-  const row = (
-    <Pressable onPress={onPress} accessibilityRole="link" style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}>
+  // A plain Pressable rather than <Link asChild>: on web the Link slot drops the function style, so the row lost its layout.
+  return (
+    <Pressable
+      onPress={href ? () => router.push(href) : onPress}
+      accessibilityRole="link"
+      style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
+    >
       <Ionicons name={icon} size={20} color={colors.textMuted} />
       <T variant="body" style={{ flex: 1 }}>
         {label}
       </T>
       <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
     </Pressable>
-  );
-  return href ? (
-    <Link href={href} asChild>
-      {row}
-    </Link>
-  ) : (
-    row
   );
 }
 
