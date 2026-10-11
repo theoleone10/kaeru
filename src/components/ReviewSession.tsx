@@ -20,7 +20,7 @@ import { useAutoTrack } from '../time/useAutoTrack';
 import { FONTS, radius, spacing, TAP } from '../theme/colors';
 import { ClozeSentence } from './Furigana';
 import { Mascot } from './Mascot';
-import { Button, Card, ProgressBar, T } from './ui';
+import { Button, ProgressBar, T } from './ui';
 
 interface Current {
   /** Absent in a quiz: quiz answers don't touch the SRS until the quiz is over. */
@@ -280,16 +280,16 @@ export function ReviewSession({
             </T>
           </View>
           <T variant="muted">
-            {quiz ? (current.retry ? 'Try this one again' : 'Quiz') : 'Fill in the grammar'} · {remaining} left
+            {current.retry ? 'Try again · ' : ''}{remaining} left
           </T>
         </View>
 
         <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' }}>
           <Mascot size={60} mood={result ? (result.correct ? 'cheer' : 'sad') : 'think'} />
-          <Card style={{ flex: 1, gap: spacing.md }}>
+          <View style={[styles.bubble, { backgroundColor: colors.surface }]}>
             <ClozeSentence example={example} state={result ? (result.correct ? 'correct' : 'wrong') : 'empty'} />
             <T variant="muted">{example.english}</T>
-          </Card>
+          </View>
         </View>
 
         {!result && (
@@ -391,6 +391,7 @@ export function useFooterInset(): number {
 }
 
 const styles = StyleSheet.create({
+  bubble: { flex: 1, gap: spacing.md, borderRadius: 20, padding: spacing.lg },
   scroll: { padding: spacing.lg, gap: spacing.lg, flexGrow: 1 },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   combo: { flexDirection: 'row', alignItems: 'center', gap: 2 },

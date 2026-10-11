@@ -3,7 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { DateTimeField } from '@/components/DateTimeField';
-import { Button, Card, T } from '@/components/ui';
+import { Button, Section, T } from '@/components/ui';
 import { useApp, useNow } from '@/state/AppProvider';
 import { entryDuration, formatDuration, type TimeEntry } from '@/time/model';
 import { addEntry, deleteEntry, updateEntry } from '@/time/repo';
@@ -59,10 +59,9 @@ export default function EntryEditor() {
     ]);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl }} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: existing ? 'Edit entry' : 'Add entry' }} />
-      <Card style={{ gap: spacing.md }}>
-        <T variant="heading">Activity</T>
+      <Section label="Activity">
         <View style={styles.chips}>
           {visible.map((a) => {
             const active = a.id === activityId;
@@ -72,7 +71,7 @@ export default function EntryEditor() {
                 onPress={() => setActivityId(a.id)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
-                style={[styles.chip, { borderColor: a.color, backgroundColor: active ? a.color : colors.surface }]}
+                style={[styles.chip, { borderColor: a.color, backgroundColor: active ? a.color : colors.background }]}
               >
                 <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '600' }}>
                   {a.name}
@@ -81,24 +80,22 @@ export default function EntryEditor() {
             );
           })}
         </View>
-      </Card>
+      </Section>
 
-      <Card style={{ gap: spacing.sm }}>
+      <Section label="When" right={<T variant="small">{formatDuration(entryDuration({ started_at: start, ended_at: end }, now))}</T>}>
         <DateTimeField label="Start" value={start} onChange={setStart} />
-        {end != null ? <DateTimeField label="End" value={end} onChange={setEnd} /> : <T variant="small">Still running — stop it from the Timer tab.</T>}
-        <T variant="small">Duration: {formatDuration(entryDuration({ started_at: start, ended_at: end }, now))}</T>
-      </Card>
+        {end != null ? <DateTimeField label="End" value={end} onChange={setEnd} /> : <T variant="small">Still running</T>}
+      </Section>
 
-      <Card style={{ gap: spacing.sm }}>
-        <T variant="heading">Note</T>
+      <Section label="Note">
         <TextInput
           value={note}
           onChangeText={setNote}
-          placeholder="e.g. Anime, podcast, textbook chapter 3"
+          placeholder="Optional"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, { color: colors.text, backgroundColor: colors.surfaceAlt }]}
         />
-      </Card>
+      </Section>
 
       <Button label="Save" onPress={save} loading={busy} disabled={activityId == null} />
       {existing && <Button label="Delete entry" kind="danger" onPress={remove} />}

@@ -7,12 +7,12 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
-import { Button, Card, IconButton, T } from '@/components/ui';
+import { Button, IconButton, Stat, T } from '@/components/ui';
 import { useApp, useNow } from '@/state/AppProvider';
 import { entryDuration, formatClock, formatDuration, formatTimeOfDay, parseTogglCsv, startOfDay, startOfWeek, totalsByActivity } from '@/time/model';
 import { importEntries } from '@/time/repo';
 import { useTime } from '@/time/TimeProvider';
-import { spacing, TAP } from '@/theme/colors';
+import { spacing } from '@/theme/colors';
 
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
@@ -26,7 +26,7 @@ function TimerRing({ fraction, color, children }: { fraction: number; color: str
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surfaceAlt} strokeWidth={18} fill={colors.surface} />
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surfaceAlt} strokeWidth={18} fill="none" />
         {fraction > 0 && (
           <Circle
             cx={size / 2}
@@ -101,9 +101,11 @@ export default function Timer() {
     ]);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.header}>
-        <T variant="title">Timer</T>
+        <T variant="title" style={{ fontSize: 32, lineHeight: 38 }}>
+          Timer
+        </T>
         <IconButton label="More tracking options" onPress={more}>
           <Ionicons name="ellipsis-horizontal" size={24} color={colors.textMuted} />
         </IconButton>
@@ -119,7 +121,7 @@ export default function Timer() {
               accessibilityRole="radio"
               accessibilityState={{ selected: active }}
               accessibilityLabel={running && !active ? `Switch to ${a.name}` : a.name}
-              style={[styles.chip, { borderColor: a.color, backgroundColor: active ? a.color : colors.surface }]}
+              style={[styles.chip, { borderColor: a.color, backgroundColor: active ? a.color : colors.background }]}
             >
               <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '900' }}>
                 {a.name}
@@ -157,14 +159,8 @@ export default function Timer() {
       </View>
 
       <View style={styles.row}>
-        <Card style={styles.stat}>
-          <T variant="small">Today</T>
-          <T variant="heading">{formatDuration(todayTotal)}</T>
-        </Card>
-        <Card style={styles.stat}>
-          <T variant="small">This week</T>
-          <T variant="heading">{formatDuration(weekTotal)}</T>
-        </Card>
+        <Stat value={formatDuration(todayTotal)} label="Today" />
+        <Stat value={formatDuration(weekTotal)} label="This week" />
       </View>
     </ScrollView>
   );
@@ -177,5 +173,4 @@ const styles = StyleSheet.create({
   chip: { minHeight: 44, paddingHorizontal: spacing.lg, borderRadius: 999, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   addChip: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', gap: spacing.md },
-  stat: { flex: 1, gap: 4, padding: spacing.md, minHeight: TAP },
 });

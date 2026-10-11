@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { G, Rect, Text as SvgText } from 'react-native-svg';
 import type { ForecastBucket } from '../srs/forecast';
 import { useApp } from '../state/AppProvider';
@@ -20,6 +20,7 @@ export function ForecastChart({ buckets }: { buckets: ForecastBucket[] }) {
 
   return (
     <View
+      style={{ minHeight: HEIGHT }}
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       accessibilityLabel={`${total} reviews coming up in the next 24 hours`}
     >
@@ -49,9 +50,12 @@ export function ForecastChart({ buckets }: { buckets: ForecastBucket[] }) {
         </Svg>
       )}
       {total === 0 && (
-        <T variant="small" style={{ textAlign: 'center', marginTop: -HEIGHT / 2 - 10 }}>
-          Nothing due in the next 24 hours
-        </T>
+        // Laid over the empty chart, so the chart keeps its full height.
+        <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', paddingBottom: LABEL_H }]} pointerEvents="none">
+          <T variant="small" style={{ textAlign: 'center' }}>
+            Nothing due in the next 24 hours
+          </T>
+        </View>
       )}
     </View>
   );

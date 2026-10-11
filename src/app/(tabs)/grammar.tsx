@@ -5,7 +5,7 @@ import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toKana } from 'wanakana';
 import { Mascot } from '@/components/Mascot';
-import { Button, IconButton, Pill, T } from '@/components/ui';
+import { Button, IconButton, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { LEVELS, type GrammarPoint, type JlptLevel } from '@/content/types';
 import { stationCode, unitsFor, type Station } from '@/content/units';
@@ -47,9 +47,13 @@ function StationMarker({ station, status, line }: { station: Station; status: St
     );
   }
   if (status === 'learned' || status === 'mastered') {
+    const mastered = status === 'mastered';
     return (
-      <View style={[styles.marker, { backgroundColor: line.line, borderColor: colors.surface, shadowColor: line.line }]}>
-        <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+      <View
+        style={[styles.marker, { backgroundColor: mastered ? colors.gold : line.line, borderColor: colors.background }]}
+        accessibilityLabel={mastered ? 'Mastered' : 'Learned'}
+      >
+        <Ionicons name={mastered ? 'star' : 'checkmark'} size={mastered ? 17 : 20} color="#FFFFFF" />
       </View>
     );
   }
@@ -88,7 +92,7 @@ export default function GrammarMap() {
   const [query, setQuery] = useState('');
   const line = lines[level];
 
-  const { rows, current, prev, next } = useMemo(() => {
+  const { rows, current } = useMemo(() => {
     const units = unitsFor(level);
     const stations = units.flatMap((u) => u.stations);
     const currentStation = stations.find((s) => !cardsById.has(s.point.id)) ?? stations[stations.length - 1];
@@ -101,8 +105,7 @@ export default function GrammarMap() {
         out.push({ kind: 'station', station: s, status, last: ui === units.length - 1 && si === u.stations.length - 1 });
       });
     });
-    const i = currentStation ? stations.indexOf(currentStation) : -1;
-    return { rows: out, current: currentStation, prev: stations[i - 1], next: stations[i + 1] };
+    return { rows: out, current: currentStation };
   }, [level, cardsById]);
 
   const results = useMemo(() => {
@@ -113,54 +116,22 @@ export default function GrammarMap() {
   const isNextLesson = current && nextGlobal?.id === current.point.id && !cardsById.has(current.point.id);
 
   const header = current ? (
-    <View style={{ gap: spacing.lg, paddingBottom: spacing.lg }}>
-      <View style={[styles.sign, { backgroundColor: colors.surface, borderColor: colors.borderStrong }]}>
-        <View style={[styles.signBand, { backgroundColor: line.line }]}>
-          <T variant="small" color="#FFFFFF" style={{ fontWeight: '900', letterSpacing: 0.8 }}>
-            {level} LINE · UNIT {current.unit}
-          </T>
-          <T variant="small" color="#FFFFFF" style={{ fontWeight: '900', letterSpacing: 0.8 }}>
-            {stationCode(current)}
-          </T>
-        </View>
-        <View style={{ padding: spacing.md, alignItems: 'center', gap: 2 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-            <View style={[styles.signBadge, { borderColor: line.line }]}>
-              <T variant="small" color={line.ink} style={{ fontSize: 8, lineHeight: 9, fontWeight: '900' }}>
-                {level}
-              </T>
-              <T variant="small" color={colors.text} style={{ fontSize: 13, lineHeight: 14, fontWeight: '900' }}>
-                {current.number}
-              </T>
-            </View>
-            <T variant="title" style={{ fontSize: 28, lineHeight: 38, flexShrink: 1 }} numberOfLines={1}>
-              {current.point.title}
-            </T>
-          </View>
-          <T variant="muted" style={{ textAlign: 'center' }} numberOfLines={2}>
-            {current.point.meaning}
-          </T>
-          <View style={[styles.signNeighbours, { borderTopColor: colors.border }]}>
-            <T variant="small" numberOfLines={1} style={{ flex: 1 }}>
-              {prev ? `← ${prev.point.title}` : ''}
-            </T>
-            <T variant="small" numberOfLines={1} style={{ flex: 1, textAlign: 'right' }}>
-              {next ? `${next.point.title} →` : ''}
-            </T>
-          </View>
-          <Button
-            label={isNextLesson ? 'Board lesson' : cardsById.has(current.point.id) ? 'Line complete · review' : 'View station'}
-            icon={<Ionicons name={isNextLesson ? 'train' : 'eye'} size={20} color="#FFFFFF" />}
-            onPress={() => (isNextLesson ? router.push('/lessons') : router.push(`/grammar/${current.point.id}`))}
-            style={{ alignSelf: 'stretch', marginTop: spacing.sm }}
-          />
-          {!isNextLesson && nextGlobal && !cardsById.has(current.point.id) && (
-            <T variant="small" style={{ textAlign: 'center', marginTop: spacing.xs }}>
-              Lessons follow the lines in order: your next stop is {nextGlobal.title} ({nextGlobal.level}).
-            </T>
-          )}
-        </View>
-      </View>
+    <View style={{ gap: spacing.sm, paddingBottom: spacing.xl }}>
+      <T variant="small" color={line.ink} style={{ fontWeight: '900', letterSpacing: 1 }}>
+        {`${level} · UNIT ${current.unit}`}
+      </T>
+      <T variant="title" style={{ fontSize: 34, lineHeight: 44 }} numberOfLines={1}>
+        {current.point.title}
+      </T>
+      <T variant="muted" numberOfLines={2}>
+        {current.point.meaning}
+      </T>
+      <Button
+        label={isNextLesson ? 'Start lesson' : 'Open'}
+        icon={isNextLesson ? <Ionicons name="play" size={20} color="#FFFFFF" /> : undefined}
+        onPress={() => (isNextLesson ? router.push('/lessons') : router.push(`/grammar/${current.point.id}`))}
+        style={{ marginTop: spacing.sm }}
+      />
     </View>
   ) : null;
 
@@ -172,12 +143,12 @@ export default function GrammarMap() {
             value={query}
             onChangeText={setQuery}
             autoFocus
-            placeholder="Search Japanese, romaji or English"
+            placeholder="Search grammar"
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
             clearButtonMode="while-editing"
-            style={[styles.search, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+            style={[styles.search, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
             accessibilityLabel="Search grammar"
           />
         ) : (
@@ -192,7 +163,7 @@ export default function GrammarMap() {
                   accessibilityRole="tab"
                   accessibilityLabel={`${l} line`}
                   accessibilityState={{ selected: active }}
-                  style={[styles.linePill, active ? { backgroundColor: c.line, borderColor: c.line, paddingHorizontal: 12 } : { borderColor: c.line, backgroundColor: colors.surface }]}
+                  style={[styles.linePill, active ? { backgroundColor: c.line, borderColor: c.line, paddingHorizontal: 12 } : { borderColor: c.line, backgroundColor: colors.background }]}
                 >
                   <T variant="small" color={active ? '#FFFFFF' : c.ink} style={{ fontWeight: '900', fontSize: 13 }}>
                     {active ? `${l} Line` : l}
@@ -219,12 +190,12 @@ export default function GrammarMap() {
           keyExtractor={(p) => p.id}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm }}
+          contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl }}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', gap: spacing.md, marginTop: spacing.xl }}>
               <Mascot size={80} mood={query.trim() ? 'sad' : 'think'} />
               <T variant="muted" style={{ textAlign: 'center' }}>
-                {query.trim() ? 'No matching grammar.' : 'Type to search all 400+ points.'}
+                {query.trim() ? 'No matches.' : 'Japanese, romaji or English'}
               </T>
             </View>
           }
@@ -233,7 +204,7 @@ export default function GrammarMap() {
             return (
               <Pressable
                 onPress={() => router.push(`/grammar/${item.id}`)}
-                style={({ pressed }) => [styles.result, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
+                style={({ pressed }) => [styles.result, { opacity: pressed ? 0.6 : 1 }]}
               >
                 <View style={[styles.lineDot, { borderColor: lines[item.level].line }]} />
                 <View style={{ flex: 1 }}>
@@ -244,7 +215,13 @@ export default function GrammarMap() {
                     {item.meaning}
                   </T>
                 </View>
-                <Pill label={card ? (isMastered(card) ? 'Mastered' : 'Learned') : item.level} tone={card ? (isMastered(card) ? 'gold' : 'green') : 'neutral'} />
+                {card ? (
+                  <Ionicons name={isMastered(card) ? 'star' : 'checkmark-circle'} size={20} color={isMastered(card) ? colors.gold : lines[item.level].line} />
+                ) : (
+                  <T variant="small" style={{ fontWeight: '900' }}>
+                    {item.level}
+                  </T>
+                )}
               </Pressable>
             );
           }}
@@ -260,16 +237,11 @@ export default function GrammarMap() {
               return (
                 <View style={styles.unitRow}>
                   <View style={styles.trackCol}>
-                    <View style={[styles.transfer, { borderColor: line.line, backgroundColor: colors.surface }]} />
+                    <View style={[styles.transfer, { borderColor: line.line, backgroundColor: colors.background }]} />
                   </View>
-                  <View style={[styles.unitCard, { backgroundColor: line.soft }]}>
-                    <T variant="body" color={line.ink} style={{ fontWeight: '900' }}>
-                      {item.first ? `${level} Line · Unit ${item.unit}` : `Transfer · Unit ${item.unit}`}
-                    </T>
-                    <T variant="small" color={line.ink}>
-                      {item.count} stations
-                    </T>
-                  </View>
+                  <T variant="small" color={line.ink} style={{ flex: 1, fontWeight: '900', letterSpacing: 1 }}>
+                    {`UNIT ${item.unit}`}
+                  </T>
                 </View>
               );
             }
@@ -281,11 +253,7 @@ export default function GrammarMap() {
                 onPress={() => router.push(`/grammar/${station.point.id}`)}
                 accessibilityRole="button"
                 accessibilityLabel={`${stationCode(station)} ${station.point.title}, ${station.point.meaning}, ${status === 'ahead' ? 'not learned yet' : status === 'current' ? 'you are here' : status}`}
-                style={({ pressed }) => [
-                  styles.stationRow,
-                  isCurrent && [styles.currentRow, { backgroundColor: colors.surface, borderColor: colors.accentSoft, borderBottomColor: colors.accent }],
-                  { opacity: pressed ? 0.7 : 1 },
-                ]}
+                style={({ pressed }) => [styles.stationRow, isCurrent && { minHeight: 74 }, { opacity: pressed ? 0.7 : 1 }]}
               >
                 <View style={styles.trackCol}>
                   {!isCurrent && <Track solid={travelled} color={line.line} dots={colors.border} />}
@@ -295,12 +263,10 @@ export default function GrammarMap() {
                   <T variant="body" color={status === 'ahead' ? colors.textMuted : colors.text} style={{ fontSize: 17, fontWeight: isCurrent ? '800' : '700' }} numberOfLines={1}>
                     {station.point.title}
                   </T>
-                  <T variant="small" color={isCurrent ? colors.accent : colors.textMuted} numberOfLines={1}>
-                    {stationCode(station)} · {isCurrent ? 'You are here' : station.point.meaning}
+                  <T variant="small" numberOfLines={1}>
+                    {station.point.meaning}
                   </T>
                 </View>
-                {status === 'mastered' && <Pill label="★ Mastered" tone="gold" />}
-                {status === 'learned' && <Pill label="Learning" tone="green" />}
               </Pressable>
             );
           }}
@@ -314,21 +280,15 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   lines: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center' },
   linePill: { minWidth: 40, height: 40, borderRadius: 20, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
-  search: { flex: 1, minHeight: 46, borderRadius: radius.md, borderWidth: 2, paddingHorizontal: spacing.lg, fontSize: 17 },
-  sign: { borderRadius: 18, borderWidth: 2, borderBottomWidth: 6, overflow: 'hidden' },
-  signBand: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 6 },
-  signBadge: { width: 38, height: 38, borderRadius: 19, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
-  signNeighbours: { flexDirection: 'row', gap: spacing.md, alignSelf: 'stretch', marginTop: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 2, borderStyle: 'dashed' },
-  unitRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 64 },
-  unitCard: { flex: 1, borderRadius: 14, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  search: { flex: 1, minHeight: 46, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 17 },
+  unitRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 52 },
   transfer: { width: 42, height: 28, borderRadius: 14, borderWidth: 4 },
   stationRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 62 },
-  currentRow: { minHeight: 78, marginVertical: 4, marginHorizontal: -8, paddingHorizontal: 8, borderRadius: 20, borderWidth: 2, borderBottomWidth: 5 },
   trackCol: { width: 64, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
   track: { position: 'absolute', top: 0, bottom: 0, width: 10, borderRadius: 5 },
   dotTrack: { position: 'absolute', top: 0, bottom: 0, justifyContent: 'space-evenly', alignItems: 'center' },
   marker: { width: 38, height: 38, borderRadius: 19, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
   currentMarker: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 4 },
-  result: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 2, minHeight: TAP + 12 },
+  result: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, minHeight: TAP + 8 },
   lineDot: { width: 18, height: 18, borderRadius: 9, borderWidth: 4 },
 });

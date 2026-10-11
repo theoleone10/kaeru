@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router/js-tabs';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Logo } from '@/components/Mascot';
 import { T } from '@/components/ui';
 import { useApp, useNow } from '@/state/AppProvider';
@@ -8,34 +8,26 @@ import { useTime } from '@/time/TimeProvider';
 
 type IconName = keyof typeof Ionicons.glyphMap | 'frog';
 
-/** Tab icon: outline when idle; filled on a soft indigo chip when active (like the mockup). */
+/** Tab icon: outline and muted when idle; filled in indigo when active. */
 function TabIcon({ focused, icon, badge, dot }: { focused: boolean; icon: IconName; badge?: number; dot?: string }) {
   const { colors } = useApp();
   const filled = icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap;
+  const tint = focused ? colors.accent : colors.textMuted;
   return (
-    <View
-      style={{
-        width: 56,
-        height: 40,
-        borderRadius: 14,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: focused ? colors.accentSoft : 'transparent',
-      }}
-    >
+    <View style={{ width: 56, height: 44, alignItems: 'center', justifyContent: 'center' }}>
       {icon === 'frog' ? (
-        <Logo size={30} color={focused ? colors.accent : colors.textMuted} cutout={focused ? colors.accentSoft : colors.surface} />
+        <Logo size={28} color={tint} cutout={colors.background} />
       ) : (
-        <Ionicons name={focused ? filled : icon} size={25} color={focused ? colors.accent : colors.textMuted} />
+        <Ionicons name={focused ? filled : icon} size={25} color={tint} />
       )}
       {badge ? (
-        <View style={{ position: 'absolute', top: -4, right: 0, minWidth: 22, height: 22, paddingHorizontal: 5, borderRadius: 11, backgroundColor: colors.correct, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.surface }}>
+        <View style={{ position: 'absolute', top: -2, right: 4, minWidth: 20, height: 20, paddingHorizontal: 5, borderRadius: 10, backgroundColor: colors.correct, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.background }}>
           <T variant="small" color="#FFFFFF" style={{ fontSize: 11, lineHeight: 14, fontWeight: '900' }}>
             {badge > 99 ? '99+' : String(badge)}
           </T>
         </View>
       ) : null}
-      {dot ? <View style={{ position: 'absolute', top: 4, right: 10, width: 10, height: 10, borderRadius: 5, backgroundColor: dot, borderWidth: 2, borderColor: colors.surface }} /> : null}
+      {dot ? <View style={{ position: 'absolute', top: 2, right: 12, width: 10, height: 10, borderRadius: 5, backgroundColor: dot, borderWidth: 2, borderColor: colors.background }} /> : null}
     </View>
   );
 }
@@ -52,10 +44,9 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: 2, minHeight: 66, paddingTop: 8 },
+        tabBarStyle: { backgroundColor: colors.background, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, elevation: 0, minHeight: 62, paddingTop: 6 },
         tabBarItemStyle: { alignItems: 'center', justifyContent: 'center' },
-        // Room for the whole chip, so it isn't clipped or pushed off-centre.
-        tabBarIconStyle: { width: 56, height: 40 },
+        tabBarIconStyle: { width: 56, height: 44 },
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Today', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="frog" /> }} />

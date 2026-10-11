@@ -81,12 +81,19 @@ export default function Lessons() {
       <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="Close lessons" hitSlop={8} style={styles.close}>
         <Ionicons name="close" size={30} color={colors.textMuted} />
       </Pressable>
-      <View style={{ flex: 1, gap: 4 }}>
-        <ProgressBar value={step === 'quiz' ? 1 : batch.length ? (index + 1) / batch.length : 0} height={16} color={colors.accent} />
-        <T variant="small" style={{ fontWeight: '900' }}>
-          {step === 'quiz' ? 'QUIZ TIME' : batch.length ? `LESSON ${index + 1} OF ${batch.length}` : 'LESSONS'}
+      {/* The quiz shows its own progress bar, so only the lessons get this one. */}
+      {step === 'learn' && batch.length > 0 ? (
+        <View style={{ flex: 1, gap: 4 }}>
+          <ProgressBar value={(index + 1) / batch.length} height={16} color={colors.accent} />
+          <T variant="small" style={{ fontWeight: '900' }}>
+            {`LESSON ${index + 1} OF ${batch.length}`}
+          </T>
+        </View>
+      ) : (
+        <T variant="small" style={{ flex: 1, fontWeight: '900', letterSpacing: 0.8 }}>
+          {step === 'quiz' ? 'QUIZ' : 'LESSONS'}
         </T>
-      </View>
+      )}
     </View>
   );
 

@@ -3,14 +3,12 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { accountLabel, useAuth } from '@/auth/AuthProvider';
 import { exportBackup, pickBackup, restoreBackup } from '@/backup/exportImport';
 import { Logo } from '@/components/Mascot';
-import { Button, Card, Stepper, T } from '@/components/ui';
-import { curriculum } from '@/content/loader';
-import { LEVELS } from '@/content/types';
+import { Button, Section, Stepper, T } from '@/components/ui';
 import { getKv, setKv } from '@/db/repo';
 import { supportEmail } from '@/legal/text';
 import { formatMinuteOfDay } from '@/notifications/plan';
@@ -54,11 +52,10 @@ function AccountCard() {
 
   if (!user) {
     return (
-      <Card style={styles.card}>
-        <T variant="heading">Account</T>
-        <T variant="small">You&apos;re using the app without an account, so progress is only on this phone. Sign in to back it up to your account and use it on another phone.</T>
-        <Button label="Sign in or create account" onPress={() => router.push('/sign-in')} />
-      </Card>
+      <Section label="Account">
+        <T variant="small">Progress is only on this phone.</T>
+        <Button label="Sign in" onPress={() => router.push('/sign-in')} />
+      </Section>
     );
   }
 
@@ -110,33 +107,50 @@ function AccountCard() {
     );
 
   return (
-    <Card style={styles.card}>
-      <T variant="heading">Account</T>
+    <Section label="Account">
       <View style={{ gap: 2 }}>
-        <T variant="body">{accountLabel(user)}</T>
-        <T variant="small">{lastSync ? `Backed up ${new Date(lastSync).toLocaleString()}` : 'Not backed up yet'} · backs up automatically when you leave the app</T>
+        <T variant="body" style={{ fontWeight: '800' }}>
+          {accountLabel(user)}
+        </T>
+        <T variant="small">{lastSync ? `Backed up ${new Date(lastSync).toLocaleString()}` : 'Not backed up yet'}</T>
       </View>
-      <Button label="Back up now" kind="secondary" onPress={syncNow} loading={busy === 'sync'} />
-      <Button label="Sign out" kind="ghost" onPress={confirmSignOut} loading={busy === 'signout'} />
-      <Button label="Delete account" kind="danger" onPress={confirmDelete} loading={busy === 'delete'} />
-    </Card>
+      <LinkRow label="Back up now" icon="cloud-upload-outline" onPress={syncNow} busy={busy === 'sync'} />
+      <LinkRow label="Sign out" icon="log-out-outline" onPress={confirmSignOut} busy={busy === 'signout'} />
+      <LinkRow label="Delete account" icon="trash-outline" onPress={confirmDelete} busy={busy === 'delete'} danger />
+    </Section>
   );
 }
 
-function LinkRow({ label, icon, onPress, href }: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress?: () => void; href?: '/legal/privacy' | '/legal/terms' }) {
+function LinkRow({
+  label,
+  icon,
+  onPress,
+  href,
+  busy,
+  danger,
+}: {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress?: () => void;
+  href?: '/legal/privacy' | '/legal/terms';
+  busy?: boolean;
+  danger?: boolean;
+}) {
   const { colors } = useApp();
+  const tint = danger ? colors.wrong : colors.textMuted;
   // A plain Pressable rather than <Link asChild>: on web the Link slot drops the function style, so the row lost its layout.
   return (
     <Pressable
       onPress={href ? () => router.push(href) : onPress}
-      accessibilityRole="link"
-      style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : 1 }]}
+      disabled={busy}
+      accessibilityRole={href ? 'link' : 'button'}
+      style={({ pressed }) => [styles.row, { opacity: pressed || busy ? 0.6 : 1 }]}
     >
-      <Ionicons name={icon} size={20} color={colors.textMuted} />
-      <T variant="body" style={{ flex: 1 }}>
+      <Ionicons name={icon} size={20} color={tint} />
+      <T variant="body" color={danger ? colors.wrong : colors.text} style={{ flex: 1 }}>
         {label}
       </T>
-      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      {busy ? <ActivityIndicator color={colors.textMuted} /> : href && <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />}
     </Pressable>
   );
 }
@@ -201,16 +215,14 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: insets.bottom + spacing.xxl }}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: insets.bottom + spacing.xxl }}>
       <AccountCard />
 
-      <Card style={styles.card}>
-        <T variant="heading">Daily plan</T>
-        <T variant="small">Each day: learn new grammar with a short quiz, review what’s due, study your flashcards, and track your immersion.</T>
-        <Row label="New grammar per day" detail="Learned together in one lesson, then quizzed">
+      <Section label="Daily plan">
+        <Row label="New grammar per day">
           <Stepper value={settings.dailyNewGrammar} {...LIMITS.dailyNewGrammar} onChange={(v) => updateSettings({ dailyNewGrammar: v })} />
         </Row>
-        <Row label="Daily time goal" detail="Immersion and study, including in-app time">
+        <Row label="Daily time goal">
           <Stepper
             value={settings.dailyTimeGoalMin}
             display={settings.dailyTimeGoalMin === 0 ? 'Off' : `${settings.dailyTimeGoalMin}m`}
@@ -219,73 +231,67 @@ export default function SettingsScreen() {
             onChange={(v) => updateSettings({ dailyTimeGoalMin: v })}
           />
         </Row>
-      </Card>
+      </Section>
 
-      <Card style={styles.card}>
-        <T variant="heading">Display & input</T>
-        <Row label="Furigana" detail="Readings above kanji">
+      <Section label="Display & input">
+        <Row label="Furigana">
           <Switch value={settings.furigana} onValueChange={(v) => updateSettings({ furigana: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>
-        <Row label="Sound effects" detail="Chimes for answers and finished lessons. Quiet in silent mode; never pauses your music or podcasts.">
+        <Row label="Sound effects">
           <Switch value={settings.soundEffects} onValueChange={(v) => updateSettings({ soundEffects: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>
-        <Row label="Romaji → kana" detail="Convert typed romaji in reviews. Japanese keyboard input is never changed.">
+        <Row label="Type romaji as kana">
           <Switch value={settings.romajiInput} onValueChange={(v) => updateSettings({ romajiInput: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>
-        <View style={{ gap: spacing.sm }}>
-          <T variant="body">Appearance</T>
-          <View style={[styles.segmented, { backgroundColor: colors.surfaceAlt }]}>
-            {(['system', 'light', 'dark'] as ThemePreference[]).map((t) => {
-              const active = settings.theme === t;
-              return (
-                <Pressable
-                  key={t}
-                  onPress={() => updateSettings({ theme: t })}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  style={[styles.segment, active && { backgroundColor: colors.surface }]}
-                >
-                  <T variant="body" color={active ? colors.accent : colors.textMuted} style={{ fontWeight: '600' }}>
-                    {t === 'system' ? 'System' : t === 'light' ? 'Light' : 'Dark'}
-                  </T>
-                </Pressable>
-              );
-            })}
-          </View>
+        <View style={[styles.segmented, { backgroundColor: colors.surfaceAlt }]}>
+          {(['system', 'light', 'dark'] as ThemePreference[]).map((t) => {
+            const active = settings.theme === t;
+            return (
+              <Pressable
+                key={t}
+                onPress={() => updateSettings({ theme: t })}
+                accessibilityRole="button"
+                accessibilityLabel={`${t} appearance`}
+                accessibilityState={{ selected: active }}
+                style={[styles.segment, active && { backgroundColor: colors.surface }]}
+              >
+                <T variant="body" color={active ? colors.accent : colors.textMuted} style={{ fontWeight: '600' }}>
+                  {t === 'system' ? 'Auto' : t === 'light' ? 'Light' : 'Dark'}
+                </T>
+              </Pressable>
+            );
+          })}
         </View>
-      </Card>
+      </Section>
 
-      <Card style={styles.card}>
-        <T variant="heading">Anki decks</T>
-        <Row label="New cards per day" detail="Default for each deck. Set one deck’s own limits from its ⚙︎ on the Cards tab.">
+      <Section label="Flashcards">
+        <Row label="New cards per day" detail="Each deck can change this">
           <Stepper value={settings.ankiNewPerDay} {...LIMITS.ankiNewPerDay} step={5} onChange={(v) => updateSettings({ ankiNewPerDay: v })} />
         </Row>
-        <Row label="Maximum reviews per day">
+        <Row label="Max reviews per day">
           <Stepper value={settings.ankiMaxReviewsPerDay} min={50} max={2000} step={50} onChange={(v) => updateSettings({ ankiMaxReviewsPerDay: v })} />
         </Row>
-      </Card>
+      </Section>
 
-      <Card style={styles.card}>
-        <T variant="heading">Time tracking</T>
-        <Row label="Track in-app study" detail="Log lessons and reviews to “Study” automatically when no timer is running">
+      <Section label="Time tracking">
+        <Row label="Time in-app study" detail="Logged as Study">
           <Switch value={settings.autoTrackStudy} onValueChange={(v) => updateSettings({ autoTrackStudy: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>
-      </Card>
+      </Section>
 
-      <Card style={styles.card}>
-        <T variant="heading">Review reminders</T>
-        <Row label="Notify when reviews are due">
+      <Section label="Reminders">
+        <Row label="Remind me when reviews are due">
           <Switch value={settings.notificationsEnabled} onValueChange={toggleNotifications} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>
         {settings.notificationsEnabled && (
           <>
-            <Row label="Quiet hours start">
+            <Row label="Quiet from">
               <TimeStepper value={settings.quietStart} onChange={(v) => updateSettings({ quietStart: v })} />
             </Row>
-            <Row label="Quiet hours end">
+            <Row label="Quiet until">
               <TimeStepper value={settings.quietEnd} onChange={(v) => updateSettings({ quietEnd: v })} />
             </Row>
-            <Row label="At most one reminder every">
+            <Row label="At most every">
               <Stepper
                 value={settings.minReminderGapHours}
                 display={`${settings.minReminderGapHours} h`}
@@ -295,25 +301,20 @@ export default function SettingsScreen() {
             </Row>
           </>
         )}
-      </Card>
+      </Section>
 
-      <Card style={styles.card}>
-        <T variant="heading">Backup file</T>
-        <T variant="small">Export your progress as a file (e.g. to Files, Drive or email), or restore one. Useful without an account, or as an extra copy.</T>
-        <Button label="Export progress" kind="secondary" onPress={doExport} loading={busy === 'export'} />
-        <Button label="Import from backup" kind="ghost" onPress={doImport} loading={busy === 'import'} />
-      </Card>
+      <Section label="Backup file">
+        <LinkRow label="Export progress" icon="share-outline" onPress={doExport} busy={busy === 'export'} />
+        <LinkRow label="Restore from a file" icon="download-outline" onPress={doImport} busy={busy === 'import'} />
+      </Section>
 
-      <Card style={[styles.card, { gap: 0 }]}>
-        <T variant="heading" style={{ marginBottom: spacing.sm }}>
-          About
-        </T>
+      <Section label="About">
         <LinkRow label="Privacy Policy" icon="shield-checkmark-outline" href="/legal/privacy" />
         <LinkRow label="Terms of Use" icon="document-text-outline" href="/legal/terms" />
         {supportEmail !== '' && (
           <LinkRow label="Contact support" icon="mail-outline" onPress={() => Linking.openURL(`mailto:${supportEmail}?subject=Kaeru%20support`)} />
         )}
-      </Card>
+      </Section>
 
       <View style={{ alignItems: 'center', gap: spacing.xs, marginTop: spacing.md }}>
         <Logo size={56} />
@@ -324,15 +325,11 @@ export default function SettingsScreen() {
       <T variant="small" style={{ textAlign: 'center' }}>
         Version {Constants.expoConfig?.version ?? '—'}
       </T>
-      <T variant="small" style={{ textAlign: 'center' }}>
-        {LEVELS.map((l) => `${l}: ${curriculum.filter((p) => p.level === l).length}`).join(' · ')}
-      </T>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { gap: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: TAP },
   segmented: { flexDirection: 'row', borderRadius: radius.md, padding: 3 },
   segment: { flex: 1, minHeight: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },

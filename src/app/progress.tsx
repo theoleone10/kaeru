@@ -5,8 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Flame } from '@/components/Flame';
 import { ForecastChart } from '@/components/ForecastChart';
-import { Mascot } from '@/components/Mascot';
-import { Button, Card, ProgressBar, T } from '@/components/ui';
+import { Button, ProgressBar, Section, Stat, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { useToday } from '@/daily/useToday';
 import { getReviewTimes } from '@/db/repo';
@@ -26,7 +25,7 @@ import {
   type TimeEntry,
 } from '@/time/model';
 import { useTime } from '@/time/TimeProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+import { spacing, TAP } from '@/theme/colors';
 
 const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS_SHOWN = 14;
@@ -124,55 +123,34 @@ function TimeStats() {
 
   return (
     <>
-      <View style={[styles.rowBetween, { marginTop: spacing.md }]}>
-        <T variant="title" style={{ fontSize: 24, lineHeight: 30 }}>
-          Time tracking
-        </T>
-        <Button label="Timer" kind="ghost" small onPress={() => router.navigate('/timer')} icon={<Ionicons name="timer-outline" size={18} color={colors.accent} />} />
-      </View>
+      <Section label="Time · last 7 days">
+        <WeekChart entries={entries} activities={activityById} now={now} />
+      </Section>
 
       <View style={styles.row}>
-        <Card style={styles.stat}>
-          <T variant="small">Today</T>
-          <T variant="heading">{formatDuration(todayTotal)}</T>
-        </Card>
-        <Card style={styles.stat}>
-          <T variant="small">This week</T>
-          <T variant="heading">{formatDuration(weekTotal)}</T>
-        </Card>
+        <Stat value={formatDuration(todayTotal)} label="Today" />
+        <Stat value={formatDuration(weekTotal)} label="This week" />
       </View>
 
-      <Card style={{ gap: spacing.md }}>
-        <T variant="heading">Last 7 days</T>
-        <WeekChart entries={entries} activities={activityById} now={now} />
-      </Card>
+      {week.size > 0 && (
+        <Section label="This week by activity">
+          <Totals totals={week} activities={activityById} />
+        </Section>
+      )}
 
-      <Card style={{ gap: spacing.md }}>
-        <T variant="heading">Today</T>
-        <Totals totals={today} activities={activityById} />
-        <T variant="heading" style={{ marginTop: spacing.sm }}>
-          This week
-        </T>
-        <Totals totals={week} activities={activityById} />
-      </Card>
-
-      <View style={{ gap: spacing.md }}>
-        <View style={styles.rowBetween}>
-          <T variant="heading">History</T>
-          <Button label="Add entry" kind="ghost" onPress={() => router.push('/track/entry')} style={{ minHeight: 36 }} />
-        </View>
-        {byDay.length === 0 && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <Mascot size={48} mood="think" />
-            <T variant="small" style={{ flex: 1 }}>
-              Your timer history will show up here.
-            </T>
-          </View>
-        )}
+      <Section
+        label="History"
+        right={
+          <Pressable onPress={() => router.push('/track/entry')} accessibilityRole="button" accessibilityLabel="Add a past entry" hitSlop={10}>
+            <Ionicons name="add" size={24} color={colors.accent} />
+          </Pressable>
+        }
+      >
+        {byDay.length === 0 && <T variant="small">Nothing tracked yet.</T>}
         {byDay.slice(0, showDays).map(([day, list]) => (
-          <Card key={day} style={{ gap: spacing.sm }}>
+          <View key={day} style={{ marginBottom: spacing.sm }}>
             <View style={styles.rowBetween}>
-              <T variant="body" style={{ fontWeight: '600' }}>
+              <T variant="body" style={{ fontWeight: '900' }}>
                 {dayLabel(day, now)}
               </T>
               <T variant="small">{formatDuration(list.reduce((s, e) => s + entryDuration(e, now), 0))}</T>
@@ -195,7 +173,6 @@ function TimeStats() {
                     </T>
                     <T variant="small">
                       {formatTimeOfDay(e.started_at)} – {e.ended_at ? formatTimeOfDay(e.ended_at) : 'now'}
-                      {e.source === 'auto' ? ' · in-app study' : e.source === 'shortcut' ? ' · Shortcut' : ''}
                     </T>
                   </View>
                   <T variant="body" style={{ fontVariant: ['tabular-nums'] }}>
@@ -204,10 +181,10 @@ function TimeStats() {
                 </Pressable>
               );
             })}
-          </Card>
+          </View>
         ))}
         {byDay.length > showDays && <Button label="Show more" kind="ghost" onPress={() => setShowDays(showDays + HISTORY_DAYS_SHOWN)} />}
-      </View>
+      </Section>
     </>
   );
 }
@@ -252,25 +229,20 @@ function Overview() {
   return (
     <>
       <View style={styles.row}>
-        <Card style={styles.stat} tone="gold">
-          <Flame size={22} color={streak.studiedToday ? '#F08A3C' : colors.textMuted} />
-          <T variant="heading">{streak.days}</T>
+        <View style={{ flex: 1 }}>
+          <View style={styles.inline}>
+            <Flame size={24} color={streak.studiedToday ? '#F08A3C' : colors.textMuted} />
+            <T variant="title" style={{ fontSize: 26, lineHeight: 32 }}>
+              {streak.days}
+            </T>
+          </View>
           <T variant="small">day streak</T>
-        </Card>
-        <Card style={styles.stat}>
-          <Ionicons name="train" size={20} color={colors.accent} />
-          <T variant="heading">{cards.length}</T>
-          <T variant="small">grammar learned</T>
-        </Card>
-        <Card style={styles.stat}>
-          <Ionicons name="timer" size={20} color={colors.blue} />
-          <T variant="heading">{formatDuration(weekMs)}</T>
-          <T variant="small">last 7 days</T>
-        </Card>
+        </View>
+        <Stat value={String(cards.length)} label="grammar learned" />
+        <Stat value={formatDuration(weekMs)} label="last 7 days" />
       </View>
 
-      <Card style={{ gap: spacing.sm }}>
-        <T variant="heading">Last 7 days</T>
+      <Section label="Last 7 days">
         <View style={styles.gridRow}>
           <View style={styles.gridLabel} />
           {days.map((d) => (
@@ -280,9 +252,9 @@ function Overview() {
           ))}
         </View>
         {rows.map((r) => (
-          <View key={r.label} style={[styles.gridRow, { borderTopColor: colors.border, borderTopWidth: 2, paddingTop: spacing.sm }]}>
-            <View style={[styles.gridLabel, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: r.color }} />
+          <View key={r.label} style={styles.gridRow}>
+            <View style={[styles.gridLabel, styles.inline]}>
+              <Dot color={r.color} />
               <T variant="small" style={{ fontWeight: '800' }}>
                 {r.label}
               </T>
@@ -294,36 +266,31 @@ function Overview() {
             ))}
           </View>
         ))}
-      </Card>
+      </Section>
 
-      <Card style={{ gap: spacing.md }}>
-        <T variant="heading">Your lines</T>
+      <Section label="Grammar">
         {levels
           .filter((l) => l.total > 0)
           .map((l) => (
-            <Pressable key={l.level} onPress={() => router.navigate({ pathname: '/grammar', params: { level: l.level } })} accessibilityRole="button" style={{ gap: 6 }}>
-              <View style={styles.rowBetween}>
-                <View style={styles.inline}>
-                  <View style={[styles.lineBadge, { borderColor: lines[l.level].line }]}>
-                    <T variant="small" color={lines[l.level].ink} style={{ fontSize: 11, fontWeight: '900' }}>
-                      {l.level}
-                    </T>
-                  </View>
-                  <T variant="body" style={{ fontWeight: '800' }}>
-                    {l.learned} / {l.total}
-                  </T>
-                </View>
-                <T variant="small">{l.mastered} mastered</T>
+            <Pressable key={l.level} onPress={() => router.navigate({ pathname: '/grammar', params: { level: l.level } })} accessibilityRole="button" style={styles.lineRow}>
+              <View style={[styles.lineBadge, { borderColor: lines[l.level].line }]}>
+                <T variant="small" color={lines[l.level].ink} style={{ fontSize: 11, fontWeight: '900' }}>
+                  {l.level}
+                </T>
               </View>
-              <ProgressBar value={l.learned / l.total} secondary={l.mastered / l.total} color={lines[l.level].line} />
+              <View style={{ flex: 1, gap: 4 }}>
+                <ProgressBar value={l.learned / l.total} secondary={l.mastered / l.total} color={lines[l.level].line} height={10} />
+              </View>
+              <T variant="small" style={{ width: 64, textAlign: 'right', fontVariant: ['tabular-nums'] }}>
+                {l.learned}/{l.total}
+              </T>
             </Pressable>
           ))}
-      </Card>
+      </Section>
 
-      <Card style={{ gap: spacing.sm }}>
-        <T variant="heading">Grammar reviews coming up (24h)</T>
+      <Section label="Reviews · next 24h">
         <ForecastChart buckets={buckets} />
-      </Card>
+      </Section>
     </>
   );
 }
@@ -340,15 +307,14 @@ export default function Progress() {
 }
 
 const styles = StyleSheet.create({
-  gridRow: { flexDirection: 'row', alignItems: 'center' },
+  gridRow: { flexDirection: 'row', alignItems: 'center', minHeight: 30 },
   gridLabel: { width: 76 },
   gridCell: { flex: 1, textAlign: 'center' },
   lineBadge: { width: 30, height: 30, borderRadius: 15, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
-  content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
+  content: { padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxl },
+  lineRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 40 },
   row: { flexDirection: 'row', gap: spacing.md },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   inline: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
-  stat: { flex: 1, gap: 4, padding: spacing.md },
   entry: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: TAP },
-  iconButton: { width: TAP, height: TAP, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
 });

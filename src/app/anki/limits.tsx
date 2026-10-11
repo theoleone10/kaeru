@@ -3,7 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { deleteDeck, getDeckLimits, setDeckLimits, type DeckLimits } from '@/anki/repo';
-import { Button, Card, Stepper, T } from '@/components/ui';
+import { Button, Section, Stepper, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { LIMITS } from '@/state/settings';
 import { spacing, TAP } from '@/theme/colors';
@@ -31,7 +31,7 @@ function LimitRow({
       <View style={styles.row}>
         <View style={{ flex: 1, gap: 2 }}>
           <T variant="body">{label}</T>
-          <T variant="small">{value == null ? 'Default, from Settings' : 'Just for this deck'}</T>
+          {value == null && <T variant="small">Default</T>}
         </View>
         <Stepper value={value ?? fallback} min={min} max={max} step={step} onChange={onChange} />
       </View>
@@ -89,7 +89,7 @@ export default function DeckOptionsScreen() {
 
   const parts = path.split('::');
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl }}>
       <Stack.Screen options={{ title: parts[parts.length - 1] || 'Deck options' }} />
       <View style={styles.row}>
         <T variant="small" style={{ flex: 1 }}>
@@ -98,9 +98,9 @@ export default function DeckOptionsScreen() {
         {total != null && <T variant="heading">{`${total.toLocaleString()} cards`}</T>}
       </View>
       {limits && (
-        <Card style={{ gap: spacing.lg }}>
+        <Section label="Per day">
           <LimitRow
-            label="New cards per day"
+            label="New cards"
             value={limits.newPerDay}
             fallback={settings.ankiNewPerDay}
             step={5}
@@ -109,7 +109,7 @@ export default function DeckOptionsScreen() {
             onChange={(v) => update({ newPerDay: v })}
           />
           <LimitRow
-            label="Maximum reviews per day"
+            label="Max reviews"
             value={limits.reviewsPerDay}
             fallback={settings.ankiMaxReviewsPerDay}
             step={50}
@@ -117,11 +117,8 @@ export default function DeckOptionsScreen() {
             max={2000}
             onChange={(v) => update({ reviewsPerDay: v })}
           />
-        </Card>
+        </Section>
       )}
-      <T variant="small">
-        Studying a deck includes its subdecks, and each subdeck’s own limit still applies inside it. Set reviews to 0 to pause a deck’s reviews for now.
-      </T>
 
       <Button label="Delete deck" kind="danger" onPress={confirmDelete} />
     </ScrollView>

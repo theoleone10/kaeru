@@ -7,9 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { deleteDeck, listDecks, type DeckNode } from '@/anki/repo';
 import { Mascot } from '@/components/Mascot';
-import { Button, Card, IconButton, Pill, ProgressBar, T } from '@/components/ui';
+import { Button, IconButton, ProgressBar, Section, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+import { spacing } from '@/theme/colors';
 
 const COUNT_COLORS = { new: '#2F7FC1', learn: '#C8562F', review: '#2E8B3E' };
 const PHASE_LABEL: Record<ImportPhase, string> = {
@@ -65,8 +65,7 @@ export default function Decks() {
 
   const options = (d: DeckNode) =>
     Alert.alert(d.path, `${d.total} cards`, [
-      { text: 'Study', onPress: () => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(d.path) } }) },
-      { text: 'Daily limits & delete', onPress: () => openLimits(d) },
+      { text: 'Deck options', onPress: () => openLimits(d) },
       {
         text: 'Delete deck',
         style: 'destructive',
@@ -87,87 +86,104 @@ export default function Decks() {
     ]);
 
 
+  // Each top-level deck, then its subdecks under it.
+  const ordered = (decks ?? []).filter((d) => d.depth === 0).flatMap((top) => [top, ...(decks ?? []).filter((d) => d.path.startsWith(`${top.path}::`))]);
+  const study = (d: DeckNode) => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(d.path) } });
+
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.header}>
-        <T variant="title">Flashcards</T>
-        <Button label="Import" small onPress={importDeck} disabled={!!progress} icon={<Ionicons name="add" size={18} color="#FFFFFF" />} style={{ width: 120 }} />
+        <T variant="title" style={{ fontSize: 32, lineHeight: 38 }}>
+          Flashcards
+        </T>
+        <IconButton label="Import an Anki deck" onPress={importDeck}>
+          <Ionicons name="add" size={26} color={colors.textMuted} />
+        </IconButton>
       </View>
 
       {progress && (
-        <Card style={{ gap: spacing.sm }}>
-          <T variant="body">{PHASE_LABEL[progress.phase]}</T>
-          <ProgressBar value={progress.fraction} />
-          <T variant="small">Big decks with lots of audio can take a minute. Keep the app open.</T>
-        </Card>
+        <Section label={PHASE_LABEL[progress.phase]}>
+          <ProgressBar value={progress.fraction} color={colors.blue} />
+          <T variant="small">Keep the app open.</T>
+        </Section>
       )}
 
       {decks && decks.length === 0 && !progress && (
-        <Card style={{ gap: spacing.md }}>
-          <View style={{ alignItems: 'center' }}>
-            <Mascot size={96} mood="happy" bounce />
+        <View style={{ gap: spacing.lg }}>
+          <View style={styles.frog}>
+            <Mascot size={84} mood="happy" bounce />
+            <T variant="heading" style={{ flex: 1, fontWeight: '900' }}>
+              Bring your Anki decks
+            </T>
           </View>
-          <T variant="heading">Bring your Anki decks</T>
-          <T variant="body">Your cards, scheduling progress, review history, images and audio all come across.</T>
-          <T variant="small">
-            1. In Anki on your computer: File → Export → “Anki Deck Package (*.apkg)”, tick “Include scheduling information” and “Include media”.{'\n'}
-            2. Save it somewhere your phone can reach (iCloud Drive, Google Drive, AirDrop to Files).{'\n'}
-            3. Tap Import and pick the file. Importing a newer export of the same deck later updates it rather than duplicating it.
-          </T>
+          <Section label="How">
+            {[
+              'In Anki on your computer: File → Export → “Anki Deck Package”, with scheduling and media included.',
+              'Save it where your phone can reach it, like iCloud Drive or AirDrop to Files.',
+              'Tap Import and pick the file.',
+            ].map((t, i) => (
+              <View key={i} style={styles.howRow}>
+                <View style={[styles.howNum, { backgroundColor: colors.accentSoft }]}>
+                  <T variant="small" color={colors.accent} style={{ fontWeight: '900' }}>
+                    {i + 1}
+                  </T>
+                </View>
+                <T variant="body" style={{ flex: 1 }}>
+                  {t}
+                </T>
+              </View>
+            ))}
+          </Section>
           <Button label="Import a deck" onPress={importDeck} />
-        </Card>
+        </View>
       )}
 
-      {decks &&
-        decks
-          .filter((d) => d.depth === 0)
-          .map((top) => {
-            const subs = decks.filter((d) => d.path.startsWith(`${top.path}::`));
-            const todo = top.newCount + top.learnCount + top.reviewCount;
+      {decks && decks.length > 0 && (
+        <View>
+          <View style={styles.deckRow}>
+            <View style={{ flex: 1 }} />
+            <T variant="small" style={styles.countHead} color={COUNT_COLORS.new}>
+              New
+            </T>
+            <T variant="small" style={styles.countHead} color={COUNT_COLORS.learn}>
+              Learn
+            </T>
+            <T variant="small" style={styles.countHead} color={COUNT_COLORS.review}>
+              Due
+            </T>
+            <View style={{ width: 32 }} />
+          </View>
+          {ordered.map((d) => {
+            const top = d.depth === 0;
+            const todo = d.newCount + d.learnCount + d.reviewCount;
             return (
-              <Card key={top.path} style={{ gap: spacing.md }}>
-                <Pressable onLongPress={() => options(top)} accessibilityHint="Long-press for options" style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                  <T variant="heading" numberOfLines={1} style={{ flex: 1 }}>
-                    {top.name}
-                  </T>
-                  {todo === 0 && <Pill label="✓ Done" tone="green" />}
-                  <IconButton label={`Options for ${top.name}`} onPress={() => openLimits(top)}>
-                    <Ionicons name="settings-outline" size={20} color={colors.textMuted} />
-                  </IconButton>
-                </Pressable>
-                <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
-                  <Pill label={`${top.newCount} new`} tone="blue" />
-                  <Pill label={`${top.learnCount} learning`} tone="accent" />
-                  <Pill label={`${top.reviewCount} due`} tone="green" />
-                </View>
-                {subs.map((d) => (
-                  <Pressable
-                    key={d.path}
-                    onPress={() => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(d.path) } })}
-                    onLongPress={() => options(d)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${d.path}: ${d.newCount} new, ${d.learnCount} learning, ${d.reviewCount} due`}
-                    style={({ pressed }) => [styles.subRow, { borderTopColor: colors.border, paddingLeft: (d.depth - 1) * spacing.lg, opacity: pressed ? 0.6 : 1 }]}
-                  >
-                    <Ionicons name="return-down-forward" size={16} color={colors.textMuted} />
-                    <T variant="body" numberOfLines={1} style={{ flex: 1, fontWeight: '700' }}>
-                      {d.name}
-                    </T>
-                    <Count n={d.newCount} color={COUNT_COLORS.new} />
-                    <Count n={d.learnCount} color={COUNT_COLORS.learn} />
-                    <Count n={d.reviewCount} color={COUNT_COLORS.review} />
+              <Pressable
+                key={d.path}
+                onPress={() => study(d)}
+                onLongPress={() => options(d)}
+                accessibilityRole="button"
+                accessibilityLabel={`${d.path}: ${d.newCount} new, ${d.learnCount} learning, ${d.reviewCount} due`}
+                accessibilityHint="Long-press for options"
+                style={({ pressed }) => [styles.deckRow, top && styles.topRow, top && d !== ordered[0] && { borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth }, { paddingLeft: d.depth * spacing.lg, opacity: pressed ? 0.6 : 1 }]}
+              >
+                <T variant={top ? 'heading' : 'body'} color={top || todo > 0 ? colors.text : colors.textMuted} numberOfLines={1} style={{ flex: 1, fontWeight: top ? '900' : '700' }}>
+                  {d.name}
+                </T>
+                <Count n={d.newCount} color={COUNT_COLORS.new} />
+                <Count n={d.learnCount} color={COUNT_COLORS.learn} />
+                <Count n={d.reviewCount} color={COUNT_COLORS.review} />
+                {top ? (
+                  <Pressable onPress={() => openLimits(d)} accessibilityRole="button" accessibilityLabel={`Options for ${d.name}`} hitSlop={10} style={styles.gear}>
+                    <Ionicons name="ellipsis-horizontal" size={20} color={colors.textMuted} />
                   </Pressable>
-                ))}
-                <Button
-                  label={todo > 0 ? `Study ${todo}` : 'Nothing due'}
-                  kind="success"
-                  disabled={todo === 0}
-                  onPress={() => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(top.path) } })}
-                />
-              </Card>
+                ) : (
+                  <View style={{ width: 32 }} />
+                )}
+              </Pressable>
             );
           })}
-
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -175,9 +191,12 @@ export default function Decks() {
 const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  iconButton: { width: TAP, height: TAP, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  subRow: { flexDirection: 'row', alignItems: 'center', minHeight: 44, gap: spacing.sm, borderTopWidth: 2 },
-  row: { flexDirection: 'row', alignItems: 'center', minHeight: TAP, gap: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'transparent' },
-  count: { width: 44, textAlign: 'right', fontSize: 16, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  countHead: { width: 44, textAlign: 'right' },
+  frog: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  howRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  howNum: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  deckRow: { flexDirection: 'row', alignItems: 'center', minHeight: 44, gap: spacing.xs },
+  topRow: { minHeight: 56, marginTop: spacing.xs },
+  gear: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  count: { width: 44, textAlign: 'right', fontSize: 16, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  countHead: { width: 44, textAlign: 'right', fontWeight: '900' },
 });

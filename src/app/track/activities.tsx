@@ -1,7 +1,7 @@
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { Button, Card, T } from '@/components/ui';
+import { Button, Section, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { ACTIVITY_COLORS, type Activity } from '@/time/model';
 import { archiveActivity, ensureActivity, renameActivity, setActivityColor } from '@/time/repo';
@@ -26,7 +26,7 @@ function ActivityRow({ activity }: { activity: Activity }) {
   };
 
   return (
-    <Card style={{ gap: spacing.md }}>
+    <View style={[styles.item, { borderBottomColor: colors.border }]}>
       <TextInput
         value={name}
         onChangeText={setName}
@@ -50,9 +50,10 @@ function ActivityRow({ activity }: { activity: Activity }) {
           />
         ))}
       </View>
-      <Button
-        label="Hide from start buttons"
-        kind="ghost"
+      <Pressable
+        accessibilityRole="button"
+        hitSlop={8}
+        style={{ alignSelf: 'flex-start' }}
         onPress={() =>
           Alert.alert(`Hide ${activity.name}?`, 'Its history is kept, and starting it from a shortcut brings it back.', [
             { text: 'Cancel', style: 'cancel' },
@@ -65,8 +66,12 @@ function ActivityRow({ activity }: { activity: Activity }) {
             },
           ])
         }
-      />
-    </Card>
+      >
+        <T variant="small" color={colors.textMuted} style={{ fontWeight: '800' }}>
+          Hide
+        </T>
+      </Pressable>
+    </View>
   );
 }
 
@@ -84,29 +89,29 @@ export default function Activities() {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
       {activities
         .filter((a) => !a.archived)
         .map((a) => (
           <ActivityRow key={a.id} activity={a} />
         ))}
-      <Card style={{ gap: spacing.md }}>
-        <T variant="heading">New activity</T>
+      <Section label="New activity">
         <TextInput
           value={newName}
           onChangeText={setNewName}
           onSubmitEditing={add}
-          placeholder="e.g. Reading, Listening, Anki"
+          placeholder="Name"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, { color: colors.text, backgroundColor: colors.surfaceAlt }]}
         />
-        <Button label="Add activity" onPress={add} disabled={!newName.trim()} />
-      </Card>
+        <Button label="Add" onPress={add} disabled={!newName.trim()} />
+      </Section>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   input: { minHeight: TAP, borderRadius: radius.md, paddingHorizontal: spacing.md, fontSize: 17 },
+  item: { gap: spacing.md, paddingBottom: spacing.lg, borderBottomWidth: StyleSheet.hairlineWidth },
   swatch: { width: 36, height: 36, borderRadius: 18, borderWidth: 3 },
 });

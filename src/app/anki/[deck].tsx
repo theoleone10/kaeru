@@ -252,7 +252,7 @@ export default function AnkiStudy() {
 
       <View style={{ flex: 1 }}>{showing && html ? <AnkiCardView html={html} cardKey={`${showing.card.card.id}-${side}`} /> : null}</View>
 
-      <View style={[styles.bar, { paddingBottom: insets.bottom + spacing.md, borderTopColor: colors.border, backgroundColor: colors.surface }]}>
+      <View style={[styles.bar, { paddingBottom: insets.bottom + spacing.md, borderTopColor: colors.border, backgroundColor: colors.background }]}>
         {!showing?.previews ? (
           <Button label="Show answer" onPress={reveal} disabled={!showing} />
         ) : (

@@ -59,6 +59,38 @@ export function T({
   );
 }
 
+/**
+ * A plain block on the page background: a small-caps label (with an optional control on the
+ * right), then its content. Used instead of cards, like the 今日 list on Today.
+ */
+export function Section({ label, right, children, style }: { label?: string; right?: ReactNode; children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[{ gap: spacing.sm }, style]}>
+      {(label || right) && (
+        <View style={styles.sectionHead}>
+          <T variant="small" style={{ flex: 1, fontWeight: '900', letterSpacing: 1 }}>
+            {label?.toUpperCase()}
+          </T>
+          {right}
+        </View>
+      )}
+      {children}
+    </View>
+  );
+}
+
+/** A big number with a small label under it, for rows of stats. */
+export function Stat({ value, label, color }: { value: string; label: string; color?: string }) {
+  return (
+    <View style={{ flex: 1, gap: 0 }}>
+      <T variant="title" color={color} style={{ fontSize: 26, lineHeight: 32 }} numberOfLines={1}>
+        {value}
+      </T>
+      <T variant="small">{label}</T>
+    </View>
+  );
+}
+
 /** A white card with a soft 3D lip. */
 export function Card({ children, style, tone }: { children: ReactNode; style?: StyleProp<ViewStyle>; tone?: 'accent' | 'blue' | 'green' | 'gold' }) {
   const { colors } = useApp();
@@ -292,6 +324,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 24 },
   pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   iconButton: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },

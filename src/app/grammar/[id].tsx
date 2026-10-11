@@ -1,11 +1,11 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LessonContent } from '@/components/LessonContent';
 import { Mascot } from '@/components/Mascot';
-import { Button, Card, T } from '@/components/ui';
+import { Button, Section, T } from '@/components/ui';
 import { getPoint } from '@/content/loader';
 import { getPointStats, resetPoint, type PointStats } from '@/db/repo';
 import { isMastered, retrievability, State } from '@/srs/scheduler';
@@ -32,10 +32,10 @@ function formatDue(ts: number): string {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.stat}>
-      <T variant="small">{label}</T>
-      <T variant="body" style={{ fontWeight: '600' }}>
+      <T variant="heading" style={{ fontWeight: '900' }}>
         {value}
       </T>
+      <T variant="small">{label}</T>
     </View>
   );
 }
@@ -82,8 +82,7 @@ export default function GrammarDetail() {
     <>
       <Stack.Screen options={{ title: point.title }} />
       <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: insets.bottom + spacing.xxl }}>
-        <Card style={{ gap: spacing.md }}>
-          <T variant="heading">My progress</T>
+        <Section label={card ? 'Your progress' : undefined}>
           {card ? (
             <>
               <View style={styles.grid}>
@@ -94,15 +93,16 @@ export default function GrammarDetail() {
                 <Stat label="Recall now" value={card.last_review ? `${Math.round(retrievability(card, now) * 100)}%` : '—'} />
                 <Stat label="Stability" value={card.stability ? `${card.stability.toFixed(1)} days` : '—'} />
               </View>
-              <Button label="Reset progress" kind="danger" onPress={reset} />
+              <Pressable onPress={reset} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'flex-start' }}>
+                <T variant="body" color={colors.wrong} style={{ fontWeight: '800' }}>
+                  Reset progress
+                </T>
+              </Pressable>
             </>
           ) : (
-            <>
-              <T variant="muted">Not learned yet.</T>
-              <Button label="Learn this now" onPress={() => router.push({ pathname: '/lessons', params: { id: point.id } })} />
-            </>
+            <Button label="Learn this now" onPress={() => router.push({ pathname: '/lessons', params: { id: point.id } })} />
           )}
-        </Card>
+        </Section>
         <LessonContent point={point} />
       </ScrollView>
     </>

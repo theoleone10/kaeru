@@ -3,7 +3,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Card, T } from '@/components/ui';
+import { Section, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { useTime } from '@/time/TimeProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
@@ -42,7 +42,7 @@ function CopyRow({ label, url }: { label: string; url: string }) {
 const ACTION_STEPS = [
   'Open the Shortcuts app, tap +, and search for “Kaeru”.',
   'Add Start Timer, Stop Timer, or Start or Stop Timer, and pick an activity.',
-  'Rename the shortcut (e.g. “Start immersion”) and add it to your Home Screen, the Action button or Back Tap if you like.',
+  'Optionally add it to your Home Screen or the Action button.',
 ];
 
 const SIRI_PHRASES = ['“Start a timer in Kaeru”', '“Start Immersion in Kaeru”', '“Stop the timer in Kaeru”'];
@@ -50,21 +50,19 @@ const SIRI_PHRASES = ['“Start a timer in Kaeru”', '“Start Immersion in Kae
 const STEPS = [
   'Open the Shortcuts app and tap + to make a new shortcut.',
   'Add the action “Open URLs” and paste one of the links below.',
-  'Rename the shortcut (e.g. “Start immersion”). Siri can now run it by name.',
-  'Optional: add it to your Home Screen, a widget, the Action button, or Back Tap (Settings → Accessibility → Touch → Back Tap).',
+  'Rename it. Siri can now run it by name.',
 ];
 
 /** How to drive the timer from iOS Shortcuts (or any automation app that can open a URL). */
 export default function ShortcutsHelp() {
+  const { colors } = useApp();
   const { activities } = useTime();
   const visible = activities.filter((a) => !a.archived);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl }}>
       {Platform.OS === 'ios' && (
-        <Card style={{ gap: spacing.sm }}>
-          <T variant="heading">Kaeru actions</T>
-          <T variant="body">Kaeru adds its own timer actions to Shortcuts and Siri. They work in the background: the app doesn&apos;t open.</T>
+        <Section label="Shortcuts app">
           {ACTION_STEPS.map((s, i) => (
             <View key={i} style={{ flexDirection: 'row', gap: spacing.sm }}>
               <T variant="body" style={{ fontWeight: '700', width: 18 }}>
@@ -75,13 +73,11 @@ export default function ShortcutsHelp() {
               </T>
             </View>
           ))}
-          <T variant="small">Or just ask Siri, no setup needed: {SIRI_PHRASES.join(', ')}.</T>
-          <T variant="small">The time is recorded when the action runs, and shows up in Kaeru next time you open it.</T>
-        </Card>
+          <T variant="small">Or ask Siri: {SIRI_PHRASES.join(', ')}</T>
+        </Section>
       )}
 
-      <Card style={{ gap: spacing.sm }}>
-        <T variant="heading">{Platform.OS === 'ios' ? 'Or use a link' : 'Set up a shortcut'}</T>
+      <Section label={Platform.OS === 'ios' ? 'Or use a link' : 'Set up a shortcut'}>
         {STEPS.map((s, i) => (
           <View key={i} style={{ flexDirection: 'row', gap: spacing.sm }}>
             <T variant="body" style={{ fontWeight: '700', width: 18 }}>
@@ -92,13 +88,9 @@ export default function ShortcutsHelp() {
             </T>
           </View>
         ))}
-        <T variant="small">
-          Running a shortcut opens the app for a moment to record the time, then you can switch straight back. Starting a new activity stops the one that was running.
-        </T>
-      </Card>
+      </Section>
 
-      <Card style={{ gap: spacing.sm }}>
-        <T variant="heading">Links — tap to copy</T>
+      <Section label="Links · tap to copy">
         {visible.map((a) => (
           <CopyRow key={`start-${a.id}`} label={`Start ${a.name}`} url={timerUrl('start', a.name)} />
         ))}
@@ -106,10 +98,8 @@ export default function ShortcutsHelp() {
         {visible.map((a) => (
           <CopyRow key={`toggle-${a.id}`} label={`Start / stop ${a.name} (one button)`} url={timerUrl('toggle', a.name)} />
         ))}
-        <T variant="small">
-          Add a note with &amp;note=…, e.g. …?activity=Immersion&amp;note=Anime. An activity name that doesn&apos;t exist yet is created automatically.
-        </T>
-      </Card>
+        <T variant="small">Add a note with &amp;note=…</T>
+      </Section>
     </ScrollView>
   );
 }

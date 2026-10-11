@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { spacing } from '../theme/colors';
 import { Confetti } from './Confetti';
 import { Mascot, type Mood } from './Mascot';
-import { Card, T } from './ui';
+import { T } from './ui';
 
 export interface Stat {
   label: string;
@@ -47,14 +47,14 @@ export function Celebration({
       {stats.length > 0 && (
         <View style={{ flexDirection: 'row', gap: spacing.md }}>
           {stats.map((s) => (
-            <Card key={s.label} tone={s.tone} style={{ flex: 1, alignItems: 'center', padding: spacing.md, gap: 2 }}>
-              <T variant="small" style={{ fontWeight: '900', letterSpacing: 0.6 }}>
-                {s.label.toUpperCase()}
-              </T>
-              <T variant="title" style={{ fontSize: 24, lineHeight: 30 }}>
+            <View key={s.label} style={{ flex: 1, alignItems: 'center', gap: 0 }}>
+              <T variant="title" style={{ fontSize: 28, lineHeight: 34 }}>
                 {s.value}
               </T>
-            </Card>
+              <T variant="small" style={{ fontWeight: '900', letterSpacing: 1 }}>
+                {s.label.toUpperCase()}
+              </T>
+            </View>
           ))}
         </View>
       )}
