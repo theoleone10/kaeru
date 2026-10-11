@@ -215,7 +215,7 @@ function Overview() {
     return { ...d, grammar: reviews.grammar.filter(inDay).length, cards: reviews.cards.filter(inDay).length };
   });
   const levels = levelProgress(curriculum, cards);
-  const { buckets } = forecast(
+  const buckets = forecast(
     cards.filter((c) => !c.suspended).map((c) => c.due),
     now,
   );
@@ -288,7 +288,7 @@ function Overview() {
           ))}
       </Section>
 
-      <Section label="Reviews · next 24h">
+      <Section label="Reviews · next 30 days">
         <ForecastChart buckets={buckets} />
       </Section>
     </>

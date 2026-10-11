@@ -8,7 +8,7 @@ import { T } from './ui';
 const HEIGHT = 120;
 const LABEL_H = 18;
 
-/** 24 hourly bars of upcoming reviews. */
+/** One bar per day of upcoming reviews, today first. */
 export function ForecastChart({ buckets }: { buckets: ForecastBucket[] }) {
   const { colors } = useApp();
   const [width, setWidth] = useState(0);
@@ -17,31 +17,28 @@ export function ForecastChart({ buckets }: { buckets: ForecastBucket[] }) {
   const slot = width / buckets.length;
   const barW = Math.max(2, slot * 0.66);
   const plotH = HEIGHT - LABEL_H - 14;
+  // Numbers over the bars only when there's room for them.
+  const showCounts = slot >= 16;
 
   return (
-    <View
-      style={{ minHeight: HEIGHT }}
-      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-      accessibilityLabel={`${total} reviews coming up in the next 24 hours`}
-    >
+    <View style={{ minHeight: HEIGHT }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)} accessibilityLabel={`${total} reviews in the next ${buckets.length} days, ${buckets[0]?.count ?? 0} today`}>
       {width > 0 && (
         <Svg width={width} height={HEIGHT}>
           {buckets.map((b, i) => {
             const h = b.count === 0 ? 2 : Math.max(4, (b.count / max) * plotH);
             const x = i * slot + (slot - barW) / 2;
             const y = HEIGHT - LABEL_H - h;
-            const hour = new Date(b.start).getHours();
             return (
-              <G key={i}>
-                <Rect x={x} y={y} width={barW} height={h} rx={2} fill={b.count ? colors.chartBar : colors.surfaceAlt} />
-                {b.count > 0 && (
+              <G key={b.start}>
+                <Rect x={x} y={y} width={barW} height={h} rx={2} fill={b.count ? (i === 0 ? colors.accent : colors.chartBar) : colors.surfaceAlt} />
+                {b.count > 0 && (showCounts || b.count === max || i === 0) && (
                   <SvgText x={x + barW / 2} y={y - 3} fontSize={10} fill={colors.textMuted} textAnchor="middle">
                     {b.count}
                   </SvgText>
                 )}
-                {i % 6 === 0 && (
+                {i % 7 === 0 && (
                   <SvgText x={i === 0 ? x : x + barW / 2} y={HEIGHT - 4} fontSize={10} fill={colors.textMuted} textAnchor={i === 0 ? 'start' : 'middle'}>
-                    {i === 0 ? 'now' : `${hour}:00`}
+                    {i === 0 ? 'Today' : new Date(b.start).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                   </SvgText>
                 )}
               </G>
@@ -53,7 +50,7 @@ export function ForecastChart({ buckets }: { buckets: ForecastBucket[] }) {
         // Laid over the empty chart, so the chart keeps its full height.
         <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', paddingBottom: LABEL_H }]} pointerEvents="none">
           <T variant="small" style={{ textAlign: 'center' }}>
-            Nothing due in the next 24 hours
+            Nothing due in the next {buckets.length} days
           </T>
         </View>
       )}

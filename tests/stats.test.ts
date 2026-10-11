@@ -6,18 +6,18 @@ import { newCard, State } from '@/srs/scheduler';
 import type { GrammarPoint } from '@/content/types';
 
 const at = (h: number, m = 0, day = 10) => Date.UTC(2026, 0, day, h, m);
-const HOUR = 60 * 60 * 1000;
 
 describe('forecast', () => {
-  it('buckets by clock hour and counts overdue separately', () => {
-    const now = at(10, 30);
-    const { dueNow, buckets } = forecast([at(9), at(10, 30), at(10, 45), at(11, 0), at(11, 59), at(15, 10), now + 30 * HOUR], now);
-    expect(dueNow).toBe(2);
-    expect(buckets).toHaveLength(24);
-    expect(buckets[0]).toEqual({ start: now, count: 1 });
-    expect(buckets[1]).toEqual({ start: at(11), count: 2 });
-    expect(buckets[5]).toEqual({ start: at(15), count: 1 });
-    expect(buckets.reduce((s, b) => s + b.count, 0)).toBe(4);
+  it('buckets the next 30 days by local day, with overdue in today', () => {
+    const local = (day: number, h = 12) => new Date(2026, 0, day, h).getTime();
+    const now = local(10, 15);
+    const buckets = forecast([local(1), local(10, 9), local(10, 23), local(11, 0), local(11, 8), local(20), local(39, 23), local(40, 1), local(60)], now);
+    expect(buckets).toHaveLength(30);
+    expect(buckets[0]).toEqual({ start: new Date(2026, 0, 10).getTime(), count: 3 }); // overdue + rest of today
+    expect(buckets[1]).toEqual({ start: new Date(2026, 0, 11).getTime(), count: 2 });
+    expect(buckets[10].count).toBe(1);
+    expect(buckets[29]).toEqual({ start: new Date(2026, 1, 8).getTime(), count: 1 });
+    expect(buckets.reduce((s, b) => s + b.count, 0)).toBe(7); // day 40 and later are past the window
   });
 });
 
