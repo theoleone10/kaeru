@@ -23,7 +23,10 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.theoleone.kaeru",
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "permissions": [
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -65,6 +68,12 @@
       ]
     ],
     "scheme": "kaeru",
-    "description": "Over 400 Japanese grammar points from JLPT N5 to N1, learned with spaced-repetition reviews."
+    "description": "Over 400 Japanese grammar points from JLPT N5 to N1, learned with spaced-repetition reviews.",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "231dd7ae-77e6-4773-aed5-1a7cd5f7a387"
+      }
+    }
   }
 }
