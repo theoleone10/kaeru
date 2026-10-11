@@ -5,8 +5,8 @@ import { useApp } from '../state/AppProvider';
 
 export type Mood = 'happy' | 'cheer' | 'think' | 'sad' | 'sleep';
 
-/** The app icon's two colours: forest-green skin, and cream for the belly, eyes and cheeks. */
-export const FROG = { skin: '#436B59', skinDark: '#4F7D68', cream: '#F7E9C4', pupil: '#2F4A3E' } as const;
+/** The app icon's two colours: leaf-green skin, and cool off-white for the belly, eyes and cheeks. */
+export const FROG = { skin: '#50AC50', skinDark: '#4CA04C', cream: '#F4F5F9', pupil: '#2E7D39' } as const;
 
 /**
  * Decoration is hidden from screen readers; with a label it reads as one image. Uses the aria props
