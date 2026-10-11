@@ -147,6 +147,15 @@ const MIGRATIONS: string[] = [
   CREATE INDEX idx_anki_revlog_time ON anki_revlog(reviewed_at);
   CREATE INDEX idx_anki_revlog_card ON anki_revlog(card_id, reviewed_at);
   `,
+  `
+  -- Per-deck daily limits, keyed by the deck's "::" path (so they survive re-importing it).
+  -- NULL means "use the default from Settings".
+  CREATE TABLE anki_deck_limits (
+    path            TEXT PRIMARY KEY NOT NULL,
+    new_per_day     INTEGER,
+    reviews_per_day INTEGER
+  );
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -6,7 +6,7 @@ import { readCollection, type AnkiCollection } from '@/anki/collection';
 import { unpackPackage } from '@/anki/package';
 import { cardDocument, cloze, clozeNumbers, furigana, kana, kanji, renderCard, stripHtml, type RenderContext } from '@/anki/render';
 import { convertAnkiCard, convertRevlog, difficultyFromEase, formatInterval, previewGrades, createAnkiScheduler, Rating, State } from '@/anki/schedule';
-import { answerCard, buildStudyQueue, deleteDeck, getStudyCard, interleave, listDecks, undoAnswer } from '@/anki/repo';
+import { answerCard, buildStudyQueue, deleteDeck, getDeckLimits, getStudyCard, interleave, listDecks, setDeckLimits, takeWithinLimits, undoAnswer } from '@/anki/repo';
 import { saveCollection } from '@/anki/store';
 import { migrate } from '@/db/migrations';
 import { openNodeDb } from './helpers/nodeDb';
@@ -288,6 +288,54 @@ describe('studying imported decks', () => {
     await deleteDeck(db, 'Japanese::Grammar');
     expect((await listDecks(db, T, limits)).map((d) => d.path)).toEqual(['Japanese', 'Japanese::Vocab']);
     expect((await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM anki_notes'))!.n).toBe(1);
+  });
+
+  it('uses a deck’s own daily limits, and a subdeck’s limit holds inside its parent', async () => {
+    const db = await setup();
+    await setDeckLimits(db, 'Japanese::Vocab', { newPerDay: 0, reviewsPerDay: null });
+    expect((await listDecks(db, T, limits)).map((d) => [d.path, d.newCount, d.reviewCount])).toEqual([
+      ['Japanese', 1, 1],
+      ['Japanese::Grammar', 1, 0],
+      ['Japanese::Vocab', 0, 1],
+    ]);
+    // Studying the parent: Vocab's new card stays out, its review is still in.
+    const queue = await Promise.all((await buildStudyQueue(db, 'Japanese', T, limits)).map((id) => getStudyCard(db, id)));
+    expect(queue.filter((c) => c!.card.state === State.New).map((c) => c!.deck)).toEqual(['Japanese::Grammar']);
+    expect(queue.some((c) => c!.deck === 'Japanese::Vocab' && c!.card.state === State.Review)).toBe(true);
+
+    // A parent's own limit caps the whole session; reviews can be paused too.
+    await setDeckLimits(db, 'Japanese', { newPerDay: 5, reviewsPerDay: 0 });
+    expect((await listDecks(db, T, limits))[0]).toMatchObject({ path: 'Japanese', newCount: 1, reviewCount: 0 });
+    expect(await getDeckLimits(db, 'Japanese')).toEqual({ newPerDay: 5, reviewsPerDay: 0 });
+
+    // Back to the defaults.
+    await setDeckLimits(db, 'Japanese', { newPerDay: null, reviewsPerDay: null });
+    await setDeckLimits(db, 'Japanese::Vocab', { newPerDay: null, reviewsPerDay: null });
+    expect(await getDeckLimits(db, 'Japanese')).toEqual({ newPerDay: null, reviewsPerDay: null });
+    expect((await listDecks(db, T, limits))[0]).toMatchObject({ newCount: 2, reviewCount: 1 });
+    expect((await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM anki_deck_limits'))!.n).toBe(0);
+  });
+
+  it('deleting a deck forgets its limits and its subdecks’ limits', async () => {
+    const db = await setup();
+    await setDeckLimits(db, 'Japanese', { newPerDay: 5, reviewsPerDay: null });
+    await setDeckLimits(db, 'Japanese::Vocab', { newPerDay: 1, reviewsPerDay: null });
+    await deleteDeck(db, 'Japanese');
+    expect((await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM anki_deck_limits'))!.n).toBe(0);
+  });
+
+  it('takes cards only while the deck and every parent up to the studied deck have room', () => {
+    const cards = [
+      { id: 1, deck: 'A::B' },
+      { id: 2, deck: 'A::B' },
+      { id: 3, deck: 'A::C' },
+      { id: 4, deck: 'A' },
+      { id: 5, deck: 'A::B::D' },
+    ];
+    const left = (p: string) => ({ A: 3, 'A::B': 1 })[p] ?? 99;
+    expect(takeWithinLimits(cards, 'A', left).map((c) => c.id)).toEqual([1, 3, 4]);
+    // Studying the subdeck alone ignores the parent's limit.
+    expect(takeWithinLimits(cards.filter((c) => c.deck.startsWith('A::B')), 'A::B', left).map((c) => c.id)).toEqual([1]);
   });
 
   it('interleaves new cards evenly through reviews', () => {

@@ -63,6 +63,7 @@ function ThemedStack() {
           <Stack.Screen name="sign-in" options={{ title: 'Sign in', presentation: 'modal' }} />
           <Stack.Screen name="new-password" options={{ title: 'New password' }} />
           <Stack.Screen name="anki/[deck]" options={{ title: 'Study' }} />
+          <Stack.Screen name="anki/limits" options={{ title: 'Deck options', presentation: 'modal' }} />
           <Stack.Screen name="track/entry" options={{ title: 'Entry', presentation: 'modal' }} />
           <Stack.Screen name="track/shortcuts" options={{ title: 'Shortcuts' }} />
           <Stack.Screen name="track/activities" options={{ title: 'Activities' }} />

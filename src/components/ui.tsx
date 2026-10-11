@@ -255,6 +255,33 @@ export function IconButton({ children, onPress, label, tone = 'neutral' }: { chi
   );
 }
 
+/** − value + control for small numeric settings. */
+export function Stepper({ value, display, onChange, min, max, step = 1 }: { value: number; display?: string; onChange: (v: number) => void; min: number; max: number; step?: number }) {
+  const { colors } = useApp();
+  const btn = (label: string, next: number, disabled: boolean) => (
+    <Pressable
+      onPress={() => onChange(next)}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label === '−' ? 'Decrease' : 'Increase'}
+      style={({ pressed }) => [styles.stepBtn, { backgroundColor: colors.surfaceAlt, opacity: disabled ? 0.35 : pressed ? 0.7 : 1 }]}
+    >
+      <T variant="heading" color={colors.accent}>
+        {label}
+      </T>
+    </Pressable>
+  );
+  return (
+    <View style={styles.stepper}>
+      {btn('−', Math.max(min, value - step), value <= min)}
+      <T variant="body" style={{ minWidth: 56, textAlign: 'center', fontWeight: '600' }}>
+        {display ?? value}
+      </T>
+      {btn('+', Math.min(max, value + step), value >= max)}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   card: { borderRadius: radius.lg, borderWidth: 2, borderBottomWidth: 2 + LIP, padding: spacing.lg },
   buttonFace: {
@@ -267,4 +294,6 @@ const styles = StyleSheet.create({
   },
   pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   iconButton: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  stepBtn: { width: 44, height: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
 });

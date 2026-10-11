@@ -46,54 +46,113 @@ export interface DeckNode {
   total: number;
 }
 
+/** The defaults from Settings; a deck's own limits (see setDeckLimits) override them. */
 export interface Limits {
   newPerDay: number;
   reviewsPerDay: number;
 }
 
-/** Cards introduced / reviews done today in a subtree (answers made in this app). */
-async function doneToday(db: Db, path: string, now: number): Promise<{ newDone: number; reviewsDone: number }> {
-  const t = subtree(path);
-  const row = await db.getFirstAsync<{ newDone: number; reviewsDone: number }>(
-    `SELECT
-       COUNT(DISTINCT CASE WHEN r.prev_state = 0 THEN r.card_id END) AS newDone,
-       COUNT(CASE WHEN r.prev_state = ${State.Review} THEN 1 END) AS reviewsDone
-     FROM anki_revlog r JOIN anki_cards c ON c.id = r.card_id
-     WHERE r.imported = 0 AND r.reviewed_at >= ? AND c.${t.sql}`,
-    startOfDay(now),
-    ...t.params,
+/** A deck's own daily limits; null means it uses the default. */
+export interface DeckLimits {
+  newPerDay: number | null;
+  reviewsPerDay: number | null;
+}
+
+export async function getDeckLimits(db: Db, path: string): Promise<DeckLimits> {
+  const row = await db.getFirstAsync<{ new_per_day: number | null; reviews_per_day: number | null }>(
+    'SELECT new_per_day, reviews_per_day FROM anki_deck_limits WHERE path = ?',
+    path,
   );
-  return { newDone: row?.newDone ?? 0, reviewsDone: row?.reviewsDone ?? 0 };
+  return { newPerDay: row?.new_per_day ?? null, reviewsPerDay: row?.reviews_per_day ?? null };
+}
+
+export async function setDeckLimits(db: Db, path: string, limits: DeckLimits): Promise<void> {
+  if (limits.newPerDay == null && limits.reviewsPerDay == null) {
+    await db.runAsync('DELETE FROM anki_deck_limits WHERE path = ?', path);
+    return;
+  }
+  await db.runAsync(
+    'INSERT INTO anki_deck_limits (path, new_per_day, reviews_per_day) VALUES (?, ?, ?) ON CONFLICT(path) DO UPDATE SET new_per_day = excluded.new_per_day, reviews_per_day = excluded.reviews_per_day',
+    path,
+    limits.newPerDay,
+    limits.reviewsPerDay,
+  );
+}
+
+const inSubtree = (name: string, path: string) => name === path || name.startsWith(`${path}::`);
+
+/**
+ * How many more new cards and reviews each deck allows today: its own limit (or the default)
+ * minus what was done today in it and its subdecks (answers made in this app).
+ */
+async function remainingToday(db: Db, now: number, defaults: Limits): Promise<{ newLeft: (path: string) => number; reviewsLeft: (path: string) => number }> {
+  const done = await db.getAllAsync<{ name: string; newDone: number; reviewsDone: number }>(
+    `SELECT d.name,
+       COUNT(DISTINCT CASE WHEN r.prev_state = ${State.New} THEN r.card_id END) AS newDone,
+       COUNT(CASE WHEN r.prev_state = ${State.Review} THEN 1 END) AS reviewsDone
+     FROM anki_revlog r JOIN anki_cards c ON c.id = r.card_id JOIN anki_decks d ON d.id = c.deck_id
+     WHERE r.imported = 0 AND r.reviewed_at >= ?
+     GROUP BY d.name`,
+    startOfDay(now),
+  );
+  const own = new Map(
+    (await db.getAllAsync<{ path: string; new_per_day: number | null; reviews_per_day: number | null }>('SELECT * FROM anki_deck_limits')).map((r) => [r.path, r]),
+  );
+  const sum = (path: string, key: 'newDone' | 'reviewsDone') => done.filter((d) => inSubtree(d.name, path)).reduce((n, d) => n + d[key], 0);
+  return {
+    newLeft: (path) => Math.max(0, (own.get(path)?.new_per_day ?? defaults.newPerDay) - sum(path, 'newDone')),
+    reviewsLeft: (path) => Math.max(0, (own.get(path)?.reviews_per_day ?? defaults.reviewsPerDay) - sum(path, 'reviewsDone')),
+  };
+}
+
+/**
+ * Like Anki: studying `root`, a card is taken only while its own deck and every parent up to
+ * `root` still have room today (so a subdeck's limit holds inside its parent's session too).
+ */
+export function takeWithinLimits<C extends { deck: string }>(cards: C[], root: string, left: (path: string) => number): C[] {
+  const room = new Map<string, number>();
+  const taken: C[] = [];
+  const rootDepth = root.split('::').length;
+  for (const card of cards) {
+    const parts = card.deck.split('::');
+    const chain: string[] = [];
+    for (let i = rootDepth; i <= parts.length; i++) chain.push(parts.slice(0, i).join('::'));
+    for (const p of chain) if (!room.has(p)) room.set(p, left(p));
+    if (chain.every((p) => room.get(p)! > 0)) {
+      for (const p of chain) room.set(p, room.get(p)! - 1);
+      taken.push(card);
+    }
+  }
+  return taken;
 }
 
 /** Every deck and parent deck, with Anki-style new / learning / review counts (including subdecks). */
-export async function listDecks(db: Db, now: number, limits: Limits): Promise<DeckNode[]> {
-  const rows = await db.getAllAsync<{ name: string; state: number; due: number }>(
-    `SELECT d.name, c.state, c.due FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id WHERE c.suspended = 0`,
+export async function listDecks(db: Db, now: number, defaults: Limits): Promise<DeckNode[]> {
+  const rows = await db.getAllAsync<{ id: number; deck: string; state: number; due: number }>(
+    `SELECT c.id, d.name AS deck, c.state, c.due FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
+     WHERE c.suspended = 0 ORDER BY c.new_position, c.id`,
   );
-  const decks = await db.getAllAsync<{ name: string }>('SELECT DISTINCT d.name FROM anki_decks d JOIN anki_cards c ON c.deck_id = d.id');
   const paths = new Set<string>();
-  for (const d of decks) {
-    const parts = d.name.split('::');
+  for (const r of rows) {
+    const parts = r.deck.split('::');
     for (let i = 1; i <= parts.length; i++) paths.add(parts.slice(0, i).join('::'));
   }
-  const nodes: DeckNode[] = [];
+  const { newLeft, reviewsLeft } = await remainingToday(db, now, defaults);
   const endToday = endOfDay(now);
+  const fresh = rows.filter((r) => r.state === State.New);
+  const reviews = rows.filter((r) => r.state === State.Review && r.due < endToday).sort((a, b) => a.due - b.due);
+  const nodes: DeckNode[] = [];
   for (const path of [...paths].sort((a, b) => a.localeCompare(b))) {
-    const inTree = rows.filter((r) => r.name === path || r.name.startsWith(`${path}::`));
-    const { newDone, reviewsDone } = await doneToday(db, path, now);
-    const newAvail = inTree.filter((r) => r.state === State.New).length;
-    const learn = inTree.filter((r) => (r.state === State.Learning || r.state === State.Relearning) && r.due <= now + LEARN_AHEAD_MS).length;
-    const review = inTree.filter((r) => r.state === State.Review && r.due < endToday).length;
+    const inTree = (r: { deck: string }) => inSubtree(r.deck, path);
     const parts = path.split('::');
     nodes.push({
       path,
       name: parts[parts.length - 1],
       depth: parts.length - 1,
-      newCount: Math.max(0, Math.min(newAvail, limits.newPerDay - newDone)),
-      learnCount: learn,
-      reviewCount: Math.max(0, Math.min(review, limits.reviewsPerDay - reviewsDone)),
-      total: inTree.length,
+      newCount: takeWithinLimits(fresh.filter(inTree), path, newLeft).length,
+      learnCount: rows.filter((r) => inTree(r) && (r.state === State.Learning || r.state === State.Relearning) && r.due <= now + LEARN_AHEAD_MS).length,
+      reviewCount: takeWithinLimits(reviews.filter(inTree), path, reviewsLeft).length,
+      total: rows.filter(inTree).length,
     });
   }
   return nodes;
@@ -103,26 +162,32 @@ export async function listDecks(db: Db, now: number, limits: Limits): Promise<De
  * Card ids for a study session, in order: learning cards due now, then reviews due today
  * mixed evenly with today's new cards (Anki's default "mix new with reviews").
  */
-export async function buildStudyQueue(db: Db, path: string, now: number, limits: Limits): Promise<number[]> {
+export async function buildStudyQueue(db: Db, path: string, now: number, defaults: Limits): Promise<number[]> {
   const t = subtree(path);
-  const { newDone, reviewsDone } = await doneToday(db, path, now);
+  const { newLeft, reviewsLeft } = await remainingToday(db, now, defaults);
   const learning = await db.getAllAsync<{ id: number }>(
     `SELECT id FROM anki_cards WHERE suspended = 0 AND state IN (${State.Learning}, ${State.Relearning}) AND due <= ? AND ${t.sql} ORDER BY due`,
     now + LEARN_AHEAD_MS,
     ...t.params,
   );
-  const reviews = await db.getAllAsync<{ id: number }>(
-    `SELECT id FROM anki_cards WHERE suspended = 0 AND state = ${State.Review} AND due < ? AND ${t.sql} ORDER BY due LIMIT ?`,
+  const reviews = await db.getAllAsync<{ id: number; deck: string }>(
+    `SELECT c.id, d.name AS deck FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
+     WHERE c.suspended = 0 AND c.state = ${State.Review} AND c.due < ? AND c.${t.sql} ORDER BY c.due`,
     endOfDay(now),
     ...t.params,
-    Math.max(0, limits.reviewsPerDay - reviewsDone),
   );
-  const fresh = await db.getAllAsync<{ id: number }>(
-    `SELECT id FROM anki_cards WHERE suspended = 0 AND state = ${State.New} AND ${t.sql} ORDER BY new_position, id LIMIT ?`,
+  const fresh = await db.getAllAsync<{ id: number; deck: string }>(
+    `SELECT c.id, d.name AS deck FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
+     WHERE c.suspended = 0 AND c.state = ${State.New} AND c.${t.sql} ORDER BY c.new_position, c.id`,
     ...t.params,
-    Math.max(0, limits.newPerDay - newDone),
   );
-  return [...learning.map((r) => r.id), ...interleave(reviews.map((r) => r.id), fresh.map((r) => r.id))];
+  return [
+    ...learning.map((r) => r.id),
+    ...interleave(
+      takeWithinLimits(reviews, path, reviewsLeft).map((r) => r.id),
+      takeWithinLimits(fresh, path, newLeft).map((r) => r.id),
+    ),
+  ];
 }
 
 /** Spread `b` evenly through `a`. */
@@ -225,6 +290,7 @@ export async function deleteDeck(db: Db, path: string): Promise<void> {
   const t = subtree(path);
   await transaction(db as SQLiteDatabase, async (txn) => {
     await txn.runAsync(`DELETE FROM anki_cards WHERE ${t.sql}`, ...t.params);
+    await txn.runAsync('DELETE FROM anki_deck_limits WHERE path = ? OR substr(path, 1, ?) = ?', ...t.params);
     await txn.runAsync(`DELETE FROM anki_decks WHERE id NOT IN (SELECT DISTINCT deck_id FROM anki_cards)`);
     await txn.runAsync('DELETE FROM anki_notes WHERE id NOT IN (SELECT DISTINCT note_id FROM anki_cards)');
     await txn.runAsync('DELETE FROM anki_notetypes WHERE id NOT IN (SELECT DISTINCT notetype_id FROM anki_notes)');

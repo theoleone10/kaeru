@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { accountLabel, useAuth } from '@/auth/AuthProvider';
 import { exportBackup, pickBackup, restoreBackup } from '@/backup/exportImport';
 import { Logo } from '@/components/Mascot';
-import { Button, Card, T } from '@/components/ui';
+import { Button, Card, Stepper, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { LEVELS } from '@/content/types';
 import { getKv, setKv } from '@/db/repo';
@@ -28,32 +28,6 @@ function Row({ label, detail, children }: { label: string; detail?: string; chil
         {detail && <T variant="small">{detail}</T>}
       </View>
       {children}
-    </View>
-  );
-}
-
-function Stepper({ value, display, onChange, min, max, step = 1 }: { value: number; display?: string; onChange: (v: number) => void; min: number; max: number; step?: number }) {
-  const { colors } = useApp();
-  const btn = (label: string, next: number, disabled: boolean) => (
-    <Pressable
-      onPress={() => onChange(next)}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={label === '−' ? 'Decrease' : 'Increase'}
-      style={({ pressed }) => [styles.stepBtn, { backgroundColor: colors.surfaceAlt, opacity: disabled ? 0.35 : pressed ? 0.7 : 1 }]}
-    >
-      <T variant="heading" color={colors.accent}>
-        {label}
-      </T>
-    </Pressable>
-  );
-  return (
-    <View style={styles.stepper}>
-      {btn('−', Math.max(min, value - step), value <= min)}
-      <T variant="body" style={{ minWidth: 56, textAlign: 'center', fontWeight: '600' }}>
-        {display ?? value}
-      </T>
-      {btn('+', Math.min(max, value + step), value >= max)}
     </View>
   );
 }
@@ -283,7 +257,7 @@ export default function SettingsScreen() {
 
       <Card style={styles.card}>
         <T variant="heading">Anki decks</T>
-        <Row label="New cards per day" detail="Per deck you study (like Anki’s daily limit)">
+        <Row label="New cards per day" detail="Default for each deck. Set one deck’s own limits from its ⚙︎ on the Cards tab.">
           <Stepper value={settings.ankiNewPerDay} {...LIMITS.ankiNewPerDay} step={5} onChange={(v) => updateSettings({ ankiNewPerDay: v })} />
         </Row>
         <Row label="Maximum reviews per day">
@@ -360,8 +334,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   card: { gap: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: TAP },
-  stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  stepBtn: { width: 44, height: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   segmented: { flexDirection: 'row', borderRadius: radius.md, padding: 3 },
   segment: { flex: 1, minHeight: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
 });

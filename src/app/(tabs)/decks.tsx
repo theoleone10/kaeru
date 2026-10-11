@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { deleteDeck, listDecks, type DeckNode } from '@/anki/repo';
 import { Mascot } from '@/components/Mascot';
-import { Button, Card, Pill, ProgressBar, T } from '@/components/ui';
+import { Button, Card, IconButton, Pill, ProgressBar, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
 
@@ -79,9 +79,12 @@ export default function Decks() {
     }
   };
 
+  const openLimits = (d: DeckNode) => router.push({ pathname: '/anki/limits', params: { deck: encodeURIComponent(d.path) } });
+
   const options = (d: DeckNode) =>
     Alert.alert(d.path, `${d.total} cards`, [
       { text: 'Study', onPress: () => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(d.path) } }) },
+      { text: 'Daily limits & delete', onPress: () => openLimits(d) },
       {
         text: 'Delete deck',
         style: 'destructive',
@@ -159,6 +162,9 @@ export default function Decks() {
                     <T variant="small">{top.total.toLocaleString()} cards</T>
                   </View>
                   {todo === 0 && <Pill label="✓ Done" tone="green" />}
+                  <IconButton label={`Options for ${top.name}`} onPress={() => openLimits(top)}>
+                    <Ionicons name="settings-outline" size={20} color={colors.textMuted} />
+                  </IconButton>
                 </Pressable>
                 <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
                   <Pill label={`${top.newCount} new`} tone="blue" />
@@ -195,7 +201,7 @@ export default function Decks() {
 
       {decks && decks.length > 0 && (
         <T variant="small" style={{ textAlign: 'center' }}>
-          Today: {totals.n} new · {totals.l} learning · {totals.r} due. Long-press a deck to delete it. New cards per day: Settings → Anki decks.
+          Today: {totals.n} new · {totals.l} learning · {totals.r} due. Tap ⚙︎ for a deck’s cards per day or to delete it. Long-press a subdeck for its own options.
         </T>
       )}
     </ScrollView>
