@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LessonContent } from '@/components/LessonContent';
+import { Mascot } from '@/components/Mascot';
 import { Button, Card, T } from '@/components/ui';
 import { getPoint } from '@/content/loader';
 import { getPointStats, resetPoint, type PointStats } from '@/db/repo';
@@ -57,7 +58,8 @@ export default function GrammarDetail() {
 
   if (!point) {
     return (
-      <View style={{ padding: spacing.lg }}>
+      <View style={{ padding: spacing.lg, gap: spacing.md, alignItems: 'center' }}>
+        <Mascot size={96} mood="sad" />
         <T variant="body">Grammar point “{id}” was not found.</T>
       </View>
     );

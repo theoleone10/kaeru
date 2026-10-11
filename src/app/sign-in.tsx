@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Mascot } from '@/components/Mascot';
 import { LegalNote, SignInOptions } from '@/components/SignInOptions';
 import { T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
@@ -10,6 +11,9 @@ export default function SignIn() {
   const { colors } = useApp();
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+      <View style={{ alignItems: 'center' }}>
+        <Mascot size={96} mood="happy" bounce />
+      </View>
       <T variant="muted">
         Sign in to back up your progress to your account and pick it up on another phone. Your current progress on this phone is kept.
       </T>

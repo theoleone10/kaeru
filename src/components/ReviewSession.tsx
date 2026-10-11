@@ -17,7 +17,7 @@ import { gradeCard, type StoredCard } from '../srs/scheduler';
 import { playSound } from '../sound/sounds';
 import { useApp } from '../state/AppProvider';
 import { useAutoTrack } from '../time/useAutoTrack';
-import { FONTS, LEVEL_COLORS, radius, spacing, TAP } from '../theme/colors';
+import { FONTS, radius, spacing, TAP } from '../theme/colors';
 import { ClozeSentence } from './Furigana';
 import { Mascot } from './Mascot';
 import { Button, Card, ProgressBar, T } from './ui';
@@ -74,7 +74,7 @@ export function ReviewSession({
   quiz?: { items: QuizItem[]; onComplete: (answers: QuizAnswer[]) => Promise<void> };
 }) {
   const db = useSQLiteContext();
-  const { settings, colors, refresh } = useApp();
+  const { settings, colors, lines, refresh } = useApp();
   const [queue, setQueue] = useState<StoredCard[]>([]);
   const [current, setCurrent] = useState<Current | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: 'loading' });
@@ -256,7 +256,7 @@ export function ReviewSession({
   const inputBorder = result ? (result.correct ? colors.correct : colors.wrong) : retry ? colors.notice : colors.border;
   const inputBg = result ? (result.correct ? colors.correctSoft : colors.wrongSoft) : colors.surface;
   const done = summary.reviewed;
-  const line = LEVEL_COLORS[point.level] ?? LEVEL_COLORS.N5;
+  const line = lines[point.level] ?? lines.N5;
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior="padding">

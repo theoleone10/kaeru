@@ -4,7 +4,7 @@ import { Appearance, AppState, useColorScheme } from 'react-native';
 import { getAllCards, getKv, setKv } from '../db/repo';
 import { rescheduleReminder } from '../notifications/schedule';
 import type { StoredCard } from '../srs/scheduler';
-import { dark, light, type Palette } from '../theme/colors';
+import { dark, LEVEL_COLORS, LEVEL_COLORS_DARK, light, type LineColors, type Palette } from '../theme/colors';
 import { setSoundEnabled } from '../sound/sounds';
 import { DEFAULT_SETTINGS, sanitizeSettings, type Settings } from './settings';
 
@@ -16,6 +16,8 @@ interface AppContextValue {
   /** Reload cards from the database after any change to progress. */
   refresh: () => Promise<void>;
   colors: Palette;
+  /** JLPT line colours for the current theme. */
+  lines: Record<string, LineColors>;
   isDark: boolean;
 }
 
@@ -88,6 +90,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cardsById: new Map(cards.map((c) => [c.grammar_id, c])),
       refresh,
       colors: isDark ? dark : light,
+      lines: isDark ? LEVEL_COLORS_DARK : LEVEL_COLORS,
       isDark,
     }),
     [settings, updateSettings, cards, refresh, isDark],

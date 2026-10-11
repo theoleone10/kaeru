@@ -7,7 +7,7 @@ export interface Palette {
   borderStrong: string;
   text: string;
   textMuted: string;
-  /** Clay: primary actions, current state, brand. */
+  /** Indigo (aizome): primary actions, current state, brand. */
   accent: string;
   accentShadow: string;
   accentText: string;
@@ -34,19 +34,19 @@ export interface Palette {
   chartBar: string;
 }
 
-// Warm and playful: ivory ground, clay primary, chunky colour-blocked accents.
+// Aizome: cool paper ground, Japanese-indigo primary, chunky colour-blocked accents (the green frog pops on it).
 export const light: Palette = {
-  background: '#FBF8F3',
+  background: '#F5F6FA',
   surface: '#FFFFFF',
-  surfaceAlt: '#F1ECE4',
-  border: '#EDE6DC',
-  borderStrong: '#E1D8CC',
-  text: '#231C17',
-  textMuted: '#6B6058',
-  accent: '#C8562F',
-  accentShadow: '#A3431F',
+  surfaceAlt: '#ECEEF5',
+  border: '#E2E5EF',
+  borderStrong: '#D3D7E5',
+  text: '#1B1F33',
+  textMuted: '#5E6480',
+  accent: '#3D4FA8',
+  accentShadow: '#2B3A85',
   accentText: '#FFFFFF',
-  accentSoft: '#FCE6DA',
+  accentSoft: '#E4E8F7',
   correct: '#3FA34D',
   correctShadow: '#2E7D39',
   correctText: '#25702F',
@@ -67,17 +67,17 @@ export const light: Palette = {
 };
 
 export const dark: Palette = {
-  background: '#1A1614',
-  surface: '#25201C',
-  surfaceAlt: '#302A25',
-  border: '#3A332D',
-  borderStrong: '#110E0C',
-  text: '#F3EEE8',
-  textMuted: '#B4A89D',
-  accent: '#E0703F',
-  accentShadow: '#9E4424',
+  background: '#12141C',
+  surface: '#1C1F2B',
+  surfaceAlt: '#252938',
+  border: '#2F3446',
+  borderStrong: '#0A0B10',
+  text: '#ECEEF6',
+  textMuted: '#A3A9C2',
+  accent: '#5366CC',
+  accentShadow: '#2E3B85',
   accentText: '#FFFFFF',
-  accentSoft: '#3E2A20',
+  accentSoft: '#262C4A',
   correct: '#4CB85A',
   correctShadow: '#2B7236',
   correctText: '#86D891',
@@ -104,13 +104,29 @@ export const TAP = 52;
 /** Height of the 3D lip under chunky buttons and cards. */
 export const LIP = 4;
 
-/** JLPT line colours for the grammar train map (like Tokyo's line colours). */
-export const LEVEL_COLORS: Record<string, { line: string; ink: string; soft: string }> = {
+export interface LineColors {
+  line: string;
+  /** Text on `soft` or on the surface. */
+  ink: string;
+  soft: string;
+}
+
+/** JLPT line colours for the grammar train map (like Tokyo's line colours). Read them from `useApp().lines` so dark mode gets `LEVEL_COLORS_DARK`. */
+export const LEVEL_COLORS: Record<string, LineColors> = {
   N5: { line: '#3FA34D', ink: '#25702F', soft: '#E3F3E6' },
   N4: { line: '#2A9D8F', ink: '#1F6F66', soft: '#DDF1EE' },
   N3: { line: '#2F7FC1', ink: '#1F5F95', soft: '#E3EFFA' },
   N2: { line: '#8E5BB5', ink: '#6B3FA0', soft: '#F1E8FB' },
   N1: { line: '#D9663D', ink: '#A3431F', soft: '#FCE6DA' },
+};
+
+/** Same lines on dark surfaces: deep tinted chips with light text. */
+export const LEVEL_COLORS_DARK: Record<string, LineColors> = {
+  N5: { line: '#3FA34D', ink: '#86D891', soft: '#1F3323' },
+  N4: { line: '#2A9D8F', ink: '#7FD1C6', soft: '#17302D' },
+  N3: { line: '#2F7FC1', ink: '#9CCBF2', soft: '#1D2C3A' },
+  N2: { line: '#8E5BB5', ink: '#C9A8EA', soft: '#2C2238' },
+  N1: { line: '#D9663D', ink: '#F2A07F', soft: '#3E2A20' },
 };
 
 export const FONTS = {

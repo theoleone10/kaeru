@@ -13,10 +13,16 @@ import { radius, spacing, TAP } from '@/theme/colors';
 
 const COUNT_COLORS = { new: '#2F7FC1', learn: '#C8562F', review: '#2E8B3E' };
 const DECK_TINTS = [
-  { soft: '#FCE6DA', ink: '#A3431F' },
+  { soft: '#E4E8F7', ink: '#2B3A85' },
   { soft: '#F1E8FB', ink: '#6B3FA0' },
   { soft: '#E3EFFA', ink: '#1F5F95' },
   { soft: '#E3F3E6', ink: '#25702F' },
+];
+const DECK_TINTS_DARK = [
+  { soft: '#262C4A', ink: '#AEB9F0' },
+  { soft: '#2C2238', ink: '#C9A8EA' },
+  { soft: '#1D2C3A', ink: '#9CCBF2' },
+  { soft: '#1F3323', ink: '#86D891' },
 ];
 
 /** First kanji/kana in the deck name, else its first letter: the deck's badge. */
@@ -39,7 +45,7 @@ function Count({ n, color }: { n: number; color: string }) {
 export default function Decks() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const { colors, settings } = useApp();
+  const { colors, isDark, settings } = useApp();
   const [decks, setDecks] = useState<DeckNode[] | null>(null);
   const [progress, setProgress] = useState<{ phase: ImportPhase; fraction: number } | null>(null);
   const { ankiNewPerDay, ankiMaxReviewsPerDay } = settings;
@@ -137,7 +143,7 @@ export default function Decks() {
           .map((top, i) => {
             const subs = decks.filter((d) => d.path.startsWith(`${top.path}::`));
             const todo = top.newCount + top.learnCount + top.reviewCount;
-            const tint = DECK_TINTS[i % DECK_TINTS.length];
+            const tint = (isDark ? DECK_TINTS_DARK : DECK_TINTS)[i % DECK_TINTS.length];
             return (
               <Card key={top.path} style={{ gap: spacing.md }}>
                 <Pressable onLongPress={() => options(top)} accessibilityHint="Long-press for options" style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>

@@ -1,14 +1,25 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing } from 'react-native';
+import { Animated, Easing, Platform, View, type ViewProps } from 'react-native';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 import { useApp } from '../state/AppProvider';
 
 export type Mood = 'happy' | 'cheer' | 'think' | 'sad' | 'sleep';
 
+/** The app icon's two colours: forest-green skin, and cream for the belly, eyes and cheeks. */
+export const FROG = { skin: '#436B59', skinDark: '#4F7D68', cream: '#F7E9C4', pupil: '#2F4A3E' } as const;
+
 /**
- * Kaeru, the frog mascot (drawn to match the app icon). `bounce` gives a gentle
- * idle hop (respecting the idea that it's decoration: it's hidden from screen
- * readers unless labelled).
+ * Decoration is hidden from screen readers; with a label it reads as one image. Uses the aria props
+ * (react-native-web passes the older accessibility* props straight to the DOM).
+ */
+function a11y(label?: string): ViewProps {
+  if (!label) return { 'aria-hidden': true };
+  return { role: 'img', 'aria-label': label, ...(Platform.OS === 'web' ? null : { accessible: true }) };
+}
+
+/**
+ * Kaeru the frog (かえる), the app's mascot, drawn to match the app icon. `bounce` gives a gentle
+ * idle hop. It's decoration, so it's hidden from screen readers unless labelled.
  */
 export function Mascot({ size = 72, mood = 'happy', bounce = false, label }: { size?: number; mood?: Mood; bounce?: boolean; label?: string }) {
   const { isDark } = useApp();
@@ -26,19 +37,11 @@ export function Mascot({ size = 72, mood = 'happy', bounce = false, label }: { s
     return () => loop.stop();
   }, [bounce, y]);
 
-  // The icon's two colours: forest-green skin and a cream belly, eyes and cheeks.
-  const skin = isDark ? '#4F7D68' : '#436B59';
-  const cream = '#F7E9C4';
-  const pupil = '#2F4A3E';
+  const skin = isDark ? FROG.skinDark : FROG.skin;
+  const { cream, pupil } = FROG;
   const closed = mood === 'cheer' || mood === 'sleep';
   return (
-    <Animated.View
-      style={{ transform: [{ translateY: y }] }}
-      accessible={!!label}
-      accessibilityLabel={label}
-      accessibilityElementsHidden={!label}
-      importantForAccessibility={label ? 'yes' : 'no-hide-descendants'}
-    >
+    <Animated.View style={{ transform: [{ translateY: y }] }} {...a11y(label)}>
       <Svg width={size} height={size} viewBox="0 0 100 100">
         <Circle cx={29} cy={28} r={17} fill={skin} />
         <Circle cx={71} cy={28} r={17} fill={skin} />
@@ -86,5 +89,29 @@ export function Mascot({ size = 72, mood = 'happy', bounce = false, label }: { s
         <Ellipse cx={78} cy={52} rx={6.5} ry={4} fill={cream} />
       </Svg>
     </Animated.View>
+  );
+}
+
+/**
+ * The frog's face on its own, as a compact mark (Settings footer, Today tab icon). Pass `color`
+ * for a one-colour version (e.g. a tab icon), with `cutout` as the colour of the eyes and smile.
+ */
+export function Logo({ size = 40, color, cutout, label }: { size?: number; color?: string; cutout?: string; label?: string }) {
+  const skin = color ?? FROG.skin;
+  const light = cutout ?? FROG.cream;
+  const pupil = color ?? FROG.pupil;
+  return (
+    <View {...a11y(label)}>
+      <Svg width={size} height={size} viewBox="0 0 100 100">
+        <Circle cx={29} cy={36} r={18} fill={skin} />
+        <Circle cx={71} cy={36} r={18} fill={skin} />
+        <Path d="M50 38C80 38 95 54 95 68C95 82 76 88 50 88S5 82 5 68C5 54 20 38 50 38z" fill={skin} />
+        <Circle cx={29} cy={36} r={11} fill={light} />
+        <Circle cx={71} cy={36} r={11} fill={light} />
+        <Circle cx={31} cy={37} r={6} fill={pupil} />
+        <Circle cx={69} cy={37} r={6} fill={pupil} />
+        <Path d="M40 63q10 9 20 0" fill="none" stroke={light} strokeWidth={5} strokeLinecap="round" />
+      </Svg>
+    </View>
   );
 }

@@ -18,7 +18,7 @@ import { dayKey } from '@/stats/dates';
 import { useApp } from '@/state/AppProvider';
 import { entryDuration, formatClock, formatDuration, startOfWeek, totalsByActivity } from '@/time/model';
 import { useTime } from '@/time/TimeProvider';
-import { LEVEL_COLORS, radius, spacing } from '@/theme/colors';
+import { radius, spacing } from '@/theme/colors';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -58,7 +58,7 @@ function Ring({ value, total, size = 64 }: { value: number; total: number; size?
   );
 }
 
-/** What Kaeru says: points at the next part of the day. */
+/** What Kaeru the frog says: points at the next part of the day. */
 function nudge(next: Step | null, allDone: boolean): string {
   if (allDone) return 'That’s everything for today. おつかれさま！';
   switch (next?.id) {
@@ -115,7 +115,7 @@ function Tile({
 
 export default function Today() {
   const insets = useSafeAreaInsets();
-  const { colors, cards, settings } = useApp();
+  const { colors, lines, cards, settings } = useApp();
   const { user } = useAuth();
   const { running, activityById, entries } = useTime();
   const today = useToday();
@@ -126,7 +126,7 @@ export default function Today() {
   const station = next ? stationOf(next.id) : undefined;
   const mastered = cards.filter(isMastered).length;
   const name = user ? accountLabel(user).split(/[ @]/)[0] : '';
-  const line = next ? LEVEL_COLORS[next.level] : LEVEL_COLORS.N1;
+  const line = next ? lines[next.level] : lines.N1;
   const weekMs = [...totalsByActivity(entries, startOfWeek(now), now + DAY, now).values()].reduce((a, b) => a + b, 0);
   const goalMs = settings.dailyTimeGoalMin * 60 * 1000;
   const activeDays = new Set(today.activity.map(dayKey));

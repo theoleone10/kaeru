@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, Animated, Dimensions, Easing, StyleSheet, View } from 'react-native';
 
-const COLORS = ['#D9663D', '#F2B33D', '#3FA34D', '#2F7FC1', '#8E5BB5', '#F6A38C'];
+const COLORS = ['#3D4FA8', '#F2B33D', '#3FA34D', '#2F7FC1', '#8E5BB5', '#F6A38C'];
 const PIECES = 36;
 
 /** A one-shot confetti burst from the top of the screen (skipped when Reduce Motion is on). */

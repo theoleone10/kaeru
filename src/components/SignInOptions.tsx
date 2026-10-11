@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '../auth/AuthProvider';
@@ -47,9 +47,7 @@ export function SignInOptions({ onSignedIn }: { onSignedIn: () => void }) {
         <ProviderButton icon="logo-apple" label="Continue with Apple" onPress={() => run('apple')} busy={busy === 'apple'} disabled={!!busy} style={outlined} />
       )}
       <ProviderButton icon="logo-google" label="Continue with Google" onPress={() => run('google')} busy={busy === 'google'} disabled={!!busy} style={outlined} />
-      <Link href="/email-auth" asChild>
-        <ProviderButton icon="mail-outline" label="Continue with email" disabled={!!busy} style={outlined} />
-      </Link>
+      <ProviderButton icon="mail-outline" label="Continue with email" onPress={() => router.push('/email-auth')} disabled={!!busy} style={outlined} />
     </View>
   );
 }
