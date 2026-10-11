@@ -13,7 +13,7 @@ import { useTime } from '@/time/TimeProvider';
  *   kaeru://timer/start?activity=Immersion&note=Anime
  *   kaeru://timer/stop
  *   kaeru://timer/toggle?activity=Study
- * Runs the command, then shows the Progress tab.
+ * Runs the command, then shows the Timer tab.
  */
 export default function TimerLink() {
   const db = useSQLiteContext();
@@ -33,7 +33,7 @@ export default function TimerLink() {
       else if (cmd?.kind === 'toggle') await toggleTimer(db, cmd.activity, now, 'shortcut', cmd.note);
       if (cmd) playSound(cmd.kind === 'stop' ? 'stop' : 'start');
       await refresh();
-      router.replace('/progress');
+      router.replace('/timer');
     })();
   }, [db, params, refresh]);
 

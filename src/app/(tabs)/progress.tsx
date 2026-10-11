@@ -1,16 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { File } from 'expo-file-system';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle } from 'react-native-svg';
 import { Flame } from '@/components/Flame';
 import { ForecastChart } from '@/components/ForecastChart';
 import { Mascot } from '@/components/Mascot';
-import { TimerChips } from '@/components/TimerChips';
-import { Button, Card, IconButton, ProgressBar, T } from '@/components/ui';
+import { Button, Card, ProgressBar, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { useToday } from '@/daily/useToday';
 import { getReviewTimes } from '@/db/repo';
@@ -22,58 +19,24 @@ import {
   entryDuration,
   formatClock,
   formatDuration,
-  parseTogglCsv,
+  formatTimeOfDay,
   startOfDay,
   startOfWeek,
   totalsByActivity,
   type Activity,
   type TimeEntry,
 } from '@/time/model';
-import { importEntries } from '@/time/repo';
 import { useTime } from '@/time/TimeProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
 
 const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS_SHOWN = 14;
 
-function timeOfDay(t: number): string {
-  return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-}
-
 function dayLabel(t: number, now: number): string {
   const today = startOfDay(now);
   if (t === today) return 'Today';
   if (t === startOfDay(today - DAY / 2)) return 'Yesterday';
   return new Date(t).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
-}
-
-const HOUR = 60 * 60 * 1000;
-
-/** Big progress ring: fills once per hour of the running timer. */
-function TimerRing({ fraction, color, children }: { fraction: number; color: string; children: React.ReactNode }) {
-  const { colors } = useApp();
-  const size = 220;
-  const r = size / 2 - 14;
-  const c = 2 * Math.PI * r;
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surfaceAlt} strokeWidth={18} fill={colors.surface} />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke={color}
-          strokeWidth={18}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${Math.max(0.01, fraction) * c} ${c}`}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </Svg>
-      <View style={{ alignItems: 'center', paddingHorizontal: spacing.xl }}>{children}</View>
-    </View>
-  );
 }
 
 function Dot({ color, size = 10 }: { color: string; size?: number }) {
@@ -138,13 +101,12 @@ function WeekChart({ entries, activities, now }: { entries: TimeEntry[]; activit
   );
 }
 
-function TimeLog() {
-  const db = useSQLiteContext();
+/** Time tracking stats: totals, the week by activity, and the editable history. */
+function TimeStats() {
   const { colors } = useApp();
-  const { entries, running, activityById, stop, refresh } = useTime();
+  const { entries, running, activityById } = useTime();
   const now = useNow(running ? 1000 : 30_000);
   const [showDays, setShowDays] = useState(HISTORY_DAYS_SHOWN);
-  const [importing, setImporting] = useState(false);
 
   const today = totalsByActivity(entries, startOfDay(now), startOfDay(now) + 2 * DAY, now);
   const week = totalsByActivity(entries, startOfWeek(now), now + DAY, now);
@@ -161,72 +123,14 @@ function TimeLog() {
     return [...groups.entries()].sort((a, b) => b[0] - a[0]);
   }, [entries]);
 
-  const runningActivity = running ? activityById.get(running.activity_id) : undefined;
-
-  const importToggl = async () => {
-    setImporting(true);
-    try {
-      const picked = await File.pickFileAsync({ mimeTypes: ['text/csv', 'text/comma-separated-values', 'text/plain', 'application/octet-stream'] });
-      if (picked.canceled) return;
-      const parsed = parseTogglCsv(await picked.result.text());
-      const added = await importEntries(db, parsed);
-      await refresh();
-      Alert.alert('Import finished', `Added ${added} of ${parsed.length} entries${added < parsed.length ? ' (the rest were already here)' : ''}.`);
-    } catch (e) {
-      Alert.alert('Import failed', e instanceof Error ? e.message : String(e));
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  const more = () =>
-    Alert.alert('Time tracking', undefined, [
-      { text: 'Add a past entry', onPress: () => router.push('/track/entry') },
-      { text: 'Set up iPhone Shortcuts', onPress: () => router.push('/track/shortcuts') },
-      { text: 'Manage activities', onPress: () => router.push('/track/activities') },
-      { text: 'Import from Toggl (CSV)', onPress: importToggl },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-
   return (
     <>
-      <View style={styles.rowBetween}>
-        <T variant="muted" style={{ flex: 1 }}>
-          Immersion & study time. Lessons and reviews log to Study on their own.
+      <View style={[styles.rowBetween, { marginTop: spacing.md }]}>
+        <T variant="title" style={{ fontSize: 24, lineHeight: 30 }}>
+          Time tracking
         </T>
-        <IconButton label="More tracking options" onPress={more}>
-          <Ionicons name="ellipsis-horizontal" size={24} color={colors.textMuted} />
-        </IconButton>
+        <Button label="Timer" kind="ghost" small onPress={() => router.navigate('/timer')} icon={<Ionicons name="timer-outline" size={18} color={colors.accent} />} />
       </View>
-
-      <View style={{ alignItems: 'center', gap: spacing.md }}>
-        {running ? (
-          <>
-            <TimerRing fraction={(entryDuration(running, now) % HOUR) / HOUR} color={runningActivity?.color ?? colors.blue}>
-              <T variant="body" color={runningActivity?.color ?? colors.blue} style={{ fontWeight: '900' }}>
-                {runningActivity?.name ?? 'Tracking'}
-              </T>
-              <T variant="title" style={{ fontSize: 44, lineHeight: 52, fontVariant: ['tabular-nums'] }}>
-                {formatClock(entryDuration(running, now))}
-              </T>
-              <T variant="small" numberOfLines={1}>
-                {running.note ? `${running.note} · ` : ''}since {timeOfDay(running.started_at)}
-              </T>
-            </TimerRing>
-            <Button label="Stop" kind="danger" onPress={stop} style={{ width: 220 }} />
-          </>
-        ) : (
-          <View style={{ alignItems: 'center', gap: spacing.xs }}>
-            <Mascot size={96} mood="sleep" />
-            <T variant="heading">Not tracking</T>
-            <T variant="small" style={{ textAlign: 'center' }}>
-              Tap an activity to start. Starting another one switches over.
-            </T>
-          </View>
-        )}
-      </View>
-
-      <TimerChips />
 
       <View style={styles.row}>
         <Card style={styles.stat}>
@@ -291,7 +195,7 @@ function TimeLog() {
                       {e.note ? <T variant="muted"> · {e.note}</T> : null}
                     </T>
                     <T variant="small">
-                      {timeOfDay(e.started_at)} – {e.ended_at ? timeOfDay(e.ended_at) : 'now'}
+                      {formatTimeOfDay(e.started_at)} – {e.ended_at ? formatTimeOfDay(e.ended_at) : 'now'}
                       {e.source === 'auto' ? ' · in-app study' : e.source === 'shortcut' ? ' · Shortcut' : ''}
                     </T>
                   </View>
@@ -304,7 +208,6 @@ function TimeLog() {
           </Card>
         ))}
         {byDay.length > showDays && <Button label="Show more" kind="ghost" onPress={() => setShowDays(showDays + HISTORY_DAYS_SHOWN)} />}
-        {importing && <T variant="small">Importing…</T>}
       </View>
     </>
   );
@@ -428,55 +331,20 @@ function Overview() {
   );
 }
 
-type Section = 'overview' | 'time';
-
+/** Everything you've done: the overview, then time tracking stats. The timer itself is its own tab. */
 export default function Progress() {
   const insets = useSafeAreaInsets();
   const { colors } = useApp();
-  const params = useLocalSearchParams<{ tab?: string }>();
-  const [chosen, setChosen] = useState<Section | null>(null);
-  // A link to a specific section (e.g. "time" from Today) wins over the last choice.
-  const [linked, setLinked] = useState(params.tab);
-  if (params.tab !== linked) {
-    setLinked(params.tab);
-    setChosen(null);
-  }
-  const section: Section = chosen ?? (params.tab === 'time' ? 'time' : 'overview');
-
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
       <T variant="title">Progress</T>
-      <View style={[styles.segments, { backgroundColor: colors.surfaceAlt }]} accessibilityRole="tablist">
-        {(
-          [
-            ['overview', 'Overview'],
-            ['time', 'Time tracking'],
-          ] as const
-        ).map(([key, label]) => {
-          const active = section === key;
-          return (
-            <Pressable
-              key={key}
-              onPress={() => setChosen(key)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: active }}
-              style={[styles.segment, active && { backgroundColor: colors.surface, borderColor: colors.borderStrong }]}
-            >
-              <T variant="body" color={active ? colors.text : colors.textMuted} style={{ fontWeight: '900' }}>
-                {label}
-              </T>
-            </Pressable>
-          );
-        })}
-      </View>
-      {section === 'overview' ? <Overview /> : <TimeLog />}
+      <Overview />
+      <TimeStats />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  segments: { flexDirection: 'row', borderRadius: 16, padding: 4, gap: 4 },
-  segment: { flex: 1, minHeight: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent', borderBottomWidth: 4 },
   gridRow: { flexDirection: 'row', alignItems: 'center' },
   gridLabel: { width: 76 },
   gridCell: { flex: 1, textAlign: 'center' },

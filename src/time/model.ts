@@ -101,6 +101,11 @@ export function trackingStreak(entries: TimeEntry[], now: number): number {
 }
 
 /** 1:05:09, 12:03 — for a running clock. */
+/** Clock time like "9:02 PM", in the phone's locale. */
+export function formatTimeOfDay(t: number): string {
+  return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
 export function formatClock(ms: number): string {
   const total = Math.floor(ms / 1000);
   const h = Math.floor(total / 3600);

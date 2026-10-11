@@ -61,7 +61,8 @@ export default function TabLayout() {
       <Tabs.Screen name="index" options={{ title: 'Today', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="frog" /> }} />
       <Tabs.Screen name="grammar" options={{ title: 'Grammar', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="train-outline" badge={due} /> }} />
       <Tabs.Screen name="decks" options={{ title: 'Cards', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="albums-outline" /> }} />
-      <Tabs.Screen name="progress" options={{ title: 'Progress', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="stats-chart-outline" dot={runningColor} /> }} />
+      <Tabs.Screen name="timer" options={{ title: 'Timer', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="timer-outline" dot={runningColor} /> }} />
+      <Tabs.Screen name="progress" options={{ title: 'Progress', tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon="stats-chart-outline" /> }} />
     </Tabs>
   );
 }

@@ -102,7 +102,7 @@ export function useToday(): Today {
       if (step === 'learn') open('/lessons');
       else if (step === 'review') open('/review');
       else if (step === 'cards' && l.firstDeck) open({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(l.firstDeck) } });
-      else router.navigate(step === 'cards' ? '/decks' : '/progress');
+      else router.navigate(step === 'cards' ? '/decks' : '/timer');
     },
     [l.firstDeck],
   );

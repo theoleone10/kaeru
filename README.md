@@ -46,9 +46,9 @@ The app is built around one daily routine, shown on the **Today** tab. The routi
 
 Each step shows its progress. One button always takes you to the next step. When a session ends, it offers the next step or a way back to Today. Your streak counts any study: grammar, flashcards or tracked time.
 
-- **Tabs** → Today · Grammar (the train map) · Cards (your Anki decks) · Progress.
-  - Progress's *Overview* shows your streak and a 7-day table of grammar reviews, flashcards and minutes tracked. It also shows each JLPT level's progress and the next 24 hours of reviews.
-  - Progress's *Time tracking* section has the timer and your history.
+- **Tabs** → Today · Grammar (the train map) · Cards (your Anki decks) · Timer · Progress.
+  - Timer is a big start / stop button with the time on the clock: pick an activity, tap Start (picking another while it runs switches over). Its ⋯ menu adds past entries, sets up Shortcuts, manages activities and imports from Toggl.
+  - Progress is all the stats on one page: your streak and a 7-day table of grammar reviews, flashcards and minutes tracked, each JLPT level's progress, the next 24 hours of reviews, then time tracking's totals, 7-day chart and editable history.
 - **Lessons** → you read each new point, then take a quiz.
   - **Size:** the quiz asks 3 different sentences per point. A missed sentence comes back once at the end, and that retry isn't scored.
   - **Passing:** a point passes with at most one miss out of three.
@@ -60,15 +60,15 @@ Each step shows its progress. One button always takes you to the next step. When
 - **SRS** → [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs), retention 0.9, one 10-minute (re)learning step, pass/fail grading (Good/Again). **Undo** restores the card exactly as it was before the answer.
 - **Storage** → SQLite (`src/db/migrations.ts`), fully offline. Settings → Backup file exports/imports everything as JSON.
 - **Time tracking** → a Toggl-style timer (Immersion, Study, or your own activities).
-  - **Where:** start and stop it from the chips on Today, or open Progress → Time tracking for daily and weekly totals, a 7-day chart and editable history.
+  - **Where:** start and stop it on the Timer tab or from the chips on Today; daily and weekly totals, a 7-day chart and editable history are on Progress.
   - **Automatic study time:** lessons, reviews and flashcards log to Study automatically when no timer is running (Settings → Time tracking).
-  - **Toggl import:** you can import past time from a Toggl *Detailed report* CSV (Time tracking → ⋯).
+  - **Toggl import:** you can import past time from a Toggl *Detailed report* CSV (Timer → ⋯).
 - **iOS Shortcuts and Siri** → Kaeru adds *Start Timer*, *Stop Timer* and *Start or Stop Timer* actions (with an activity picker) and Siri phrases such as "Start Immersion in Kaeru". They run without opening the app: each queues a command in `Documents/timer-inbox`, which the app applies with the original time when it's next active, and the app mirrors its activities and running timer to `Documents/timer-state.json` for the actions to read (`src/time/shortcutInbox.ts`). The Swift lives in `plugins/app-intents/` and a config plugin adds it to the app target at build time, so it needs a development or App Store build (not Expo Go) and iOS 16+.
 - **Timer links** → the timer can also be driven by links, so any Shortcut (or Siri, Back Tap, the Action button, a Home Screen icon, or Android automation apps) can start and stop it with an *Open URLs* action:
   - `kaeru://timer/start?activity=Immersion&note=Anime` (starting another activity stops the current one)
   - `kaeru://timer/stop`
   - `kaeru://timer/toggle?activity=Study` (one button to start / stop)
-  Time tracking → ⋯ → *Set up iPhone Shortcuts* lists copyable links. The app opens briefly to record the time.
+  Timer → ⋯ → *Set up iPhone Shortcuts* lists copyable links. The app opens briefly to record the time.
 - **Anki decks** → Cards tab → Import imports an `.apkg` / `.colpkg` exported from Anki with *Include scheduling information* and *Include media*. Both package formats are read (Anki ≤ 2.1.49 and the current zstd/protobuf format). Notes, note types (templates + CSS), decks and subdecks, media, review history and each card's progress come across: if you used FSRS in Anki its memory state is used directly, otherwise stability ≈ current interval and difficulty is estimated from ease. Cards render in a WebView with Anki's template language (fields, conditionals, cloze, furigana/kana/kanji, hint, FrontSide, [sound:]). Reviews use FSRS with Anki's four buttons, 1m/10m learning steps, and per-day new/review limits: defaults in Settings → Anki decks, and each deck's own in its options (⚙︎ on the Cards tab, which can also delete it). Like Anki, a subdeck's own limit still applies when you study its parent. Re-importing a newer export of the same deck updates it; for each card the more recently reviewed copy wins. `{{type:}}` fields show the answer instead of a typing box, and add-on-specific template features aren't supported.
 - **Accounts (optional)** → Supabase Auth. The first launch shows a welcome screen (Apple / Google / email, or *Use without an account*). A signed-in phone uploads the same backup JSON to `user_progress` whenever the app goes to the background; signing in on a phone that already has progress asks which copy to keep. Settings → Account has back up now, sign out and delete account.
 

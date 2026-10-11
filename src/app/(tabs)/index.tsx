@@ -228,7 +228,7 @@ export default function Today() {
               {formatDuration(today.timeTodayMs)} today{goalMs > 0 ? ` of ${formatDuration(goalMs)}` : ''} · lessons and reviews count too
             </T>
           </View>
-          <IconButton label="Open time tracking" onPress={() => router.navigate({ pathname: '/progress', params: { tab: 'time' } })}>
+          <IconButton label="Open the timer" onPress={() => router.navigate('/timer')}>
             <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />
           </IconButton>
         </View>
