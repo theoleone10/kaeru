@@ -4,9 +4,12 @@ import { AppState } from 'react-native';
 import { playSound } from '../sound/sounds';
 import type { Activity, TimeEntry } from './model';
 import { getRunning, listActivities, listEntriesSince, startTimer, stopTimer } from './repo';
+import { drainShortcutInbox, writeShortcutState } from './shortcutInbox';
 
 const HISTORY_DAYS = 120;
 const DAY = 24 * 60 * 60 * 1000;
+/** How often to pick up Shortcuts actions run while the app is open (e.g. Back Tap). */
+const INBOX_POLL_MS = 5000;
 
 interface TimeContextValue {
   activities: Activity[];
@@ -28,20 +31,33 @@ export function TimeProvider({ children }: { children: ReactNode }) {
   const [running, setRunning] = useState<TimeEntry | null>(null);
 
   const refresh = useCallback(async () => {
+    await drainShortcutInbox(db).catch(() => false);
     const [a, e, r] = await Promise.all([listActivities(db), listEntriesSince(db, Date.now() - HISTORY_DAYS * DAY), getRunning(db)]);
     setActivities(a);
     setEntries(e);
     setRunning(r);
+    try {
+      writeShortcutState(a, r);
+    } catch {
+      // Only the Shortcuts actions' activity list and Toggle would be a little stale.
+    }
   }, [db]);
 
   useEffect(() => {
     (async () => {
       await refresh();
     })();
-    // Shortcut links can change the timer while the app was in the background.
+    // Shortcut links and actions can change the timer while the app was in the background.
     const sub = AppState.addEventListener('change', (s) => s === 'active' && refresh());
-    return () => sub.remove();
-  }, [refresh]);
+    // Actions run while the app is open don't change its state, so check for them now and then.
+    const poll = setInterval(async () => {
+      if (AppState.currentState === 'active' && (await drainShortcutInbox(db).catch(() => false))) await refresh();
+    }, INBOX_POLL_MS);
+    return () => {
+      sub.remove();
+      clearInterval(poll);
+    };
+  }, [db, refresh]);
 
   const start = useCallback(
     async (activity: string | number, source = 'timer') => {

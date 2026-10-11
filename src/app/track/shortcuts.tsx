@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Card, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { useTime } from '@/time/TimeProvider';
@@ -39,6 +39,14 @@ function CopyRow({ label, url }: { label: string; url: string }) {
   );
 }
 
+const ACTION_STEPS = [
+  'Open the Shortcuts app, tap +, and search for “Kaeru”.',
+  'Add Start Timer, Stop Timer, or Start or Stop Timer, and pick an activity.',
+  'Rename the shortcut (e.g. “Start immersion”) and add it to your Home Screen, the Action button or Back Tap if you like.',
+];
+
+const SIRI_PHRASES = ['“Start a timer in Kaeru”', '“Start Immersion in Kaeru”', '“Stop the timer in Kaeru”'];
+
 const STEPS = [
   'Open the Shortcuts app and tap + to make a new shortcut.',
   'Add the action “Open URLs” and paste one of the links below.',
@@ -53,8 +61,27 @@ export default function ShortcutsHelp() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+      {Platform.OS === 'ios' && (
+        <Card style={{ gap: spacing.sm }}>
+          <T variant="heading">Kaeru actions</T>
+          <T variant="body">Kaeru adds its own timer actions to Shortcuts and Siri. They work in the background: the app doesn&apos;t open.</T>
+          {ACTION_STEPS.map((s, i) => (
+            <View key={i} style={{ flexDirection: 'row', gap: spacing.sm }}>
+              <T variant="body" style={{ fontWeight: '700', width: 18 }}>
+                {i + 1}.
+              </T>
+              <T variant="body" style={{ flex: 1 }}>
+                {s}
+              </T>
+            </View>
+          ))}
+          <T variant="small">Or just ask Siri, no setup needed: {SIRI_PHRASES.join(', ')}.</T>
+          <T variant="small">The time is recorded when the action runs, and shows up in Kaeru next time you open it.</T>
+        </Card>
+      )}
+
       <Card style={{ gap: spacing.sm }}>
-        <T variant="heading">Set up a shortcut</T>
+        <T variant="heading">{Platform.OS === 'ios' ? 'Or use a link' : 'Set up a shortcut'}</T>
         {STEPS.map((s, i) => (
           <View key={i} style={{ flexDirection: 'row', gap: spacing.sm }}>
             <T variant="body" style={{ fontWeight: '700', width: 18 }}>
