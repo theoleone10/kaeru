@@ -3,7 +3,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Flame } from '@/components/Flame';
 import { ForecastChart } from '@/components/ForecastChart';
 import { Mascot } from '@/components/Mascot';
@@ -295,7 +294,6 @@ function Overview() {
             ))}
           </View>
         ))}
-        <T variant="small">Reviews answered per day, and minutes of tracked time.</T>
       </Card>
 
       <Card style={{ gap: spacing.md }}>
@@ -320,7 +318,6 @@ function Overview() {
               <ProgressBar value={l.learned / l.total} secondary={l.mastered / l.total} color={lines[l.level].line} />
             </Pressable>
           ))}
-        <T variant="small">Bright = learned, green = mastered (next review 3+ weeks away).</T>
       </Card>
 
       <Card style={{ gap: spacing.sm }}>
@@ -331,13 +328,11 @@ function Overview() {
   );
 }
 
-/** Everything you've done: the overview, then time tracking stats. The timer itself is its own tab. */
+/** Everything you've done: the overview, then time tracking stats. Opened from the streak on Today. */
 export default function Progress() {
-  const insets = useSafeAreaInsets();
   const { colors } = useApp();
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
-      <T variant="title">Progress</T>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <Overview />
       <TimeStats />
     </ScrollView>

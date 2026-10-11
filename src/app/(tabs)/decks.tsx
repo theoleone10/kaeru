@@ -12,24 +12,6 @@ import { useApp } from '@/state/AppProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
 
 const COUNT_COLORS = { new: '#2F7FC1', learn: '#C8562F', review: '#2E8B3E' };
-const DECK_TINTS = [
-  { soft: '#E4E8F7', ink: '#2B3A85' },
-  { soft: '#F1E8FB', ink: '#6B3FA0' },
-  { soft: '#E3EFFA', ink: '#1F5F95' },
-  { soft: '#E3F3E6', ink: '#25702F' },
-];
-const DECK_TINTS_DARK = [
-  { soft: '#262C4A', ink: '#AEB9F0' },
-  { soft: '#2C2238', ink: '#C9A8EA' },
-  { soft: '#1D2C3A', ink: '#9CCBF2' },
-  { soft: '#1F3323', ink: '#86D891' },
-];
-
-/** First kanji/kana in the deck name, else its first letter: the deck's badge. */
-function deckGlyph(name: string): string {
-  const cjk = name.match(/[\u3040-\u30ff\u3400-\u9fff]/);
-  return cjk ? cjk[0] : (name.trim()[0] ?? '?').toUpperCase();
-}
 const PHASE_LABEL: Record<ImportPhase, string> = {
   unpacking: 'Unpacking…',
   reading: 'Reading the collection…',
@@ -45,7 +27,7 @@ function Count({ n, color }: { n: number; color: string }) {
 export default function Decks() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const { colors, isDark, settings } = useApp();
+  const { colors, settings } = useApp();
   const [decks, setDecks] = useState<DeckNode[] | null>(null);
   const [progress, setProgress] = useState<{ phase: ImportPhase; fraction: number } | null>(null);
   const { ankiNewPerDay, ankiMaxReviewsPerDay } = settings;
@@ -104,15 +86,11 @@ export default function Decks() {
       { text: 'Cancel', style: 'cancel' },
     ]);
 
-  const totals = (decks ?? []).filter((d) => d.depth === 0).reduce((a, d) => ({ n: a.n + d.newCount, l: a.l + d.learnCount, r: a.r + d.reviewCount }), { n: 0, l: 0, r: 0 });
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.header}>
-        <View>
-          <T variant="title">Flashcards</T>
-          <T variant="muted">Your Anki decks, part of every day</T>
-        </View>
+        <T variant="title">Flashcards</T>
         <Button label="Import" small onPress={importDeck} disabled={!!progress} icon={<Ionicons name="add" size={18} color="#FFFFFF" />} style={{ width: 120 }} />
       </View>
 
@@ -143,24 +121,15 @@ export default function Decks() {
       {decks &&
         decks
           .filter((d) => d.depth === 0)
-          .map((top, i) => {
+          .map((top) => {
             const subs = decks.filter((d) => d.path.startsWith(`${top.path}::`));
             const todo = top.newCount + top.learnCount + top.reviewCount;
-            const tint = (isDark ? DECK_TINTS_DARK : DECK_TINTS)[i % DECK_TINTS.length];
             return (
               <Card key={top.path} style={{ gap: spacing.md }}>
                 <Pressable onLongPress={() => options(top)} accessibilityHint="Long-press for options" style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                  <View style={[styles.deckIcon, { backgroundColor: tint.soft }]}>
-                    <T variant="heading" color={tint.ink} jp style={{ fontSize: 24, lineHeight: 30 }}>
-                      {deckGlyph(top.name)}
-                    </T>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <T variant="heading" numberOfLines={1}>
-                      {top.name}
-                    </T>
-                    <T variant="small">{top.total.toLocaleString()} cards</T>
-                  </View>
+                  <T variant="heading" numberOfLines={1} style={{ flex: 1 }}>
+                    {top.name}
+                  </T>
                   {todo === 0 && <Pill label="✓ Done" tone="green" />}
                   <IconButton label={`Options for ${top.name}`} onPress={() => openLimits(top)}>
                     <Ionicons name="settings-outline" size={20} color={colors.textMuted} />
@@ -199,11 +168,6 @@ export default function Decks() {
             );
           })}
 
-      {decks && decks.length > 0 && (
-        <T variant="small" style={{ textAlign: 'center' }}>
-          Today: {totals.n} new · {totals.l} learning · {totals.r} due. Tap ⚙︎ for a deck’s cards per day or to delete it. Long-press a subdeck for its own options.
-        </T>
-      )}
     </ScrollView>
   );
 }
@@ -213,7 +177,6 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   iconButton: { width: TAP, height: TAP, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   subRow: { flexDirection: 'row', alignItems: 'center', minHeight: 44, gap: spacing.sm, borderTopWidth: 2 },
-  deckIcon: { width: 50, height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: TAP, gap: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'transparent' },
   count: { width: 44, textAlign: 'right', fontSize: 16, fontWeight: '600', fontVariant: ['tabular-nums'] },
   countHead: { width: 44, textAlign: 'right' },

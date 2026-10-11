@@ -166,9 +166,6 @@ export default function Timer() {
           <T variant="heading">{formatDuration(weekTotal)}</T>
         </Card>
       </View>
-      <T variant="small" style={{ textAlign: 'center' }}>
-        Lessons and reviews log to Study on their own. Charts and history are on Progress.
-      </T>
     </ScrollView>
   );
 }

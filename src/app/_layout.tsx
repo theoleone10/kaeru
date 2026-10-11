@@ -60,6 +60,7 @@ function ThemedStack() {
           <Stack.Screen name="review" options={{ headerShown: false }} />
           <Stack.Screen name="grammar/[id]" options={{ title: '' }} />
           <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+          <Stack.Screen name="progress" options={{ title: 'Progress' }} />
           <Stack.Screen name="sign-in" options={{ title: 'Sign in', presentation: 'modal' }} />
           <Stack.Screen name="new-password" options={{ title: 'New password' }} />
           <Stack.Screen name="anki/[deck]" options={{ title: 'Study' }} />

@@ -156,18 +156,18 @@ export default function Today() {
           )}
         </Pressable>
         <View style={styles.topStats}>
-          <View style={styles.topStat} accessibilityLabel={`${streak.days} day streak`}>
+          <Pressable
+            onPress={() => router.push('/progress')}
+            accessibilityRole="button"
+            accessibilityLabel={`${streak.days} day streak. Open progress.`}
+            hitSlop={8}
+            style={({ pressed }) => [styles.topStat, { opacity: pressed ? 0.6 : 1 }]}
+          >
             <Flame color={streak.studiedToday ? '#F08A3C' : colors.textMuted} />
             <T variant="heading" color={streak.studiedToday ? '#D9663D' : colors.textMuted} style={{ fontWeight: '900' }}>
               {streak.days}
             </T>
-          </View>
-          <View style={styles.topStat} accessibilityLabel={`${mastered} grammar points mastered`}>
-            <Ionicons name="star" size={20} color={colors.gold} />
-            <T variant="heading" color={colors.notice} style={{ fontWeight: '900' }}>
-              {mastered}
-            </T>
-          </View>
+          </Pressable>
           <IconButton label="Settings" onPress={() => router.push('/settings')}>
             <Ionicons name="settings-outline" size={22} color={colors.textMuted} />
           </IconButton>
@@ -222,12 +222,9 @@ export default function Today() {
 
       <Card style={{ gap: spacing.md }}>
         <View style={styles.rowBetween}>
-          <View style={{ flex: 1 }}>
-            <T variant="heading">Immersion & study</T>
-            <T variant="small">
-              {formatDuration(today.timeTodayMs)} today{goalMs > 0 ? ` of ${formatDuration(goalMs)}` : ''} · lessons and reviews count too
-            </T>
-          </View>
+          <T variant="heading" style={{ flex: 1 }}>
+            Immersion & study
+          </T>
           <IconButton label="Open the timer" onPress={() => router.navigate('/timer')}>
             <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />
           </IconButton>
@@ -295,7 +292,6 @@ export default function Today() {
               </View>
             ))}
           </View>
-          <T variant="small">Grammar, flashcards and tracked time all keep your streak alive.</T>
         </Card>
       </Pressable>
     </ScrollView>

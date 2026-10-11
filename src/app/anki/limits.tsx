@@ -91,7 +91,12 @@ export default function DeckOptionsScreen() {
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
       <Stack.Screen options={{ title: parts[parts.length - 1] || 'Deck options' }} />
-      {parts.length > 1 && <T variant="small">{path.replaceAll('::', ' › ')}</T>}
+      <View style={styles.row}>
+        <T variant="small" style={{ flex: 1 }}>
+          {parts.length > 1 ? path.replaceAll('::', ' › ') : ''}
+        </T>
+        {total != null && <T variant="heading">{`${total.toLocaleString()} cards`}</T>}
+      </View>
       {limits && (
         <Card style={{ gap: spacing.lg }}>
           <LimitRow
@@ -118,14 +123,7 @@ export default function DeckOptionsScreen() {
         Studying a deck includes its subdecks, and each subdeck’s own limit still applies inside it. Set reviews to 0 to pause a deck’s reviews for now.
       </T>
 
-      <Card style={{ gap: spacing.md }}>
-        <T variant="heading">Delete deck</T>
-        <T variant="small">
-          {total != null && `${total.toLocaleString()} cards, including any subdecks. `}
-          Import the deck from Anki again any time to get it back (progress made in this app since that export is lost).
-        </T>
-        <Button label="Delete deck" kind="danger" onPress={confirmDelete} />
-      </Card>
+      <Button label="Delete deck" kind="danger" onPress={confirmDelete} />
     </ScrollView>
   );
 }

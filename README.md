@@ -46,9 +46,9 @@ The app is built around one daily routine, shown on the **Today** tab. The routi
 
 Each step shows its progress. One button always takes you to the next step. When a session ends, it offers the next step or a way back to Today. Your streak counts any study: grammar, flashcards or tracked time.
 
-- **Tabs** → Today · Grammar (the train map) · Cards (your Anki decks) · Timer · Progress.
+- **Tabs** → Today · Grammar (the train map) · Cards (your Anki decks) · Timer. Tap the streak at the top of Today for Progress.
   - Timer is a big start / stop button with the time on the clock: pick an activity, tap Start (picking another while it runs switches over). Its ⋯ menu adds past entries, sets up Shortcuts, manages activities and imports from Toggl.
-  - Progress is all the stats on one page: your streak and a 7-day table of grammar reviews, flashcards and minutes tracked, each JLPT level's progress, the next 24 hours of reviews, then time tracking's totals, 7-day chart and editable history.
+  - Progress (from the streak on Today) is all the stats on one page: your streak and a 7-day table of grammar reviews, flashcards and minutes tracked, each JLPT level's progress, the next 24 hours of reviews, then time tracking's totals, 7-day chart and editable history.
 - **Lessons** → you read each new point, then take a quiz.
   - **Size:** the quiz asks 3 different sentences per point. A missed sentence comes back once at the end, and that retry isn't scored.
   - **Passing:** a point passes with at most one miss out of three.
