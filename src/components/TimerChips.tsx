@@ -2,15 +2,20 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useApp } from '../state/AppProvider';
+import { useApp, useNow } from '../state/AppProvider';
+import { entryDuration, formatClock } from '../time/model';
 import { useTime } from '../time/TimeProvider';
 import { spacing, TAP } from '../theme/colors';
 import { T } from './ui';
 
-/** One chunky chip per activity: tap to start it (switching over), tap the running one to stop. */
+/**
+ * One chunky chip per activity: tap to start it (switching over), tap the running one to stop.
+ * The running chip shows the time on the clock.
+ */
 export function TimerChips({ showAdd = true }: { showAdd?: boolean }) {
   const { colors } = useApp();
   const { activities, running, start, stop } = useTime();
+  const now = useNow(running ? 1000 : 60_000);
   return (
     <View style={styles.chips}>
       {activities
@@ -38,6 +43,11 @@ export function TimerChips({ showAdd = true }: { showAdd?: boolean }) {
               <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '900' }}>
                 {a.name}
               </T>
+              {active && running && (
+                <T variant="body" color="#FFFFFF" style={{ fontWeight: '900', fontVariant: ['tabular-nums'] }}>
+                  {formatClock(entryDuration(running, now))}
+                </T>
+              )}
             </Pressable>
           );
         })}
@@ -51,7 +61,7 @@ export function TimerChips({ showAdd = true }: { showAdd?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'center' },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: TAP, paddingHorizontal: spacing.lg, borderRadius: 999, borderWidth: 2 },
   addChip: { width: TAP, height: TAP, borderRadius: TAP / 2, borderWidth: 2, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
 });
