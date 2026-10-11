@@ -5,7 +5,7 @@ import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cardDocument, renderCard } from '@/anki/render';
+import { cardContent, renderCard } from '@/anki/render';
 import { answerCard, buildStudyQueue, getStudyCard, LEARN_AHEAD_MS, nextDue, setCardSuspended, undoAnswer, type StudyCard } from '@/anki/repo';
 import { formatInterval, GRADES, previewGrades, State, type AnkiSched } from '@/anki/schedule';
 import { AnkiCardView } from '@/components/AnkiCardView';
@@ -107,9 +107,10 @@ export default function AnkiStudy() {
     };
   }, [db, path, ankiNewPerDay, ankiMaxReviewsPerDay]);
 
+  const studyCard = showing?.card;
   const rendered = useMemo(() => {
-    if (!showing) return null;
-    const { card } = showing;
+    if (!studyCard) return null;
+    const card = studyCard;
     const nt = card.notetype;
     const tmpl = nt.isCloze ? nt.templates[0] : nt.templates[card.card.ord];
     if (!tmpl) return { question: '<p>This card’s template is missing.</p>', answer: '' };
@@ -122,12 +123,12 @@ export default function AnkiStudy() {
       notetype: nt.name,
       cardName: tmpl.name,
     });
-  }, [showing]);
+  }, [studyCard]);
 
   const side = showing?.side;
-  const html = useMemo(() => {
-    if (!showing || !rendered) return '';
-    return cardDocument({
+  const content = useMemo(() => {
+    if (!showing || !rendered) return null;
+    return cardContent({
       body: side === 'question' ? rendered.question : rendered.answer,
       css: showing.card.notetype.css,
       ord: showing.card.card.ord,
@@ -250,7 +251,7 @@ export default function AnkiStudy() {
         ))}
       </View>
 
-      <View style={{ flex: 1 }}>{showing && html ? <AnkiCardView html={html} cardKey={`${showing.card.card.id}-${side}`} /> : null}</View>
+      <View style={{ flex: 1 }}>{content ? <AnkiCardView content={content} /> : null}</View>
 
       <View style={[styles.bar, { paddingBottom: insets.bottom + spacing.md, borderTopColor: colors.border, backgroundColor: colors.background }]}>
         {!showing?.previews ? (

@@ -223,24 +223,45 @@ export interface CardDocOptions {
   autoplay: boolean;
 }
 
-/**
- * A full HTML document for the WebView: Anki's card wrapper and classes, the note type CSS,
- * night mode, and [sound:…] tags turned into replay buttons that autoplay in order.
- */
-export function cardDocument({ body, css, ord, dark, autoplay }: CardDocOptions): string {
+/** One side of a card, ready to drop into the card shell. */
+export interface CardContent {
+  html: string;
+  css: string;
+  htmlClass: string;
+  bodyClass: string;
+  sounds: { src: string; auto: boolean }[];
+}
+
+/** Anki's card wrapper classes and night mode, with [sound:…] tags turned into replay buttons. */
+export function cardContent({ body, css, ord, dark, autoplay }: CardDocOptions): CardContent {
   const sounds: { src: string; auto: boolean }[] = [];
   const html = body.replace(/\[sound(-noauto)?:([^\]]+)\]/g, (_w, noauto: string | undefined, file: string) => {
     const i = sounds.push({ src: file.trim(), auto: !noauto && autoplay }) - 1;
     return `<a class="replay-button soundLink" href="#" onclick="playSound(${i});return false;" aria-label="Play audio"><svg viewBox="0 0 64 64" width="36" height="36"><circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="3"/><path d="M26 20 L46 32 L26 44 Z" fill="currentColor"/></svg></a>`;
   });
-  const night = dark ? 'nightMode night_mode' : '';
+  return {
+    html,
+    css,
+    htmlClass: dark ? 'night-mode' : '',
+    bodyClass: `card card${ord + 1}${dark ? ' nightMode night_mode' : ''}`,
+    sounds,
+  };
+}
+
+/**
+ * The page the card view loads once per study session. Each card side is then swapped in with
+ * kaeruShow(content) instead of loading a new page, so flipping and moving on are instant.
+ * Like Anki, the card's own <script>s are run again after each swap.
+ */
+export function cardShell(): string {
   return `<!doctype html>
-<html class="${dark ? 'night-mode' : ''}"><head>
+<html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <style>
 html, body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
-body { padding: 16px; background: ${dark ? '#141715' : '#FFFFFF'}; color: ${dark ? '#E8EAE6' : '#1F2320'}; }
+body { padding: 16px; background: #FFFFFF; color: #1F2320; }
+html.night-mode body { background: #141715; color: #E8EAE6; }
 .card { font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; font-size: 22px; text-align: center; }
 body.nightMode.card { background-color: #141715; color: #E8EAE6; }
 .cloze { font-weight: bold; color: #3F6E5A; }
@@ -251,24 +272,52 @@ ruby rt { font-size: 0.55em; }
 .typed-answer code { font-size: 1.1em; }
 hr#answer { margin: 16px 0; }
 </style>
-<style>${css}</style>
+<style id="nt"></style>
 </head>
-<body class="card card${ord + 1} ${night}">
-<div id="qa">${html}</div>
+<body class="card">
+<div id="qa"></div>
 <script>
-var sounds = ${JSON.stringify(sounds)};
+var sounds = [];
 var audio = null;
+var shown = 0;
 function playSound(i, then) {
   if (audio) { audio.pause(); }
   audio = new Audio(sounds[i].src);
   audio.onended = then || null;
   audio.play().catch(function () {});
 }
-(function autoplay() {
+window.kaeruShow = function (c) {
+  var me = ++shown;
+  if (audio) { audio.pause(); audio = null; }
+  document.documentElement.className = c.htmlClass;
+  document.body.className = c.bodyClass;
+  var nt = document.getElementById('nt');
+  if (nt.textContent !== c.css) nt.textContent = c.css;
+  var qa = document.getElementById('qa');
+  qa.innerHTML = c.html;
+  Array.prototype.forEach.call(qa.querySelectorAll('script'), function (old) {
+    var s = document.createElement('script');
+    for (var i = 0; i < old.attributes.length; i++) s.setAttribute(old.attributes[i].name, old.attributes[i].value);
+    s.text = old.text;
+    old.parentNode.replaceChild(s, old);
+  });
+  window.scrollTo(0, 0);
+  sounds = c.sounds;
   var queue = sounds.map(function (s, i) { return s.auto ? i : -1; }).filter(function (i) { return i >= 0; });
-  function next() { if (queue.length) playSound(queue.shift(), next); }
+  function next() { if (me === shown && queue.length) playSound(queue.shift(), next); }
   next();
-})();
+};
 </script>
 </body></html>`;
+}
+
+/** JavaScript that shows `content` in the card shell (for injecting into the WebView). */
+export function showScript(content: CardContent): string {
+  // U+2028/2029 are valid in JSON but not in older JS string literals.
+  return `window.kaeruShow(${JSON.stringify(content).replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')});true;`;
+}
+
+/** A standalone page for one card side: the shell with the content already shown. */
+export function cardDocument(content: CardContent): string {
+  return cardShell().replace('</body></html>', `<script>${showScript(content)}</script>\n</body></html>`);
 }

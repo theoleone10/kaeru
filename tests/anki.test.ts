@@ -4,7 +4,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { readCollection, type AnkiCollection } from '@/anki/collection';
 import { unpackPackage } from '@/anki/package';
-import { cardDocument, cloze, clozeNumbers, furigana, kana, kanji, renderCard, stripHtml, type RenderContext } from '@/anki/render';
+import { cardContent, cardDocument, cloze, showScript, clozeNumbers, furigana, kana, kanji, renderCard, stripHtml, type RenderContext } from '@/anki/render';
 import { convertAnkiCard, convertRevlog, difficultyFromEase, formatInterval, previewGrades, createAnkiScheduler, Rating, State } from '@/anki/schedule';
 import { answerCard, buildStudyQueue, deleteDeck, getDeckLimits, getStudyCard, interleave, listDecks, setDeckLimits, takeWithinLimits, undoAnswer } from '@/anki/repo';
 import { saveCollection } from '@/anki/store';
@@ -219,15 +219,31 @@ describe('template rendering', () => {
 
   it('does not replay question audio on the answer side', () => {
     const r = renderCard('{{Front}}', '{{FrontSide}}{{Back}}', ctx({ Front: '[sound:q.mp3]', Back: '[sound:a.mp3]' }));
-    const doc = cardDocument({ body: r.answer, css: '', ord: 0, dark: false, autoplay: true });
-    expect(doc).toContain('[{"src":"q.mp3","auto":false},{"src":"a.mp3","auto":true}]');
-    expect(doc).not.toContain('[sound');
+    const c = cardContent({ body: r.answer, css: '', ord: 0, dark: false, autoplay: true });
+    expect(c.sounds).toEqual([
+      { src: 'q.mp3', auto: false },
+      { src: 'a.mp3', auto: true },
+    ]);
+    expect(c.html).not.toContain('[sound');
   });
 
   it('adds Anki card classes and night mode', () => {
-    const doc = cardDocument({ body: 'x', css: '.card{color:red}', ord: 2, dark: true, autoplay: false });
-    expect(doc).toContain('class="card card3 nightMode night_mode"');
-    expect(doc).toContain('.card{color:red}');
+    const c = cardContent({ body: 'x', css: '.card{color:red}', ord: 2, dark: true, autoplay: false });
+    expect(c.bodyClass).toBe('card card3 nightMode night_mode');
+    expect(c.htmlClass).toBe('night-mode');
+    const doc = cardDocument(c);
+    expect(doc).toContain('window.kaeruShow({"html":"x","css":".card{color:red}"');
+    expect(doc).toContain('<div id="qa"></div>');
+  });
+
+  it('builds a script that is safe to inject for any card text', () => {
+    const c = cardContent({ body: 'a\u2028b</script>"\'', css: '', ord: 0, dark: false, autoplay: false });
+    const js = showScript(c);
+    expect(js).not.toMatch(/[\u2028\u2029]/);
+    // Runs, and hands kaeruShow exactly the content.
+    let got: unknown;
+    new Function('window', js)({ kaeruShow: (x: unknown) => (got = x) });
+    expect(got).toEqual(c);
   });
 
   it('strips HTML for text:', () => {

@@ -156,6 +156,10 @@ const MIGRATIONS: string[] = [
     reviews_per_day INTEGER
   );
   `,
+  `
+  -- New cards in study order per deck, so a session reads each deck's first few without sorting them all.
+  CREATE INDEX idx_anki_cards_new_order ON anki_cards(deck_id, suspended, state, new_position, id);
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

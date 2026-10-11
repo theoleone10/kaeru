@@ -1,41 +1,56 @@
 import { File } from 'expo-file-system';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { ankiMediaDir } from '../anki/importer';
+import { cardShell, showScript, type CardContent } from '../anki/render';
 import { useApp } from '../state/AppProvider';
 
 /**
- * Renders a card document. The HTML is written into the media folder and loaded from
- * there, so relative <img src> / [sound:] / @font-face paths find the deck's media.
+ * Shows card sides in one WebView that stays loaded for the whole session: the card shell
+ * page loads once, then each side is swapped in with JavaScript. (A new WebView per side
+ * meant starting a fresh browser for every flip.) The shell lives in the media folder, so
+ * relative <img src> / [sound:] / @font-face paths find the deck's media.
  */
-export function AnkiCardView({ html, cardKey }: { html: string; cardKey: string }) {
+export function AnkiCardView({ content }: { content: CardContent }) {
   const { colors } = useApp();
-  const { uri, dir, file } = useMemo(() => {
-    const d = ankiMediaDir();
-    const f = new File(d, `__card-${cardKey.replace(/[^a-z0-9-]/gi, '_')}.html`);
-    if (f.exists) f.delete();
-    f.create();
-    f.write(html);
-    return { uri: f.uri, dir: d.uri, file: f };
-  }, [html, cardKey]);
+  const web = useRef<WebView>(null);
+  const loaded = useRef(false);
+  const latest = useRef(content);
+  const [shell] = useState(() => {
+    const dir = ankiMediaDir();
+    const file = new File(dir, '__kaeru-card.html');
+    if (file.exists) file.delete();
+    file.create();
+    file.write(cardShell());
+    return { file, uri: file.uri, dir: dir.uri };
+  });
+
+  useEffect(() => {
+    latest.current = content;
+    if (loaded.current) web.current?.injectJavaScript(showScript(content));
+  }, [content]);
 
   useEffect(
     () => () => {
-      if (file.exists) file.delete();
+      if (shell.file.exists) shell.file.delete();
     },
-    [file],
+    [shell],
   );
 
   return (
     <WebView
-      key={uri + html.length}
-      source={{ uri }}
+      ref={web}
+      source={{ uri: shell.uri }}
+      onLoadEnd={() => {
+        loaded.current = true;
+        web.current?.injectJavaScript(showScript(latest.current));
+      }}
       originWhitelist={['*']}
       allowFileAccess
       allowFileAccessFromFileURLs
       allowUniversalAccessFromFileURLs
-      allowingReadAccessToURL={dir}
+      allowingReadAccessToURL={shell.dir}
       mediaPlaybackRequiresUserAction={false}
       allowsInlineMediaPlayback
       style={[styles.web, { backgroundColor: colors.background }]}

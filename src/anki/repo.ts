@@ -126,41 +126,82 @@ export function takeWithinLimits<C extends { deck: string }>(cards: C[], root: s
   return taken;
 }
 
-/** Every deck and parent deck, with Anki-style new / learning / review counts (including subdecks). */
+/**
+ * How many cards a deck tree gives today with Anki's nested limits: a deck's own cards plus what
+ * each subdeck gives, capped by the deck's own room. This is exactly what takeWithinLimits takes
+ * from the same cards, whatever their order.
+ */
+function nestedCount(path: string, own: Map<string, number>, children: Map<string, string[]>, left: (path: string) => number, memo: Map<string, number>): number {
+  const hit = memo.get(path);
+  if (hit !== undefined) return hit;
+  const sub = (children.get(path) ?? []).reduce((n, c) => n + nestedCount(c, own, children, left, memo), 0);
+  const n = Math.min(left(path), (own.get(path) ?? 0) + sub);
+  memo.set(path, n);
+  return n;
+}
+
+/**
+ * Every deck and parent deck, with Anki-style new / learning / review counts (including
+ * subdecks). Counted per deck in SQL, so it stays quick with tens of thousands of cards.
+ */
 export async function listDecks(db: Db, now: number, defaults: Limits): Promise<DeckNode[]> {
-  const rows = await db.getAllAsync<{ id: number; deck: string; state: number; due: number }>(
-    `SELECT c.id, d.name AS deck, c.state, c.due FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
-     WHERE c.suspended = 0 ORDER BY c.new_position, c.id`,
+  const rows = await db.getAllAsync<{ deck: string; fresh: number; learn: number; review: number; total: number }>(
+    `SELECT d.name AS deck,
+       SUM(c.state = ${State.New}) AS fresh,
+       SUM(c.state IN (${State.Learning}, ${State.Relearning}) AND c.due <= ?) AS learn,
+       SUM(c.state = ${State.Review} AND c.due < ?) AS review,
+       COUNT(*) AS total
+     FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
+     WHERE c.suspended = 0
+     GROUP BY d.name`,
+    now + LEARN_AHEAD_MS,
+    endOfDay(now),
   );
   const paths = new Set<string>();
+  const children = new Map<string, string[]>();
   for (const r of rows) {
     const parts = r.deck.split('::');
-    for (let i = 1; i <= parts.length; i++) paths.add(parts.slice(0, i).join('::'));
+    for (let i = 1; i <= parts.length; i++) {
+      const p = parts.slice(0, i).join('::');
+      if (paths.has(p)) continue;
+      paths.add(p);
+      if (i > 1) {
+        const parent = parts.slice(0, i - 1).join('::');
+        children.set(parent, [...(children.get(parent) ?? []), p]);
+      }
+    }
   }
   const { newLeft, reviewsLeft } = await remainingToday(db, now, defaults);
-  const endToday = endOfDay(now);
-  const fresh = rows.filter((r) => r.state === State.New);
-  const reviews = rows.filter((r) => r.state === State.Review && r.due < endToday).sort((a, b) => a.due - b.due);
-  const nodes: DeckNode[] = [];
-  for (const path of [...paths].sort((a, b) => a.localeCompare(b))) {
-    const inTree = (r: { deck: string }) => inSubtree(r.deck, path);
-    const parts = path.split('::');
-    nodes.push({
-      path,
-      name: parts[parts.length - 1],
-      depth: parts.length - 1,
-      newCount: takeWithinLimits(fresh.filter(inTree), path, newLeft).length,
-      learnCount: rows.filter((r) => inTree(r) && (r.state === State.Learning || r.state === State.Relearning) && r.due <= now + LEARN_AHEAD_MS).length,
-      reviewCount: takeWithinLimits(reviews.filter(inTree), path, reviewsLeft).length,
-      total: rows.filter(inTree).length,
+  const own = (key: 'fresh' | 'review') => new Map(rows.map((r) => [r.deck, r[key]]));
+  const ownNew = own('fresh');
+  const ownReview = own('review');
+  const newMemo = new Map<string, number>();
+  const reviewMemo = new Map<string, number>();
+  const sumTree = (path: string, key: 'learn' | 'total') => rows.filter((r) => inSubtree(r.deck, path)).reduce((n, r) => n + r[key], 0);
+
+  return [...paths]
+    .sort((a, b) => a.localeCompare(b))
+    .map((path) => {
+      const parts = path.split('::');
+      return {
+        path,
+        name: parts[parts.length - 1],
+        depth: parts.length - 1,
+        newCount: nestedCount(path, ownNew, children, newLeft, newMemo),
+        learnCount: sumTree(path, 'learn'),
+        reviewCount: nestedCount(path, ownReview, children, reviewsLeft, reviewMemo),
+        total: sumTree(path, 'total'),
+      };
     });
-  }
-  return nodes;
 }
 
 /**
  * Card ids for a study session, in order: learning cards due now, then reviews due today
  * mixed evenly with today's new cards (Anki's default "mix new with reviews").
+ *
+ * Each deck can give at most `left(path)` cards (every deck's limits include the studied
+ * deck's), and what it gives is always the start of its own list, so only that many are read
+ * per deck instead of every new card in the collection.
  */
 export async function buildStudyQueue(db: Db, path: string, now: number, defaults: Limits): Promise<number[]> {
   const t = subtree(path);
@@ -170,17 +211,24 @@ export async function buildStudyQueue(db: Db, path: string, now: number, default
     now + LEARN_AHEAD_MS,
     ...t.params,
   );
-  const reviews = await db.getAllAsync<{ id: number; deck: string }>(
-    `SELECT c.id, d.name AS deck FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
-     WHERE c.suspended = 0 AND c.state = ${State.Review} AND c.due < ? AND c.${t.sql} ORDER BY c.due`,
-    endOfDay(now),
-    ...t.params,
-  );
-  const fresh = await db.getAllAsync<{ id: number; deck: string }>(
-    `SELECT c.id, d.name AS deck FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
-     WHERE c.suspended = 0 AND c.state = ${State.New} AND c.${t.sql} ORDER BY c.new_position, c.id`,
-    ...t.params,
-  );
+  const decks = await db.getAllAsync<{ id: number; name: string }>('SELECT id, name FROM anki_decks WHERE name = ? OR substr(name, 1, ?) = ?', ...t.params);
+  /** The first `bound` matching cards of each deck (one indexed query per deck), merged in study order. */
+  const firstPerDeck = async (where: string, order: 'due' | 'new_position', bound: number, ...params: number[]) => {
+    if (bound <= 0) return [];
+    const out: { id: number; deck: string; key: number }[] = [];
+    for (const d of decks) {
+      const rows = await db.getAllAsync<{ id: number; key: number }>(
+        `SELECT id, ${order} AS key FROM anki_cards WHERE deck_id = ? AND suspended = 0 AND ${where} ORDER BY ${order}, id LIMIT ?`,
+        d.id,
+        ...params,
+        bound,
+      );
+      for (const r of rows) out.push({ ...r, deck: d.name });
+    }
+    return out.sort((x, y) => x.key - y.key || x.id - y.id);
+  };
+  const reviews = await firstPerDeck(`state = ${State.Review} AND due < ?`, 'due', reviewsLeft(path), endOfDay(now));
+  const fresh = await firstPerDeck(`state = ${State.New}`, 'new_position', newLeft(path));
   return [
     ...learning.map((r) => r.id),
     ...interleave(
