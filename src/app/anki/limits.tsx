@@ -103,7 +103,7 @@ export default function DeckOptionsScreen() {
             label="New cards"
             value={limits.newPerDay}
             fallback={settings.ankiNewPerDay}
-            step={5}
+            step={1}
             min={LIMITS.ankiNewPerDay.min}
             max={LIMITS.ankiNewPerDay.max}
             onChange={(v) => update({ newPerDay: v })}

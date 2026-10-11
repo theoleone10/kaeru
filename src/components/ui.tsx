@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { useApp } from '../state/AppProvider';
 import { fontFor, LIP, radius, spacing, TAP, type Palette } from '../theme/colors';
 
@@ -287,9 +287,19 @@ export function IconButton({ children, onPress, label, tone = 'neutral' }: { chi
   );
 }
 
-/** − value + control for small numeric settings. */
+/**
+ * − value + control for small numeric settings. Without a custom `display`, the number can
+ * also be tapped and typed exactly (clamped to min–max when you finish).
+ */
 export function Stepper({ value, display, onChange, min, max, step = 1 }: { value: number; display?: string; onChange: (v: number) => void; min: number; max: number; step?: number }) {
   const { colors } = useApp();
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = () => {
+    if (draft === null) return;
+    const n = parseInt(draft, 10);
+    setDraft(null);
+    if (Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)));
+  };
   const btn = (label: string, next: number, disabled: boolean) => (
     <Pressable
       onPress={() => onChange(next)}
@@ -306,9 +316,25 @@ export function Stepper({ value, display, onChange, min, max, step = 1 }: { valu
   return (
     <View style={styles.stepper}>
       {btn('−', Math.max(min, value - step), value <= min)}
-      <T variant="body" style={{ minWidth: 56, textAlign: 'center', fontWeight: '600' }}>
-        {display ?? value}
-      </T>
+      {display !== undefined ? (
+        <T variant="body" style={{ minWidth: 56, textAlign: 'center', fontWeight: '600' }}>
+          {display}
+        </T>
+      ) : (
+        <TextInput
+          value={draft ?? String(value)}
+          onChangeText={(t) => setDraft(t.replace(/[^0-9]/g, ''))}
+          onFocus={() => setDraft(String(value))}
+          onEndEditing={commit}
+          onSubmitEditing={commit}
+          keyboardType="number-pad"
+          returnKeyType="done"
+          selectTextOnFocus
+          maxLength={String(max).length}
+          accessibilityLabel={`Value, ${value}. Tap to type a number`}
+          style={[TEXT.body, fontStyle({ fontWeight: '800' }, false), styles.stepInput, { color: colors.text, borderBottomColor: colors.border }]}
+        />
+      )}
       {btn('+', Math.min(max, value + step), value >= max)}
     </View>
   );
@@ -328,5 +354,6 @@ const styles = StyleSheet.create({
   pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   iconButton: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  stepInput: { minWidth: 56, textAlign: 'center', paddingVertical: 4, borderBottomWidth: 2 },
   stepBtn: { width: 44, height: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
 });

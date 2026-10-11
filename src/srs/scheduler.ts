@@ -106,6 +106,34 @@ export function newCard(grammarId: string, level: string, now: number): StoredCa
   } as StoredCard);
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * A point you said you already know (skipped on the map): learned, but suspended so it never
+ * comes up in reviews. If it's put back into reviews later, it starts a month out.
+ * learned_at is 0 ("before you started"), so it doesn't count as today's lesson or as study
+ * on your streak.
+ */
+export function knownCard(grammarId: string, level: string, now: number): StoredCard {
+  return {
+    grammar_id: grammarId,
+    level,
+    due: now + 30 * DAY_MS,
+    stability: 30,
+    difficulty: 3,
+    elapsed_days: 0,
+    // Under 21 days, so it shows as learned rather than mastered.
+    scheduled_days: 14,
+    learning_steps: 0,
+    reps: 1,
+    lapses: 0,
+    state: State.Review,
+    last_review: now,
+    learned_at: 0,
+    suspended: 1,
+  };
+}
+
 export interface GradeInput {
   card: StoredCard;
   correct: boolean;

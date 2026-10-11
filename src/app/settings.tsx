@@ -266,7 +266,7 @@ export default function SettingsScreen() {
 
       <Section label="Flashcards">
         <Row label="New cards per day" detail="Each deck can change this">
-          <Stepper value={settings.ankiNewPerDay} {...LIMITS.ankiNewPerDay} step={5} onChange={(v) => updateSettings({ ankiNewPerDay: v })} />
+          <Stepper value={settings.ankiNewPerDay} {...LIMITS.ankiNewPerDay} onChange={(v) => updateSettings({ ankiNewPerDay: v })} />
         </Row>
         <Row label="Max reviews per day">
           <Stepper value={settings.ankiMaxReviewsPerDay} min={50} max={2000} step={50} onChange={(v) => updateSettings({ ankiMaxReviewsPerDay: v })} />

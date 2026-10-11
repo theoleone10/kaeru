@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { Platform } from 'react-native';
 import type { BackupData, ExampleSeenRow } from '../backup/format';
 import type { ExampleSeen } from '../srs/exampleRotation';
-import { cardBeforeLog, type StoredCard, type StoredLog } from '../srs/scheduler';
+import { cardBeforeLog, knownCard, type StoredCard, type StoredLog } from '../srs/scheduler';
 import type { Activity, TimeEntry } from '../time/model';
 
 const CARD_COLUMNS = [
@@ -162,6 +162,22 @@ export async function saveQuizResults(
       );
     }
   });
+}
+
+/**
+ * Mark grammar points as already known (skipping them on the map): learned, but kept out of
+ * reviews. Points already learned are left alone. Returns how many were added.
+ */
+export async function markKnown(db: SQLiteDatabase, points: readonly { id: string; level: string }[], now = Date.now()): Promise<number> {
+  let added = 0;
+  await transaction(db, async (txn) => {
+    for (const p of points) {
+      if (await txn.getFirstAsync('SELECT grammar_id FROM cards WHERE grammar_id = ?', p.id)) continue;
+      await upsertCard(txn, knownCard(p.id, p.level, now));
+      added++;
+    }
+  });
+  return added;
 }
 
 export async function getExampleSeen(db: SQLiteDatabase, grammarId: string): Promise<Map<string, ExampleSeen>> {

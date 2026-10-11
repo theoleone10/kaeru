@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toKana } from 'wanakana';
 import { Mascot } from '@/components/Mascot';
@@ -9,6 +10,7 @@ import { Button, IconButton, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { LEVELS, type GrammarPoint, type JlptLevel } from '@/content/types';
 import { stationCode, unitsFor, type Station } from '@/content/units';
+import { markKnown } from '@/db/repo';
 import { katakanaToHiragana } from '@/review/normalize';
 import { isMastered } from '@/srs/scheduler';
 import { useApp } from '@/state/AppProvider';
@@ -34,7 +36,7 @@ function matches(p: GrammarPoint, q: string): boolean {
 }
 
 type Status = 'mastered' | 'learned' | 'current' | 'ahead';
-type Row = { kind: 'unit'; unit: number; first: boolean; count: number } | { kind: 'station'; station: Station; status: Status; last: boolean };
+type Row = { kind: 'unit'; unit: number; first: boolean; count: number; points: GrammarPoint[] } | { kind: 'station'; station: Station; status: Status; last: boolean };
 
 /** Round station marker in the Tokyo subway style: line-coloured ring with the station number. */
 function StationMarker({ station, status, line }: { station: Station; status: Status; line: LineColors }) {
@@ -83,7 +85,8 @@ function Track({ solid, color, dots }: { solid: boolean; color: string; dots: st
 
 export default function GrammarMap() {
   const insets = useSafeAreaInsets();
-  const { colors, lines, cardsById } = useApp();
+  const db = useSQLiteContext();
+  const { colors, lines, cardsById, refresh } = useApp();
   const params = useLocalSearchParams<{ level?: string }>();
   const nextGlobal = useMemo(() => curriculum.find((p) => !cardsById.has(p.id)), [cardsById]);
   const [chosen, setLevel] = useState<JlptLevel | null>(null);
@@ -98,7 +101,7 @@ export default function GrammarMap() {
     const currentStation = stations.find((s) => !cardsById.has(s.point.id)) ?? stations[stations.length - 1];
     const out: Row[] = [];
     units.forEach((u, ui) => {
-      out.push({ kind: 'unit', unit: u.number, first: ui === 0, count: u.stations.length });
+      out.push({ kind: 'unit', unit: u.number, first: ui === 0, count: u.stations.length, points: u.stations.map((s) => s.point) });
       u.stations.forEach((s, si) => {
         const card = cardsById.get(s.point.id);
         const status: Status = card ? (isMastered(card) ? 'mastered' : 'learned') : s === currentStation ? 'current' : 'ahead';
@@ -112,6 +115,31 @@ export default function GrammarMap() {
     const q = fold(query.trim());
     return q ? curriculum.filter((p) => matches(p, q)) : [];
   }, [query]);
+
+  const skip = async (points: GrammarPoint[]) => {
+    await markKnown(db, points);
+    await refresh();
+  };
+
+  /** Skip ahead from a unit header: everything before it, or just this unit, becomes known. */
+  const unitOptions = (unit: number, points: GrammarPoint[]) => {
+    const unlearned = (list: readonly GrammarPoint[]) => list.filter((p) => !cardsById.has(p.id));
+    const inUnit = unlearned(points);
+    const firstIndex = curriculum.findIndex((p) => p.id === points[0]?.id);
+    const before = unlearned(curriculum.slice(0, Math.max(0, firstIndex)));
+    const n = (k: number) => `${k} grammar point${k === 1 ? '' : 's'}`;
+    const confirm = (title: string, list: GrammarPoint[]) =>
+      Alert.alert(title, `${n(list.length)} will be marked as known and won't come up in reviews.`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Mark as known', onPress: () => skip(list) },
+      ]);
+    const actions = [
+      ...(before.length > 0 ? [{ text: 'Start from here', onPress: () => confirm(`Skip to ${level} Unit ${unit}?`, before) }] : []),
+      ...(inUnit.length > 0 ? [{ text: 'I know this unit', onPress: () => confirm(`Mark ${level} Unit ${unit} as known?`, inUnit) }] : []),
+    ];
+    if (actions.length === 0) Alert.alert(`${level} Unit ${unit}`, 'Everything up to here is already learned.');
+    else Alert.alert(`${level} Unit ${unit}`, undefined, [...actions, { text: 'Cancel', style: 'cancel' }]);
+  };
 
   const isNextLesson = current && nextGlobal?.id === current.point.id && !cardsById.has(current.point.id);
 
@@ -235,14 +263,21 @@ export default function GrammarMap() {
           renderItem={({ item }) => {
             if (item.kind === 'unit') {
               return (
-                <View style={styles.unitRow}>
+                <Pressable
+                  onPress={() => unitOptions(item.unit, item.points)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Unit ${item.unit}`}
+                  accessibilityHint="Skip to this unit, or mark it as known"
+                  style={({ pressed }) => [styles.unitRow, { opacity: pressed ? 0.6 : 1 }]}
+                >
                   <View style={styles.trackCol}>
                     <View style={[styles.transfer, { borderColor: line.line, backgroundColor: colors.background }]} />
                   </View>
                   <T variant="small" color={line.ink} style={{ flex: 1, fontWeight: '900', letterSpacing: 1 }}>
                     {`UNIT ${item.unit}`}
                   </T>
-                </View>
+                  <Ionicons name="ellipsis-horizontal" size={18} color={colors.textMuted} />
+                </Pressable>
               );
             }
             const { station, status } = item;
