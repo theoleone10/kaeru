@@ -14,7 +14,6 @@ import { NextUp } from '@/components/DayPlan';
 import { Button, T } from '@/components/ui';
 import { playSound } from '@/sound/sounds';
 import { useApp } from '@/state/AppProvider';
-import { useAutoTrack } from '@/time/useAutoTrack';
 import { radius, spacing, TAP } from '@/theme/colors';
 
 const COUNT_COLORS = { new: '#2F7FC1', learn: '#C8562F', review: '#2E8B3E' };
@@ -74,7 +73,6 @@ export default function AnkiStudy() {
   const [session, setSession] = useState<Session | null>(null);
   const [showing, setShowing] = useState<Showing | null>(null);
   const [finished, setFinished] = useState<{ next: number | null } | null>(null);
-  useAutoTrack(showing !== null);
 
   const show = async (s: Session) => {
     const now = clock();

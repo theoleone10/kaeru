@@ -298,6 +298,13 @@ function Overview() {
 /** Everything you've done: the overview, then time tracking stats. Opened from the streak on Today. */
 export default function Progress() {
   const { colors } = useApp();
+  const { refresh } = useTime();
+  // Pick up the latest app time (saved every minute in the background).
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <Overview />

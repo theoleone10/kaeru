@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { migrate } from '@/db/migrations';
 import { AppProvider, useApp } from '@/state/AppProvider';
 import { useCloudSync } from '@/sync/useCloudSync';
+import { useAppTimeTracking } from '@/time/useAppTimeTracking';
 import { TimeProvider } from '@/time/TimeProvider';
 import { FONTS } from '@/theme/colors';
 
@@ -36,6 +37,7 @@ function ThemedStack() {
   const { onboarded } = useAuth();
   useNotificationTaps();
   useCloudSync();
+  useAppTimeTracking();
   const base = isDark ? DarkTheme : DefaultTheme;
   const theme = {
     ...base,

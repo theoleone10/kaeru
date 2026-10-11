@@ -274,7 +274,7 @@ export default function SettingsScreen() {
       </Section>
 
       <Section label="Time tracking">
-        <Row label="Time in-app study" detail="Logged as Study">
+        <Row label="Track time in Kaeru" detail="Counted as Study on Progress">
           <Switch value={settings.autoTrackStudy} onValueChange={(v) => updateSettings({ autoTrackStudy: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>
       </Section>

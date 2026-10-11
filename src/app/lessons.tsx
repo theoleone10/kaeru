@@ -15,7 +15,6 @@ import { saveQuizResults } from '@/db/repo';
 import { lessonsLearnedToday, nextLessonBatch } from '@/srs/lessons';
 import { buildQuiz, cardsFromQuiz, type QuizAnswer, type QuizItem } from '@/srs/quiz';
 import { useApp } from '@/state/AppProvider';
-import { useAutoTrack } from '@/time/useAutoTrack';
 import { spacing, TAP } from '@/theme/colors';
 
 /**
@@ -45,7 +44,6 @@ export default function Lessons() {
   const [step, setStep] = useState<'learn' | 'quiz'>('learn');
   const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
   const [passed, setPassed] = useState<Map<string, boolean> | null>(null);
-  useAutoTrack(step === 'learn');
   const scroll = useRef<ScrollView>(null);
 
   const close = () => {

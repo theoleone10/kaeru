@@ -61,8 +61,10 @@ export default function Timer() {
   const selected = selectedId != null ? activityById.get(selectedId) : undefined;
   const color = selected?.color ?? colors.blue;
 
-  const todayTotal = [...totalsByActivity(entries, startOfDay(now), startOfDay(now) + 2 * DAY, now).values()].reduce((a, b) => a + b, 0);
-  const weekTotal = [...totalsByActivity(entries, startOfWeek(now), now + DAY, now).values()].reduce((a, b) => a + b, 0);
+  // Time with the app open is logged quietly for Progress; the timer only shows time you timed.
+  const timed = entries.filter((e) => e.source !== 'auto');
+  const todayTotal = [...totalsByActivity(timed, startOfDay(now), startOfDay(now) + 2 * DAY, now).values()].reduce((a, b) => a + b, 0);
+  const weekTotal = [...totalsByActivity(timed, startOfWeek(now), now + DAY, now).values()].reduce((a, b) => a + b, 0);
   const elapsed = running ? entryDuration(running, now) : 0;
 
   const choose = (id: number) => {

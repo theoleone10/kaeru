@@ -61,7 +61,7 @@ Each step shows its progress. One button always takes you to the next step. When
 - **Storage** → SQLite (`src/db/migrations.ts`), fully offline. Settings → Backup file exports/imports everything as JSON.
 - **Time tracking** → a Toggl-style timer (Immersion, Study, or your own activities).
   - **Where:** start and stop it on the Timer tab or from the chips on Today; daily and weekly totals, a 7-day chart and editable history are on Progress.
-  - **Automatic study time:** lessons, reviews and flashcards log to Study automatically when no timer is running (Settings → Time tracking).
+  - **Time in Kaeru:** time with the app open logs to Study in the background when no timer is running. It counts on Progress and toward the daily goal, but not in the Timer tab's totals (Settings → Time tracking).
   - **Toggl import:** you can import past time from a Toggl *Detailed report* CSV (Timer → ⋯).
 - **iOS Shortcuts and Siri** → Kaeru adds *Start Timer*, *Stop Timer* and *Start or Stop Timer* actions (with an activity picker) and Siri phrases such as "Start Immersion in Kaeru". They run without opening the app: each queues a command in `Documents/timer-inbox`, which the app applies with the original time when it's next active, and the app mirrors its activities and running timer to `Documents/timer-state.json` for the actions to read (`src/time/shortcutInbox.ts`). The Swift lives in `plugins/app-intents/` and a config plugin adds it to the app target at build time, so it needs a development or App Store build (not Expo Go) and iOS 16+.
 - **Timer links** → the timer can also be driven by links, so any Shortcut (or Siri, Back Tap, the Action button, a Home Screen icon, or Android automation apps) can start and stop it with an *Open URLs* action:
