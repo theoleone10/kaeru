@@ -58,7 +58,7 @@ function Ring({ value, total, size = 64 }: { value: number; total: number; size?
   );
 }
 
-/** What Musubi says: points at the next part of the day. */
+/** What Kaeru says: points at the next part of the day. */
 function nudge(next: Step | null, allDone: boolean): string {
   if (allDone) return 'That’s everything for today. おつかれさま！';
   switch (next?.id) {

@@ -7,6 +7,7 @@ import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { accountLabel, useAuth } from '@/auth/AuthProvider';
 import { exportBackup, pickBackup, restoreBackup } from '@/backup/exportImport';
+import { Mascot } from '@/components/Mascot';
 import { Button, Card, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { LEVELS } from '@/content/types';
@@ -342,8 +343,11 @@ export default function SettingsScreen() {
         )}
       </Card>
 
+      <View style={{ alignItems: 'center' }}>
+        <Mascot size={48} />
+      </View>
       <T variant="small" style={{ textAlign: 'center' }}>
-        Version {Constants.expoConfig?.version ?? '—'}
+        Kaeru {Constants.expoConfig?.version ?? '—'}
       </T>
       <T variant="small" style={{ textAlign: 'center' }}>
         {LEVELS.map((l) => `${l}: ${curriculum.filter((p) => p.level === l).length}`).join(' · ')}
