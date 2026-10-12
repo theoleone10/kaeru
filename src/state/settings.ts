@@ -44,7 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyPlan: true,
   notifyWins: true,
   autoTrackStudy: true,
-  ankiNewPerDay: 20,
+  ankiNewPerDay: 5,
   ankiMaxReviewsPerDay: 200,
   soundEffects: true,
 };
