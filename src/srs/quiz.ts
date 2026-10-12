@@ -1,4 +1,5 @@
 import type { Example, GrammarPoint } from '../content/types';
+import { startOfNextLocalDay } from '../stats/dates';
 import { shuffle, type Rng } from './queue';
 import { gradeCard, newCard, type StoredCard, type StoredLog } from './scheduler';
 
@@ -67,7 +68,8 @@ export function scoreQuiz(pointIds: readonly string[], answers: readonly QuizAns
 
 /**
  * The SRS entry for each quizzed point: a new card graded once with the quiz result
- * (Good if passed, Again if not), logged against the last sentence asked.
+ * (Good if passed, Again if not), logged against the last sentence asked. The lesson and
+ * quiz are today's practice, so the first review is tomorrow at the earliest.
  */
 export function cardsFromQuiz(
   points: readonly GrammarPoint[],
@@ -89,6 +91,7 @@ export function cardsFromQuiz(
       exampleId: last?.exampleId ?? p.examples[0].id,
       answer: 'quiz',
     });
-    return { ...graded, passed };
+    const due = Math.max(graded.card.due, startOfNextLocalDay(now));
+    return { card: { ...graded.card, due }, log: graded.log, passed };
   });
 }

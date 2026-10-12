@@ -12,7 +12,8 @@ import { checkAnswer, isRetry, type CheckResult } from '../review/answerCheck';
 import { convertRomajiInput, finalizeInput } from '../review/kanaInput';
 import { pickExample } from '../srs/exampleRotation';
 import type { QuizAnswer, QuizItem } from '../srs/quiz';
-import { buildQueue, nextDueAt } from '../srs/queue';
+import { startOfNextLocalDay } from '../stats/dates';
+import { nextDueAt, todaysReviews } from '../srs/queue';
 import { gradeCard, type StoredCard } from '../srs/scheduler';
 import { playSound } from '../sound/sounds';
 import { useApp } from '../state/AppProvider';
@@ -33,8 +34,10 @@ interface Current {
 type Phase =
   | { kind: 'loading' }
   | { kind: 'answering'; retry?: Exclude<CheckResult, { kind: 'correct' | 'wrong' | 'empty' }> }
-  | { kind: 'result'; correct: boolean; answer: string; logId: number }
-  | { kind: 'done'; nextDue: number | null };
+  /** `requeued`: a miss that went back on the end of this session's queue. */
+  | { kind: 'result'; correct: boolean; answer: string; logId: number; requeued?: boolean }
+  /** `held`: reviews due today but over the daily maximum. */
+  | { kind: 'done'; nextDue: number | null; held: number };
 
 export interface SessionSummary {
   reviewed: number;
@@ -66,7 +69,7 @@ export function ReviewSession({
   quiz,
 }: {
   onlyIds?: readonly string[];
-  emptyState?: (nextDue: number | null, summary: SessionSummary) => React.ReactNode;
+  emptyState?: (nextDue: number | null, summary: SessionSummary, held: number) => React.ReactNode;
   onFinished?: (summary: SessionSummary) => void;
   /** Extra space below the footer (e.g. when no tab bar sits under it). */
   bottomInset?: number;
@@ -87,6 +90,8 @@ export function ReviewSession({
   const quizQueue = useRef<QuizItem[]>(quiz ? [...quiz.items] : []);
   const quizAnswers = useRef<QuizAnswer[]>([]);
   const quizRef = useRef(quiz);
+  // Read when the queue is built, so changing the setting doesn't restart a session.
+  const maxPerDay = useRef(settings.grammarMaxReviewsPerDay);
   const [quizLeft, setQuizLeft] = useState(quiz?.items.length ?? 0);
 
   const present = useCallback(
@@ -110,7 +115,7 @@ export function ReviewSession({
         if (!item) {
           await quizRef.current.onComplete(quizAnswers.current);
           setCurrent(null);
-          setPhase({ kind: 'done', nextDue: null });
+          setPhase({ kind: 'done', nextDue: null, held: 0 });
           return;
         }
         setCurrent({ point: item.point, example: item.example, retry: item.retry, shownAt: Date.now() });
@@ -122,12 +127,15 @@ export function ReviewSession({
       let q = rest;
       if (q.length === 0) {
         const all = (await getAllCards(db)).filter((c) => getPoint(c.grammar_id));
-        q = buildQueue(all, Date.now(), { onlyIds: onlySet.current });
+        const now = Date.now();
+        const today = todaysReviews(all, now, { maxPerDay: maxPerDay.current, onlyIds: onlySet.current });
+        q = today.queue;
         if (q.length === 0) {
           const pool = onlySet.current ? all.filter((c) => onlySet.current!.has(c.grammar_id)) : all;
           setQueue([]);
           setCurrent(null);
-          setPhase({ kind: 'done', nextDue: nextDueAt(pool, Date.now()) });
+          // Today's set is done, so the next one is on a later day.
+          setPhase({ kind: 'done', nextDue: nextDueAt(pool, startOfNextLocalDay(now) - 1), held: today.held });
           return;
         }
       }
@@ -188,8 +196,11 @@ export function ReviewSession({
       }
       const graded = gradeCard({ card: current.card, correct, now, exampleId: current.example.id, answer, durationMs: now - current.shownAt });
       const logId = await saveReview(db, graded.card, graded.log, correct);
+      // A miss goes to the end, after the other misses, and keeps coming back until it's right.
+      const requeued = !correct;
+      if (requeued) setQueue((q) => [...q, graded.card]);
       setInput(answer);
-      setPhase({ kind: 'result', correct, answer, logId });
+      setPhase({ kind: 'result', correct, answer, logId, requeued });
       setSummary((s) => ({ reviewed: s.reviewed + 1, correct: s.correct + (correct ? 1 : 0) }));
       comboBefore.current = combo;
       setCombo(correct ? combo + 1 : 0);
@@ -212,6 +223,7 @@ export function ReviewSession({
         setCurrent({ ...current, shownAt: Date.now() });
         if (!current.retry) setSummary((s) => ({ reviewed: s.reviewed - 1, correct: s.correct - (phase.correct ? 1 : 0) }));
       } else {
+        if (phase.requeued) setQueue((q) => q.slice(0, -1));
         const restored = await undoReview(db, phase.logId);
         if (restored) setCurrent({ ...current, card: restored, shownAt: Date.now() });
         setSummary((s) => ({ reviewed: s.reviewed - 1, correct: s.correct - (phase.correct ? 1 : 0) }));
@@ -244,7 +256,7 @@ export function ReviewSession({
 
   if (phase.kind === 'loading') return <View style={{ flex: 1, backgroundColor: colors.background }} />;
   if (phase.kind === 'done' || !current) {
-    return <View style={{ flex: 1, backgroundColor: colors.background }}>{emptyState?.(phase.kind === 'done' ? phase.nextDue : null, summary)}</View>;
+    return <View style={{ flex: 1, backgroundColor: colors.background }}>{emptyState?.(phase.kind === 'done' ? phase.nextDue : null, summary, phase.kind === 'done' ? phase.held : 0)}</View>;
   }
 
   const { example, point } = current;

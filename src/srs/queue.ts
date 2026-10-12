@@ -1,7 +1,5 @@
-import { State, type StoredCard } from './scheduler';
-
-/** Learning/relearning cards due within this window are pulled forward when nothing else is due. */
-export const LEARN_AHEAD_MS = 20 * 60 * 1000;
+import { startOfLocalDay, startOfNextLocalDay } from '../stats/dates';
+import type { StoredCard } from './scheduler';
 
 export type Rng = () => number;
 
@@ -18,27 +16,43 @@ export function isDue(card: StoredCard, now: number): boolean {
   return !card.suspended && card.due <= now;
 }
 
+export interface DailyReviews {
+  /** Today's reviews still to do: fresh ones (shuffled), then today's misses in the order they were missed. */
+  queue: StoredCard[];
+  /** Cards reviewed today and finished (scheduled for another day). */
+  done: number;
+  /** Cards due today held back by the daily maximum. */
+  held: number;
+}
+
 /**
- * Build a review queue: everything due now, learning cards first, the rest shuffled so
- * the order itself can't become a cue. If nothing is due, pull in (re)learning cards due
- * within the learn-ahead window so a short session can finish its misses.
- * `onlyIds` restricts the queue (used by the post-lesson quiz).
+ * Today's grammar reviews, Anki-style: the set is fixed for the day. It's every card due
+ * before midnight, up to `maxPerDay` (most overdue first). A miss stays in today's set
+ * (its short relearning step keeps it due today) until it's answered right. Points
+ * learned today aren't in it: their first review is tomorrow.
+ * `onlyIds` restricts it to some points.
  */
-export function buildQueue(
+export function todaysReviews(
   cards: readonly StoredCard[],
   now: number,
-  { onlyIds, rng = Math.random }: { onlyIds?: ReadonlySet<string>; rng?: Rng } = {},
-): StoredCard[] {
-  const pool = cards.filter((c) => !c.suspended && (!onlyIds || onlyIds.has(c.grammar_id)));
-  const due = pool.filter((c) => c.due <= now);
-  if (due.length > 0) {
-    const learning = due.filter((c) => c.state === State.Learning || c.state === State.Relearning);
-    const rest = due.filter((c) => c.state !== State.Learning && c.state !== State.Relearning);
-    return [...shuffle(learning, rng), ...shuffle(rest, rng)];
-  }
-  return pool
-    .filter((c) => (c.state === State.Learning || c.state === State.Relearning) && c.due <= now + LEARN_AHEAD_MS)
-    .sort((a, b) => a.due - b.due);
+  { maxPerDay, onlyIds, rng = Math.random }: { maxPerDay: number; onlyIds?: ReadonlySet<string>; rng?: Rng },
+): DailyReviews {
+  const dayStart = startOfLocalDay(now);
+  const dayEnd = startOfNextLocalDay(now);
+  const pool = cards.filter((c) => !c.suspended && c.learned_at < dayStart && (!onlyIds || onlyIds.has(c.grammar_id)));
+  const touched = (c: StoredCard) => c.last_review != null && c.last_review >= dayStart;
+  const dueToday = pool.filter((c) => c.due < dayEnd);
+  const misses = dueToday.filter(touched).sort((a, b) => a.last_review! - b.last_review!);
+  const fresh = dueToday.filter((c) => !touched(c)).sort((a, b) => a.due - b.due);
+  const done = pool.filter((c) => touched(c) && c.due >= dayEnd).length;
+  const slots = Math.max(0, maxPerDay - done - misses.length);
+  const today = fresh.slice(0, slots);
+  return { queue: [...shuffle(today, rng), ...misses], done, held: fresh.length - today.length };
+}
+
+/** How many grammar reviews are left today (what a session started now would hold). */
+export function reviewCount(cards: readonly StoredCard[], now: number, maxPerDay: number): number {
+  return todaysReviews(cards, now, { maxPerDay }).queue.length;
 }
 
 /** Earliest future due time among active cards, or null. */

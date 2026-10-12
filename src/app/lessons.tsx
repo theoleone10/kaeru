@@ -127,7 +127,7 @@ export default function Lessons() {
                 subtitle={
                   shaky.length === 0
                     ? `${batch.map((p) => p.title).join(' and ')} ${batch.length === 1 ? 'is' : 'are'} in your reviews now. First review in a couple of days.`
-                    : `Added to your reviews. ${shaky.map((p) => p.title).join(' and ')} needs another look, so it comes back in 10 minutes.`
+                    : `Added to your reviews. ${shaky.map((p) => p.title).join(' and ')} needs another look, so it comes up first in tomorrow’s reviews.`
                 }
                 confetti={shaky.length === 0}
                 sound="lesson"

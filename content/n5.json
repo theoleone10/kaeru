@@ -4816,15 +4816,15 @@
         },
         {
           "id": "n5-adverbs-ku-ni-5",
-          "japanese": "田中さんは速く走ります。",
-          "furigana": "{田中|たなか}さんは{速|はや}く{走|はし}ります。",
+          "japanese": "田中さんは早く走ります。",
+          "furigana": "{田中|たなか}さんは{早|はや}く{走|はし}ります。",
           "english": "Tanaka-san runs fast.",
-          "cloze_target": "速く",
+          "cloze_target": "早く",
           "accepted_answers": [
-            "速く",
+            "早く",
             "はやく"
           ],
-          "hint": "速い (fast) → adverb"
+          "hint": "早い (fast) → adverb"
         }
       ]
     },

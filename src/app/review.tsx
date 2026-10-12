@@ -9,15 +9,17 @@ import { T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { spacing, TAP } from '@/theme/colors';
 
-function formatNext(ts: number | null): string {
+function formatNext(ts: number | null, held: number): string {
+  if (held > 0) return `That’s today’s maximum. ${held === 1 ? '1 more review waits' : `${held} more reviews wait`} for tomorrow.`;
   if (ts === null) return 'No reviews scheduled yet.';
   const d = new Date(ts);
-  const sameDay = d.toDateString() === new Date().toDateString();
-  const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  return `Next review ${sameDay ? 'today' : d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at ${time}.`;
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (d.toDateString() === tomorrow.toDateString()) return 'Next reviews tomorrow.';
+  return `Next reviews ${d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })}.`;
 }
 
-/** Grammar reviews: everything due, then on to the rest of today's plan. */
+/** Grammar reviews: today's set, misses at the end until they're right, then on to the rest of the plan. */
 export default function Review() {
   const insets = useSafeAreaInsets();
   const { colors } = useApp();
@@ -34,11 +36,11 @@ export default function Review() {
       </View>
       <ReviewSession
         bottomInset={insets.bottom}
-        emptyState={(nextDue, summary) =>
+        emptyState={(nextDue, summary, held) =>
           summary.reviewed > 0 ? (
             <Celebration
               title="Reviews done!"
-              subtitle={formatNext(nextDue)}
+              subtitle={formatNext(nextDue, held)}
               confetti={summary.correct / summary.reviewed >= 0.8}
               sound="reviews"
               stats={[
@@ -49,7 +51,7 @@ export default function Review() {
               <NextUp from="review" />
             </Celebration>
           ) : (
-            <Celebration title="All caught up" subtitle={formatNext(nextDue)} mood="sleep">
+            <Celebration title="All caught up" subtitle={formatNext(nextDue, held)} mood="sleep">
               <NextUp from="review" />
             </Celebration>
           )

@@ -232,11 +232,6 @@ export async function getReviewTimes(db: Pick<SQLiteDatabase, 'getAllAsync'>, si
   return { grammar: rows.filter((r) => r.k === 'g').map((r) => r.t), cards: rows.filter((r) => r.k === 'c').map((r) => r.t) };
 }
 
-export async function getReviewCountSince(db: SQLiteDatabase, since: number): Promise<number> {
-  const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM review_logs WHERE reviewed_at >= ?', since);
-  return row?.n ?? 0;
-}
-
 // ---------- key/value ----------
 
 export async function getKv(db: SQLiteDatabase, table: 'settings' | 'meta'): Promise<Record<string, unknown>> {

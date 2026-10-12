@@ -3,9 +3,9 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { ankiToday } from '../anki/repo';
 import { curriculum } from '../content/loader';
-import { getActivityTimes, getReviewCountSince } from '../db/repo';
+import { getActivityTimes } from '../db/repo';
 import { lessonsLearnedToday } from '../srs/lessons';
-import { startOfLocalDay } from '../stats/dates';
+import { todaysReviews } from '../srs/queue';
 import { computeStreak } from '../stats/streak';
 import { useApp, useNow } from '../state/AppProvider';
 import { startOfDay, totalsByActivity } from '../time/model';
@@ -19,7 +19,6 @@ interface Loaded {
   cardsDue: number;
   cardsReviewedToday: number;
   firstDeck: string | null;
-  grammarReviewedToday: number;
   activity: number[];
 }
 
@@ -56,12 +55,11 @@ export function useToday(): Today {
   // Reload whenever the screen comes into focus, or progress changes while it's open.
   const load = useCallback(async () => {
     const t = Date.now();
-    const [anki, grammarReviewedToday, activity] = await Promise.all([
+    const [anki, activity] = await Promise.all([
       ankiToday(db, t, { newPerDay: ankiNewPerDay, reviewsPerDay: ankiMaxReviewsPerDay }),
-      getReviewCountSince(db, startOfLocalDay(t)),
       getActivityTimes(db, t - 400 * DAY),
     ]);
-    setLoaded({ decks: anki.decks, cardsDue: anki.due, cardsReviewedToday: anki.reviewed, firstDeck: anki.firstDeck, grammarReviewedToday, activity });
+    setLoaded({ decks: anki.decks, cardsDue: anki.due, cardsReviewedToday: anki.reviewed, firstDeck: anki.firstDeck, activity });
     // `cards` and `entries` are deliberate triggers: they change after every study step.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, ankiNewPerDay, ankiMaxReviewsPerDay, cards, entries]);
@@ -77,9 +75,10 @@ export function useToday(): Today {
     cards.map((c) => c.learned_at),
     now,
   );
-  const grammarDue = cards.filter((c) => !c.suspended && c.due <= now).length;
+  const grammar = todaysReviews(cards, now, { maxPerDay: settings.grammarMaxReviewsPerDay });
+  const grammarDue = grammar.queue.length;
   const timeTodayMs = [...totalsByActivity(entries, startOfDay(now), startOfDay(now) + 2 * DAY, now).values()].reduce((a, b) => a + b, 0);
-  const l = loaded ?? { decks: 0, cardsDue: 0, cardsReviewedToday: 0, firstDeck: null, grammarReviewedToday: 0, activity: [] };
+  const l = loaded ?? { decks: 0, cardsDue: 0, cardsReviewedToday: 0, firstDeck: null, activity: [] };
 
   const plan = dailyPlan({
     newGoal: settings.dailyNewGrammar,
@@ -88,7 +87,7 @@ export function useToday(): Today {
     nextTitles: unlearned.slice(0, settings.dailyNewGrammar).map((p) => p.title),
     grammarCards: cards.length,
     grammarDue,
-    grammarReviewedToday: l.grammarReviewedToday,
+    grammarReviewedToday: grammar.done,
     decks: l.decks,
     cardsDue: l.cardsDue,
     cardsReviewedToday: l.cardsReviewedToday,
@@ -102,6 +101,9 @@ export function useToday(): Today {
       if (step === 'learn') open('/lessons');
       else if (step === 'review') open('/review');
       else if (step === 'cards' && l.firstDeck) open({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(l.firstDeck) } });
+      // A tab: from a finished session, close it rather than stacking the tabs on top of it
+      // (which would leave the session one swipe back).
+      else if (how === 'replace') router.dismissTo(step === 'cards' ? '/decks' : '/timer');
       else router.navigate(step === 'cards' ? '/decks' : '/timer');
     },
     [l.firstDeck],
@@ -116,7 +118,7 @@ export function useToday(): Today {
     learnedToday,
     cardsDue: l.cardsDue,
     cardsReviewedToday: l.cardsReviewedToday,
-    grammarReviewedToday: l.grammarReviewedToday,
+    grammarReviewedToday: grammar.done,
     timeTodayMs,
     firstDeck: l.firstDeck,
     loaded: loaded !== null,

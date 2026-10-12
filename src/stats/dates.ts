@@ -12,6 +12,13 @@ export function startOfLocalDay(ts: number): number {
   return d.getTime();
 }
 
+/** Local midnight at the start of the next day (DST-safe). */
+export function startOfNextLocalDay(ts: number): number {
+  const d = new Date(startOfLocalDay(ts));
+  d.setDate(d.getDate() + 1);
+  return d.getTime();
+}
+
 /** Same local clock time on the previous calendar day (DST-safe). */
 export function previousDay(ts: number): number {
   const d = new Date(ts);

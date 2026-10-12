@@ -1,6 +1,6 @@
 import { migrate } from '@/db/migrations';
 import { getActivityTimes, getAllCards, markKnown, setSuspended } from '@/db/repo';
-import { buildQueue } from '@/srs/queue';
+import { todaysReviews } from '@/srs/queue';
 import { lessonsLearnedToday } from '@/srs/lessons';
 import { gradeCard, isMastered, State } from '@/srs/scheduler';
 import { openNodeDb } from './helpers/nodeDb';
@@ -22,7 +22,7 @@ describe('markKnown', () => {
       expect(isMastered(c)).toBe(false);
     }
     // Never due, even long after.
-    expect(buildQueue(cards, NOW + 400 * DAY)).toHaveLength(0);
+    expect(todaysReviews(cards, NOW + 400 * DAY, { maxPerDay: 100 }).queue).toHaveLength(0);
   });
 
   it("doesn't use up today's lessons or count as study", async () => {
@@ -47,7 +47,7 @@ describe('markKnown', () => {
     await markKnown(db, points.slice(0, 1), NOW);
     await setSuspended(db, 'p0', false);
     const [card] = await getAllCards(db);
-    expect(buildQueue([card], card.due)).toHaveLength(1);
+    expect(todaysReviews([card], card.due, { maxPerDay: 100 }).queue).toHaveLength(1);
     const later = card.due;
     const pass = gradeCard({ card, correct: true, now: later, exampleId: 'e', answer: 'x' });
     expect(pass.card.due).toBeGreaterThan(later + 7 * DAY);

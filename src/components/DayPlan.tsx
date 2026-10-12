@@ -120,10 +120,10 @@ export function NextUp({ from }: { from: StepId }) {
             icon={<Ionicons name={stepMeta(colors, next.id).icon} size={20} color="#FFFFFF" />}
             onPress={() => goTo(next.id, 'replace')}
           />
-          <Button label="Back to Today" kind="ghost" onPress={() => router.navigate('/')} />
+          <Button label="Back to Today" kind="ghost" onPress={() => router.dismissTo('/')} />
         </>
       ) : (
-        <Button label="Back to Today" onPress={() => router.navigate('/')} />
+        <Button label="Back to Today" onPress={() => router.dismissTo('/')} />
       )}
     </View>
   );

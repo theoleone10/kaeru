@@ -3,6 +3,8 @@ export type ThemePreference = 'system' | 'light' | 'dark';
 export interface Settings {
   /** New grammar points per day: one lesson + quiz covers them all. */
   dailyNewGrammar: number;
+  /** Most grammar reviews in a day; the rest wait for the next day. */
+  grammarMaxReviewsPerDay: number;
   /** Daily immersion/study time goal in minutes (0 = no goal). */
   dailyTimeGoalMin: number;
   furigana: boolean;
@@ -28,6 +30,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   dailyNewGrammar: 2,
+  grammarMaxReviewsPerDay: 100,
   dailyTimeGoalMin: 30,
   furigana: true,
   romajiInput: true,
@@ -48,6 +51,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const LIMITS = {
   dailyNewGrammar: { min: 1, max: 5 },
+  grammarMaxReviewsPerDay: { min: 10, max: 500 },
   dailyTimeGoalMin: { min: 0, max: 480 },
   minReminderGapHours: { min: 1, max: 12 },
   ankiNewPerDay: { min: 0, max: 200 },
@@ -64,6 +68,8 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
 
   const daily = num('dailyNewGrammar');
   if (daily !== undefined) s.dailyNewGrammar = clamp(daily, LIMITS.dailyNewGrammar.min, LIMITS.dailyNewGrammar.max);
+  const gmax = num('grammarMaxReviewsPerDay');
+  if (gmax !== undefined) s.grammarMaxReviewsPerDay = clamp(gmax, LIMITS.grammarMaxReviewsPerDay.min, LIMITS.grammarMaxReviewsPerDay.max);
   const goal = num('dailyTimeGoalMin');
   if (goal !== undefined) s.dailyTimeGoalMin = clamp(goal, LIMITS.dailyTimeGoalMin.min, LIMITS.dailyTimeGoalMin.max);
   const gap = num('minReminderGapHours');

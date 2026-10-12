@@ -5,6 +5,7 @@ import { State } from '@/srs/scheduler';
 import { getActivityTimes, getAllCards, getExampleSeen, saveQuizResults } from '@/db/repo';
 import { migrate } from '@/db/migrations';
 import type { GrammarPoint } from '@/content/types';
+import { startOfNextLocalDay } from '@/stats/dates';
 import { openNodeDb } from './helpers/nodeDb';
 
 const MIN = 60 * 1000;
@@ -90,12 +91,12 @@ describe('quiz', () => {
     expect(scores.get('b')).toEqual({ asked: 3, correct: 1, passed: false });
   });
 
-  it('puts passed points on a normal interval and missed ones back in learning', () => {
+  it('puts passed points on a normal interval and missed ones back in learning, from tomorrow', () => {
     const [a, b] = cardsFromQuiz([point('a'), point('b')], [answer('a', true), answer('b', false)], NOW);
     expect(a.card.state).toBe(State.Review);
     expect(a.card.due).toBeGreaterThanOrEqual(NOW + DAY);
     expect(b.card.state).toBe(State.Learning);
-    expect(b.card.due).toBe(NOW + 10 * MIN);
+    expect(b.card.due).toBe(startOfNextLocalDay(NOW));
     expect(a.card.learned_at).toBe(NOW);
   });
 

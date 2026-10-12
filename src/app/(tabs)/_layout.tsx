@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router/js-tabs';
 import { StyleSheet, View } from 'react-native';
 import { Logo } from '@/components/Mascot';
 import { T } from '@/components/ui';
+import { reviewCount } from '@/srs/queue';
 import { useApp, useNow } from '@/state/AppProvider';
 import { useTime } from '@/time/TimeProvider';
 
@@ -33,10 +34,10 @@ function TabIcon({ focused, icon, badge, dot }: { focused: boolean; icon: IconNa
 }
 
 export default function TabLayout() {
-  const { colors, cards } = useApp();
+  const { colors, cards, settings } = useApp();
   const { running, activityById } = useTime();
   const now = useNow();
-  const due = cards.filter((c) => !c.suspended && c.due <= now).length;
+  const due = reviewCount(cards, now, settings.grammarMaxReviewsPerDay);
   const runningColor = running ? (activityById.get(running.activity_id)?.color ?? colors.blue) : undefined;
 
   return (

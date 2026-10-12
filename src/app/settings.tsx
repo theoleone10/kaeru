@@ -231,6 +231,14 @@ export default function SettingsScreen() {
         <Row label="New grammar per day">
           <Stepper value={settings.dailyNewGrammar} {...LIMITS.dailyNewGrammar} onChange={(v) => updateSettings({ dailyNewGrammar: v })} />
         </Row>
+        <Row label="Max grammar reviews per day" detail="Extra due reviews wait for tomorrow">
+          <Stepper
+            value={settings.grammarMaxReviewsPerDay}
+            {...LIMITS.grammarMaxReviewsPerDay}
+            step={10}
+            onChange={(v) => updateSettings({ grammarMaxReviewsPerDay: v })}
+          />
+        </Row>
         <Row label="Daily time goal">
           <Stepper
             value={settings.dailyTimeGoalMin}

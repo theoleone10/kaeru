@@ -1,13 +1,16 @@
-import { buildQueue, LEARN_AHEAD_MS, nextDueAt, shuffle } from '@/srs/queue';
-import { newCard, State, type StoredCard } from '@/srs/scheduler';
+import { nextDueAt, reviewCount, shuffle, todaysReviews } from '@/srs/queue';
+import { gradeCard, newCard, State, type StoredCard } from '@/srs/scheduler';
+import { startOfNextLocalDay } from '@/stats/dates';
 import { pickExample, type ExampleSeen } from '@/srs/exampleRotation';
 import type { Example } from '@/content/types';
 
 const NOW = Date.UTC(2026, 0, 1, 12);
 const MIN = 60 * 1000;
+const HOUR = 60 * MIN;
+const DAY = 24 * HOUR;
 
 function card(id: string, due: number, state = State.Review, suspended = 0): StoredCard {
-  return { ...newCard(id, 'N5', NOW - 100 * MIN), due, state, suspended };
+  return { ...newCard(id, 'N5', NOW - 30 * DAY), due, state, suspended, last_review: NOW - 10 * DAY };
 }
 
 function seededRng(seed = 1) {
@@ -17,32 +20,61 @@ function seededRng(seed = 1) {
   };
 }
 
-describe('buildQueue', () => {
-  it('includes only due, unsuspended cards', () => {
-    const q = buildQueue([card('a', NOW - 1), card('b', NOW + MIN), card('c', NOW - 1, State.Review, 1), card('d', NOW)], NOW);
-    expect(q.map((c) => c.grammar_id).sort()).toEqual(['a', 'd']);
-  });
+describe('todaysReviews', () => {
+  const opts = { maxPerDay: 100, rng: seededRng() };
+  const ids = (q: StoredCard[]) => q.map((c) => c.grammar_id);
+  const TOMORROW = startOfNextLocalDay(NOW);
 
-  it('puts learning cards before review cards', () => {
-    const q = buildQueue(
-      [card('r1', NOW - 1), card('l1', NOW - 1, State.Learning), card('r2', NOW - 1), card('l2', NOW - 1, State.Relearning)],
+  it('is every unsuspended card due before midnight, not just due right now', () => {
+    const q = todaysReviews(
+      [card('a', NOW - DAY), card('later', NOW + 3 * HOUR), card('tmrw', TOMORROW), card('off', NOW - 1, State.Review, 1)],
       NOW,
-      { rng: seededRng() },
-    );
-    expect(q.slice(0, 2).map((c) => c.grammar_id).sort()).toEqual(['l1', 'l2']);
+      opts,
+    ).queue;
+    expect(ids(q).sort()).toEqual(['a', 'later']);
   });
 
-  it('learns ahead only (re)learning cards when nothing is due', () => {
-    const q = buildQueue(
-      [card('soon', NOW + 5 * MIN, State.Learning), card('rev', NOW + 5 * MIN, State.Review), card('far', NOW + LEARN_AHEAD_MS + 1, State.Learning)],
-      NOW,
-    );
-    expect(q.map((c) => c.grammar_id)).toEqual(['soon']);
+  it("leaves out points learned today: their first review is tomorrow", () => {
+    const fresh = { ...card('new', NOW - 1, State.Learning), learned_at: NOW - HOUR };
+    expect(todaysReviews([fresh], NOW, opts).queue).toHaveLength(0);
+    expect(todaysReviews([fresh], TOMORROW + HOUR, opts).queue).toHaveLength(1);
   });
 
-  it('restricts to onlyIds (lesson quiz)', () => {
-    const q = buildQueue([card('a', NOW), card('b', NOW)], NOW, { onlyIds: new Set(['b']) });
-    expect(q.map((c) => c.grammar_id)).toEqual(['b']);
+  it("doesn't grow during the day: a right answer leaves the set, a miss stays", () => {
+    const cards = [card('a', NOW - 1), card('b', NOW - 1), card('c', NOW + HOUR)];
+    expect(todaysReviews(cards, NOW, opts).queue).toHaveLength(3);
+    const right = gradeCard({ card: cards[0], correct: true, now: NOW, exampleId: 'e', answer: '' }).card;
+    const miss = gradeCard({ card: cards[1], correct: false, now: NOW + MIN, exampleId: 'e', answer: '' }).card;
+    const after = todaysReviews([right, miss, cards[2]], NOW + 2 * MIN, opts);
+    expect(ids(after.queue)).toEqual(['c', 'b']);
+    expect(after.done).toBe(1);
+    // Later today the count is the same: nothing new comes due mid-day.
+    expect(todaysReviews([right, miss, cards[2]], NOW + 5 * HOUR, opts).queue).toHaveLength(2);
+  });
+
+  it('puts misses at the end, in the order they were missed', () => {
+    const missed = (id: string, at: number) => ({ ...card(id, NOW + 10 * MIN, State.Relearning), last_review: at });
+    const q = todaysReviews([missed('m2', NOW - MIN), card('x', NOW - 1), missed('m1', NOW - 2 * MIN), card('y', NOW - 1)], NOW, opts).queue;
+    expect(ids(q).slice(2)).toEqual(['m1', 'm2']);
+    expect(ids(q.slice(0, 2)).sort()).toEqual(['x', 'y']);
+  });
+
+  it('caps the day at maxPerDay, most overdue first, counting what was already done', () => {
+    const cards = [card('old', NOW - 3 * DAY), card('mid', NOW - DAY), card('new', NOW - 1)];
+    const t = todaysReviews(cards, NOW, { ...opts, maxPerDay: 2 });
+    expect(ids(t.queue).sort()).toEqual(['mid', 'old']);
+    expect(t.held).toBe(1);
+    const doneOne = { ...card('done', TOMORROW + DAY), last_review: NOW - HOUR };
+    expect(ids(todaysReviews([...cards, doneOne], NOW, { ...opts, maxPerDay: 2 }).queue)).toEqual(['old']);
+  });
+
+  it('reviewCount matches the queue', () => {
+    const cards = [card('a', NOW - 1), card('b', NOW + HOUR), card('c', TOMORROW)];
+    expect(reviewCount(cards, NOW, 100)).toBe(2);
+  });
+
+  it('restricts to onlyIds', () => {
+    expect(ids(todaysReviews([card('a', NOW), card('b', NOW)], NOW, { ...opts, onlyIds: new Set(['b']) }).queue)).toEqual(['b']);
   });
 });
 
