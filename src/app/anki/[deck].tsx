@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { deleteNote } from '@/anki/notes';
 import { cardContent, renderCard } from '@/anki/render';
 import { answerCard, buildStudyQueue, getStudyCard, LEARN_AHEAD_MS, nextDue, setCardSuspended, undoAnswer, type StudyCard } from '@/anki/repo';
 import { formatInterval, GRADES, previewGrades, State, type AnkiSched } from '@/anki/schedule';
@@ -105,6 +106,30 @@ export default function AnkiStudy() {
     };
   }, [db, path, ankiNewPerDay, ankiMaxReviewsPerDay]);
 
+  // Coming back from editing or deleting the card: show its new version, or move on.
+  const latest = useRef({ showing, session });
+  useEffect(() => {
+    latest.current = { showing, session };
+  }, [showing, session]);
+  const left = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (left.current) {
+        const { showing: cur, session: s } = latest.current;
+        if (cur && s) {
+          getStudyCard(db, cur.card.card.id).then((fresh) => {
+            if (!fresh) show(s);
+            else setShowing((sh) => (sh && sh.card.card.id === fresh.card.id ? { ...sh, card: fresh } : sh));
+          });
+        }
+      }
+      return () => {
+        left.current = true;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [db]),
+  );
+
   const studyCard = showing?.card;
   const rendered = useMemo(() => {
     if (!studyCard) return null;
@@ -184,6 +209,23 @@ export default function AnkiStudy() {
     if (!showing || !session) return;
     Alert.alert('Card', undefined, [
       ...(session.history.length ? [{ text: 'Undo last answer', onPress: undo }] : []),
+      { text: 'Edit card', onPress: () => router.push({ pathname: '/anki/note', params: { note: String(showing.card.card.note_id) } }) },
+      {
+        text: 'Delete note',
+        style: 'destructive' as const,
+        onPress: () =>
+          Alert.alert('Delete this note?', 'Its cards and your progress on them are deleted. This can’t be undone.', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Delete',
+              style: 'destructive',
+              onPress: async () => {
+                await deleteNote(db, showing.card.card.note_id);
+                await show({ ...session, queue: session.queue.filter((id) => id !== showing.card.card.id) });
+              },
+            },
+          ]),
+      },
       {
         text: 'Suspend card',
         onPress: async () => {

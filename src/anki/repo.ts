@@ -147,12 +147,11 @@ function nestedCount(path: string, own: Map<string, number>, children: Map<strin
 export async function listDecks(db: Db, now: number, defaults: Limits): Promise<DeckNode[]> {
   const rows = await db.getAllAsync<{ deck: string; fresh: number; learn: number; review: number; total: number }>(
     `SELECT d.name AS deck,
-       SUM(c.state = ${State.New}) AS fresh,
-       SUM(c.state IN (${State.Learning}, ${State.Relearning}) AND c.due <= ?) AS learn,
-       SUM(c.state = ${State.Review} AND c.due < ?) AS review,
-       COUNT(*) AS total
-     FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
-     WHERE c.suspended = 0
+       TOTAL(c.state = ${State.New}) AS fresh,
+       TOTAL(c.state IN (${State.Learning}, ${State.Relearning}) AND c.due <= ?) AS learn,
+       TOTAL(c.state = ${State.Review} AND c.due < ?) AS review,
+       COUNT(c.id) AS total
+     FROM anki_decks d LEFT JOIN anki_cards c ON c.deck_id = d.id AND c.suspended = 0
      GROUP BY d.name`,
     now + LEARN_AHEAD_MS,
     endOfDay(now),
@@ -339,7 +338,7 @@ export async function deleteDeck(db: Db, path: string): Promise<void> {
   await transaction(db as SQLiteDatabase, async (txn) => {
     await txn.runAsync(`DELETE FROM anki_cards WHERE ${t.sql}`, ...t.params);
     await txn.runAsync('DELETE FROM anki_deck_limits WHERE path = ? OR substr(path, 1, ?) = ?', ...t.params);
-    await txn.runAsync(`DELETE FROM anki_decks WHERE id NOT IN (SELECT DISTINCT deck_id FROM anki_cards)`);
+    await txn.runAsync('DELETE FROM anki_decks WHERE name = ? OR substr(name, 1, ?) = ?', ...t.params);
     await txn.runAsync('DELETE FROM anki_notes WHERE id NOT IN (SELECT DISTINCT note_id FROM anki_cards)');
     await txn.runAsync('DELETE FROM anki_notetypes WHERE id NOT IN (SELECT DISTINCT notetype_id FROM anki_notes)');
   });

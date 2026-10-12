@@ -123,6 +123,61 @@ export function convertAnkiCard(c: AnkiCardRow, crtSec: number, now: number): An
   };
 }
 
+/** FSRS difficulty → SM-2 ease (permille): the inverse of difficultyFromEase. */
+export function easeFromDifficulty(difficulty: number): number {
+  return Math.round(1300 + ((10 - clamp(difficulty, 1, 10)) * 1700) / 7);
+}
+
+/** An Anki `cards` row's scheduling columns. */
+export interface AnkiCardSched {
+  type: number;
+  queue: number;
+  due: number;
+  ivl: number;
+  factor: number;
+  left: number;
+  data: string;
+}
+
+/**
+ * The inverse of convertAnkiCard, for exporting: FSRS state → Anki's columns, with the
+ * memory state in card.data so Anki (with FSRS on) picks up exactly where this app left off.
+ * `crtSec` is the exported collection's creation time; review dues are days from it.
+ */
+export function toAnkiCard(s: AnkiSched, crtSec: number, now: number): AnkiCardSched {
+  const day = (ms: number) => Math.floor((ms - crtSec * 1000) / DAY);
+  // s/d: FSRS memory state; lrt: last review (unix seconds), which newer Anki keeps alongside it.
+  const memory = JSON.stringify({
+    s: Math.round(s.stability * 10000) / 10000,
+    d: Math.round(s.difficulty * 10000) / 10000,
+    ...(s.last_review ? { lrt: Math.floor(s.last_review / 1000) } : {}),
+  });
+  const queueOr = (q: number) => (s.suspended ? -1 : q);
+  if (s.state === State.New) {
+    return { type: 0, queue: queueOr(0), due: s.new_position, ivl: 0, factor: 0, left: 0, data: '' };
+  }
+  const factor = easeFromDifficulty(s.difficulty);
+  if (s.state === State.Review) {
+    return { type: 2, queue: queueOr(2), due: day(s.due), ivl: Math.max(1, s.scheduled_days), factor, left: 0, data: memory };
+  }
+  // (Re)learning: intraday steps are due as epoch seconds; anything a day or more away by day number.
+  const intraday = s.due - now < DAY;
+  return {
+    type: s.state === State.Relearning ? 3 : 1,
+    queue: queueOr(intraday ? 1 : 3),
+    due: intraday ? Math.floor(s.due / 1000) : day(s.due),
+    ivl: s.state === State.Relearning ? Math.max(1, Math.round(s.stability)) : 0,
+    factor,
+    left: 1001,
+    data: memory,
+  };
+}
+
+/** Kaeru review history → Anki revlog type (0 learn, 1 review, 2 relearn). */
+export function ankiRevlogType(prevState: number): number {
+  return prevState === State.Review ? 1 : prevState === State.Relearning ? 2 : 0;
+}
+
 /** Anki revlog rows worth keeping as history: real answers only (not manual reschedules). */
 export function convertRevlog(r: AnkiRevlogRow): { reviewed_at: number; rating: Grade; duration_ms: number; prev_state: State } | null {
   if (r.ease < 1 || r.ease > 4 || r.type === 4 || r.type === 5) return null;

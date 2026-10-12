@@ -1,12 +1,14 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { cleanDeckPath, renameDeck } from '@/anki/notes';
+import { exportDeck } from '@/anki/exporter';
 import { deleteDeck, getDeckLimits, setDeckLimits, type DeckLimits } from '@/anki/repo';
 import { Button, Section, Stepper, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { LIMITS } from '@/state/settings';
-import { spacing, TAP } from '@/theme/colors';
+import { radius, spacing, TAP } from '@/theme/colors';
 
 /** One limit: the deck's own value, or the default from Settings until it's changed. */
 function LimitRow({
@@ -46,10 +48,15 @@ export default function DeckOptionsScreen() {
   const { colors, settings } = useApp();
   const { deck } = useLocalSearchParams<{ deck: string }>();
   const path = decodeURIComponent(deck ?? '');
+  const [name, setName] = useState(path);
   const [limits, setLimits] = useState<DeckLimits | null>(null);
   const [total, setTotal] = useState<number | null>(null);
 
-  useEffect(() => {
+  const [exporting, setExporting] = useState(false);
+
+  // On focus, so the card count is right after adding cards from here.
+  useFocusEffect(
+    useCallback(() => {
     let alive = true;
     getDeckLimits(db, path).then((l) => alive && setLimits(l));
     db.getFirstAsync<{ n: number }>(
@@ -61,7 +68,19 @@ export default function DeckOptionsScreen() {
     return () => {
       alive = false;
     };
-  }, [db, path]);
+  }, [db, path]),
+  );
+
+  const doExport = async () => {
+    setExporting(true);
+    try {
+      await exportDeck(db, path);
+    } catch (e) {
+      Alert.alert('Export failed', e instanceof Error ? e.message : String(e));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const update = (patch: Partial<DeckLimits>) => {
     if (!limits) return;
@@ -87,6 +106,18 @@ export default function DeckOptionsScreen() {
       ],
     );
 
+  const rename = async () => {
+    try {
+      const to = await renameDeck(db, path, name);
+      setName(to);
+      router.setParams({ deck: encodeURIComponent(to) });
+    } catch (e) {
+      Alert.alert('Could not rename the deck', e instanceof Error ? e.message : String(e));
+      setName(path);
+    }
+  };
+  const renamed = cleanDeckPath(name) !== '' && cleanDeckPath(name) !== path;
+
   const parts = path.split('::');
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl }}>
@@ -97,6 +128,25 @@ export default function DeckOptionsScreen() {
         </T>
         {total != null && <T variant="heading">{`${total.toLocaleString()} cards`}</T>}
       </View>
+      <Section label="Name">
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          onSubmitEditing={() => renamed && rename()}
+          returnKeyType="done"
+          autoCorrect={false}
+          accessibilityLabel="Deck name"
+          style={[styles.input, { color: colors.text, backgroundColor: colors.surfaceAlt }]}
+        />
+        {renamed ? (
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <Button label="Cancel" kind="ghost" small onPress={() => setName(path)} style={{ flex: 1 }} />
+            <Button label="Rename" small onPress={rename} style={{ flex: 1 }} />
+          </View>
+        ) : (
+          <T variant="small">Subdecks move with it. Use :: to put it inside another deck.</T>
+        )}
+      </Section>
       {limits && (
         <Section label="Per day">
           <LimitRow
@@ -120,6 +170,12 @@ export default function DeckOptionsScreen() {
         </Section>
       )}
 
+      <Section label="Cards">
+        <Button label="Add cards" onPress={() => router.push({ pathname: '/anki/note', params: { deck: encodeURIComponent(path) } })} />
+        <Button label="Export as Anki deck" kind="secondary" onPress={doExport} loading={exporting} disabled={total === 0} />
+        <T variant="small">An .apkg with your progress, review history and media. Opens in Anki, AnkiMobile and AnkiDroid, or import it back here.</T>
+      </Section>
+
       <Button label="Delete deck" kind="danger" onPress={confirmDelete} />
     </ScrollView>
   );
@@ -127,4 +183,5 @@ export default function DeckOptionsScreen() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: TAP },
+  input: { minHeight: TAP, borderRadius: radius.md, paddingHorizontal: spacing.md, fontSize: 17 },
 });

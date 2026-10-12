@@ -4,6 +4,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { exportDeck } from '@/anki/exporter';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { deleteDeck, listDecks, type DeckNode } from '@/anki/repo';
 import { Mascot } from '@/components/Mascot';
@@ -62,10 +63,29 @@ export default function Decks() {
   };
 
   const openLimits = (d: DeckNode) => router.push({ pathname: '/anki/limits', params: { deck: encodeURIComponent(d.path) } });
+  const addCards = (path?: string) => router.push({ pathname: '/anki/note', params: path ? { deck: encodeURIComponent(path) } : {} });
+
+  const doExport = async (d: DeckNode) => {
+    try {
+      await exportDeck(db, d.path);
+    } catch (e) {
+      Alert.alert('Export failed', e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const addMenu = () =>
+    Alert.alert('Flashcards', undefined, [
+      ...((decks?.length ?? 0) > 0 ? [{ text: 'Add cards', onPress: () => addCards() }] : []),
+      { text: 'New deck', onPress: () => router.push('/anki/new-deck') },
+      { text: 'Import an Anki deck', onPress: importDeck },
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
 
   const options = (d: DeckNode) =>
     Alert.alert(d.path, `${d.total} cards`, [
-      { text: 'Deck options', onPress: () => openLimits(d) },
+      { text: 'Add cards', onPress: () => addCards(d.path) },
+      ...(d.total > 0 ? [{ text: 'Export as Anki deck', onPress: () => doExport(d) }] : []),
+      { text: 'Rename or deck options', onPress: () => openLimits(d) },
       {
         text: 'Delete deck',
         style: 'destructive',
@@ -96,7 +116,7 @@ export default function Decks() {
         <T variant="title" style={{ fontSize: 32, lineHeight: 38 }}>
           Flashcards
         </T>
-        <IconButton label="Import an Anki deck" onPress={importDeck}>
+        <IconButton label="Add cards, a new deck, or import" onPress={addMenu}>
           <Ionicons name="add" size={26} color={colors.textMuted} />
         </IconButton>
       </View>
@@ -113,7 +133,7 @@ export default function Decks() {
           <View style={styles.frog}>
             <Mascot size={84} mood="happy" bounce />
             <T variant="heading" style={{ flex: 1, fontWeight: '900' }}>
-              Bring your Anki decks
+              Make cards, or bring your Anki decks
             </T>
           </View>
           <Section label="How">
@@ -135,6 +155,7 @@ export default function Decks() {
             ))}
           </Section>
           <Button label="Import a deck" onPress={importDeck} />
+          <Button label="Start a new deck" kind="secondary" onPress={() => router.push('/anki/new-deck')} />
         </View>
       )}
 
