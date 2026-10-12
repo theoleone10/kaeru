@@ -155,11 +155,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteAccount = useCallback(async () => {
+    // Signed in with Apple: revoke the app's access to the Apple ID first (App Store
+    // guideline 5.1.1(v)). That needs a fresh authorization code, so Apple asks once more.
+    const user = session?.user;
+    const usedApple = user?.app_metadata?.provider === 'apple' || (user?.app_metadata?.providers as string[] | undefined)?.includes('apple');
+    if (usedApple && Platform.OS === 'ios' && (await AppleAuthentication.isAvailableAsync())) {
+      let code: string | null;
+      try {
+        code = (await AppleAuthentication.signInAsync({ requestedScopes: [] })).authorizationCode;
+      } catch (e) {
+        if (e && typeof e === 'object' && 'code' in e && e.code === 'ERR_REQUEST_CANCELED') throw new Error('Deleting was cancelled. Confirm with Apple to delete your account.');
+        throw e;
+      }
+      if (code) {
+        // A failed revoke shouldn't keep someone from deleting their account.
+        const { error } = await client().functions.invoke('revoke-apple', { body: { authorizationCode: code } });
+        if (error) console.warn('Apple revoke failed', error);
+      }
+    }
     // Server-side function removes the auth user; cloud progress cascades with it.
     const { error } = await client().rpc('delete_account');
     fail(error);
     await client().auth.signOut({ scope: 'local' });
-  }, []);
+  }, [session]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

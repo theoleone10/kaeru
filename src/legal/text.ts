@@ -14,7 +14,7 @@ const contact = supportEmail ? `email ${supportEmail}` : 'use the contact detail
 
 export const privacyPolicy: LegalDoc = {
   title: 'Privacy Policy',
-  updated: '29 September 2026',
+  updated: '12 October 2026',
   sections: [
     {
       heading: 'Summary',
@@ -34,7 +34,7 @@ export const privacyPolicy: LegalDoc = {
     },
     {
       heading: 'Deleting your data',
-      body: 'Settings → Account → Delete account permanently deletes your account and the progress stored with it. Progress stored only on your phone is removed when you delete the app.',
+      body: 'Settings → Account & backup → Delete account permanently deletes your account and the progress stored with it. If you signed in with Apple, it also revokes Kaeru’s access to your Apple ID. Progress stored only on your phone is removed when you delete the app.',
     },
     {
       heading: 'Children',

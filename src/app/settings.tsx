@@ -94,7 +94,7 @@ function AccountCard({ fileRows }: { fileRows: React.ReactNode }) {
   const confirmDelete = () =>
     Alert.alert(
       'Delete your account?',
-      'This permanently deletes your account and the progress backed up to it. Progress on this phone is kept. This cannot be undone.',
+      `This permanently deletes your account and the progress backed up to it. Progress on this phone is kept. This cannot be undone.${user.app_metadata?.provider === 'apple' ? ' Apple will ask you to confirm.' : ''}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -231,7 +231,7 @@ export default function SettingsScreen() {
         <Row label="New grammar per day">
           <Stepper value={settings.dailyNewGrammar} {...LIMITS.dailyNewGrammar} onChange={(v) => updateSettings({ dailyNewGrammar: v })} />
         </Row>
-        <Row label="Max grammar reviews per day" detail="Extra due reviews wait for tomorrow">
+        <Row label="Max grammar reviews per day">
           <Stepper
             value={settings.grammarMaxReviewsPerDay}
             {...LIMITS.grammarMaxReviewsPerDay}
