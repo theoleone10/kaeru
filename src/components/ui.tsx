@@ -141,6 +141,15 @@ export function buttonColors(colors: Palette, kind: ButtonKind): { bg: string; l
   }
 }
 
+/** A #RRGGBB colour darkened by `amount` (0–1), for a button's lip. */
+export function darken(hex: string, amount = 0.25): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = (shift: number) => Math.round(((n >> shift) & 255) * (1 - amount));
+  return `#${[16, 8, 0].map((s) => ch(s).toString(16).padStart(2, '0')).join('')}`;
+}
+
 /**
  * Chunky 3D button: a coloured face on a darker lip that presses down when tapped.
  * Labels are uppercase and extra-bold, like a game button.
@@ -156,6 +165,7 @@ export function Button({
   icon,
   small,
   sound,
+  color,
 }: {
   label: string;
   onPress: () => void;
@@ -168,9 +178,11 @@ export function Button({
   accessibilityHint?: string;
   icon?: ReactNode;
   small?: boolean;
+  /** A custom face colour (with white text and a darker lip), e.g. a timer's colour. */
+  color?: string;
 }) {
   const { colors } = useApp();
-  const c = buttonColors(colors, kind);
+  const c = color ? { bg: color, lip: darken(color), fg: '#FFFFFF' } : buttonColors(colors, kind);
   const height = small ? 40 : TAP;
   const lip = kind === 'ghost' ? 0 : small ? 3 : LIP;
   return (

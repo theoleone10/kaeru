@@ -60,10 +60,9 @@ export default function Timer() {
   const selected = selectedId != null ? activityById.get(selectedId) : undefined;
   const color = selected?.color ?? colors.blue;
 
-  // Time with the app open is logged quietly for Progress; the timer only shows time you timed.
-  const timed = entries.filter((e) => e.source !== 'auto');
   // Totals for the selected timer only: today and the past 7 days (today included).
-  const week = dailyTotals(timed, 7, now);
+  // Time in the app is logged to Study, so it counts there too.
+  const week = dailyTotals(entries, 7, now);
   const of = (d: (typeof week)[number] | undefined) => (selectedId != null ? (d?.byActivity.get(selectedId) ?? 0) : 0);
   const todayTotal = of(week[week.length - 1]);
   const weekTotal = week.reduce((s, d) => s + of(d), 0);
@@ -155,6 +154,7 @@ export default function Timer() {
         <Button
           label={running ? 'Stop' : selected ? `Start ${selected.name}` : 'Start'}
           kind={running ? 'danger' : 'success'}
+          color={running ? undefined : selected?.color}
           onPress={toggle}
           disabled={!running && !selected}
           icon={<Ionicons name={running ? 'stop' : 'play'} size={22} color="#FFFFFF" />}
