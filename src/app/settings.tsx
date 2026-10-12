@@ -78,7 +78,7 @@ function AccountCard({ fileRows }: { fileRows: React.ReactNode }) {
   const syncNow = () => run('sync', () => uploadProgress(db, user.id), 'Backup failed');
 
   const confirmSignOut = () =>
-    Alert.alert('Sign out?', 'Your progress stays on this phone. Sign in again any time to keep backing it up.', [
+    Alert.alert('Sign out?', 'Your progress stays on this phone. Log in again any time to keep backing it up.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign out',

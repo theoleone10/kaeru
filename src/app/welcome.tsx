@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Redirect, router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LegalNote, SignInOptions } from '@/components/SignInOptions';
 import { Mascot } from '@/components/Mascot';
 import { Button, T } from '@/components/ui';
 import { useAuth } from '@/auth/AuthProvider';
@@ -11,14 +11,18 @@ import { spacing } from '@/theme/colors';
 const FEATURES: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
   { icon: 'library-outline', text: 'Over 400 grammar points from JLPT N5 to N1' },
   { icon: 'repeat-outline', text: 'Spaced-repetition reviews with fill-in-the-blank sentences' },
-  { icon: 'cloud-done-outline', text: 'Sign in to back up progress and continue on another phone' },
+  { icon: 'albums-outline', text: 'Bring your Anki decks and study them alongside' },
+  { icon: 'time-outline', text: 'Track your study time against a daily goal' },
 ];
 
-/** First-launch screen. Signing in is optional: the whole app works without an account. */
+/** First-launch screen: set up a new account, or log in to an existing one. */
 export default function Welcome() {
   const { colors } = useApp();
-  const { finishOnboarding } = useAuth();
+  const { returning } = useAuth();
   const insets = useSafeAreaInsets();
+
+  // Logged out of an account: straight to logging in, no setup.
+  if (returning) return <Redirect href="/login" />;
 
   return (
     <ScrollView
@@ -47,9 +51,8 @@ export default function Welcome() {
       </View>
 
       <View style={{ gap: spacing.md }}>
-        <SignInOptions onSignedIn={finishOnboarding} />
-        <Button label="Use without an account" kind="ghost" onPress={finishOnboarding} accessibilityHint="Progress is kept on this phone only" />
-        <LegalNote />
+        <Button label="Get started" onPress={() => router.push('/setup')} />
+        <Button label="I already have an account" kind="secondary" onPress={() => router.push('/login')} />
       </View>
     </ScrollView>
   );

@@ -1,4 +1,4 @@
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useAuth } from '@/auth/AuthProvider';
@@ -12,7 +12,8 @@ import { radius, spacing, TAP } from '@/theme/colors';
 export default function EmailAuth() {
   const { colors } = useApp();
   const { signInWithEmail, signUpWithEmail, sendPasswordReset, finishOnboarding, onboarded } = useAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const [mode, setMode] = useState<'signin' | 'signup'>(params.mode === 'signup' ? 'signup' : 'signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);

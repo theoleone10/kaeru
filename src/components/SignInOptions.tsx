@@ -8,8 +8,11 @@ import { useApp } from '../state/AppProvider';
 import { radius, spacing, TAP } from '../theme/colors';
 import { T } from './ui';
 
-/** Apple, Google and email sign-in buttons. Calls `onSignedIn` after a successful sign-in. */
-export function SignInOptions({ onSignedIn }: { onSignedIn: () => void }) {
+/**
+ * Apple, Google and email sign-in buttons. Calls `onSignedIn` after a successful sign-in.
+ * `newAccount` opens the email screen on creating an account rather than signing in.
+ */
+export function SignInOptions({ onSignedIn, newAccount = false }: { onSignedIn: () => void; newAccount?: boolean }) {
   const { colors, isDark } = useApp();
   const { signInWithApple, signInWithGoogle } = useAuth();
   const [busy, setBusy] = useState<'apple' | 'google' | null>(null);
@@ -47,7 +50,7 @@ export function SignInOptions({ onSignedIn }: { onSignedIn: () => void }) {
         <ProviderButton icon="logo-apple" label="Continue with Apple" onPress={() => run('apple')} busy={busy === 'apple'} disabled={!!busy} style={outlined} />
       )}
       <ProviderButton icon="logo-google" label="Continue with Google" onPress={() => run('google')} busy={busy === 'google'} disabled={!!busy} style={outlined} />
-      <ProviderButton icon="mail-outline" label="Continue with email" onPress={() => router.push('/email-auth')} disabled={!!busy} style={outlined} />
+      <ProviderButton icon="mail-outline" label="Continue with email" onPress={() => router.push(newAccount ? { pathname: '/email-auth', params: { mode: 'signup' } } : '/email-auth')} disabled={!!busy} style={outlined} />
     </View>
   );
 }
@@ -77,6 +80,24 @@ function ProviderButton({
     >
       <Ionicons name={icon} size={20} color={colors.text} />
       <Text style={[styles.label, { color: colors.text }]}>{busy ? 'Signing in…' : label}</Text>
+    </Pressable>
+  );
+}
+
+/** The quiet way past signing in: a text link, so it doesn't compete with the sign-in buttons. */
+export function NoAccountLink({ onPress }: { onPress: () => void }) {
+  const { colors } = useApp();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityHint="Progress is kept on this phone only"
+      hitSlop={8}
+      style={({ pressed }) => ({ minHeight: TAP, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.lg, opacity: pressed ? 0.6 : 1 })}
+    >
+      <T variant="body" color={colors.accent} style={{ fontWeight: '700', textAlign: 'center' }}>
+        Continue without an account
+      </T>
     </Pressable>
   );
 }

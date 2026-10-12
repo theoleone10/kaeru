@@ -20,6 +20,8 @@ interface AuthContextValue {
   user: User | null;
   /** The user has passed the welcome screen (signed in or chose to continue without an account). */
   onboarded: boolean;
+  /** Signed out of an account on this phone: open on the log-in screen rather than setup. */
+  returning: boolean;
   finishOnboarding: () => Promise<void>;
   signInWithApple: () => Promise<boolean>;
   signInWithGoogle: () => Promise<boolean>;
@@ -51,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const db = useSQLiteContext();
   const [session, setSession] = useState<Session | null>(null);
   const [onboarded, setOnboarded] = useState(false);
+  const [returning, setReturning] = useState(false);
   const [ready, setReady] = useState(!authConfigured);
 
   useEffect(() => {
@@ -62,9 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!alive) return;
       setSession(data.session);
       setOnboarded(meta.onboarded === true || data.session !== null);
+      setReturning(meta.signedOut === true && data.session === null);
       setReady(true);
     })();
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      setSession(next);
+      // Logged out (signed out, account deleted, or the session ended): back to the log-in screen.
+      if (event === 'SIGNED_OUT') {
+        setOnboarded(false);
+        setReturning(true);
+        setKv(db, 'meta', 'onboarded', false)
+          .then(() => setKv(db, 'meta', 'signedOut', true))
+          .catch(() => undefined);
+      }
+    });
     return () => {
       alive = false;
       sub.subscription.unsubscribe();
@@ -73,7 +87,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const finishOnboarding = useCallback(async () => {
     await setKv(db, 'meta', 'onboarded', true);
+    await setKv(db, 'meta', 'signedOut', false);
     setOnboarded(true);
+    setReturning(false);
   }, [db]);
 
   const completeFromUrl = useCallback(async (url: string) => {
@@ -185,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       user: session?.user ?? null,
       onboarded: !authConfigured || onboarded,
+      returning,
       finishOnboarding,
       signInWithApple,
       signInWithGoogle,
@@ -196,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       deleteAccount,
     }),
-    [session, onboarded, finishOnboarding, signInWithApple, signInWithGoogle, signInWithEmail, signUpWithEmail, sendPasswordReset, updatePassword, completeFromUrl, signOut, deleteAccount],
+    [session, onboarded, returning, finishOnboarding, signInWithApple, signInWithGoogle, signInWithEmail, signUpWithEmail, sendPasswordReset, updatePassword, completeFromUrl, signOut, deleteAccount],
   );
 
   if (!ready) return null;

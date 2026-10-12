@@ -79,6 +79,8 @@ function ThemedStack() {
         </Stack.Protected>
         <Stack.Protected guard={!onboarded}>
           <Stack.Screen name="welcome" options={{ headerShown: false }} />
+          <Stack.Screen name="setup" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ title: 'Log in' }} />
         </Stack.Protected>
         <Stack.Screen name="email-auth" options={{ title: 'Sign in' }} />
         <Stack.Screen name="auth-callback" options={{ headerShown: false }} />
