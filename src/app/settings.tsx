@@ -175,7 +175,7 @@ export default function SettingsScreen() {
 
   const toggleNotifications = async (on: boolean) => {
     if (on && !(await requestNotificationPermission())) {
-      Alert.alert('Notifications are off', 'Allow notifications for this app in your phone settings to get review reminders.');
+      Alert.alert('Notifications are off', 'Allow notifications for Kaeru in your phone settings to get reminders.');
       return;
     }
     await updateSettings({ notificationsEnabled: on });
@@ -288,26 +288,40 @@ export default function SettingsScreen() {
         </Row>
       </Section>
 
-      <Section label="Reminders">
-        <Row label="Remind me when reviews are due">
+      <Section label="Notifications">
+        <Row label="Notifications" detail="Timed around when you usually study">
           <Switch value={settings.notificationsEnabled} onValueChange={toggleNotifications} trackColor={switchColors} thumbColor="#FFFFFF" />
         </Row>
         {settings.notificationsEnabled && (
           <>
+            <Row label="Reviews ready" detail="When grammar or flashcards come due">
+              <Switch value={settings.notifyReviews} onValueChange={(v) => updateSettings({ notifyReviews: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+            </Row>
+            <Row label="Streak saver" detail="An evening nudge if you haven't studied yet">
+              <Switch value={settings.notifyStreak} onValueChange={(v) => updateSettings({ notifyStreak: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+            </Row>
+            <Row label="Daily plan" detail="What's on today, before you usually start">
+              <Switch value={settings.notifyPlan} onValueChange={(v) => updateSettings({ notifyPlan: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+            </Row>
+            <Row label="Wins & milestones" detail="Goals reached, streaks, finished levels, long timers">
+              <Switch value={settings.notifyWins} onValueChange={(v) => updateSettings({ notifyWins: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+            </Row>
             <Row label="Quiet from">
               <TimeStepper value={settings.quietStart} onChange={(v) => updateSettings({ quietStart: v })} />
             </Row>
             <Row label="Quiet until">
               <TimeStepper value={settings.quietEnd} onChange={(v) => updateSettings({ quietEnd: v })} />
             </Row>
-            <Row label="At most every">
-              <Stepper
-                value={settings.minReminderGapHours}
-                display={`${settings.minReminderGapHours} h`}
-                {...LIMITS.minReminderGapHours}
-                onChange={(v) => updateSettings({ minReminderGapHours: v })}
-              />
-            </Row>
+            {settings.notifyReviews && (
+              <Row label="Review reminders at most every">
+                <Stepper
+                  value={settings.minReminderGapHours}
+                  display={`${settings.minReminderGapHours} h`}
+                  {...LIMITS.minReminderGapHours}
+                  onChange={(v) => updateSettings({ minReminderGapHours: v })}
+                />
+              </Row>
+            )}
           </>
         )}
       </Section>

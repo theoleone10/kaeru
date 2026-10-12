@@ -24,7 +24,9 @@ function useNotificationTaps() {
   useEffect(() => {
     if (Platform.OS === 'web') return; // notifications are phone-only
     const open = (response: Notifications.NotificationResponse | null) => {
-      if (response?.notification.request.content.data?.url === '/review') router.push('/review');
+      const url = response?.notification.request.content.data?.url;
+      if (url === '/review' || url === '/progress') router.push(url);
+      else if (url === '/' || url === '/decks' || url === '/timer') router.navigate(url);
     };
     open(Notifications.getLastNotificationResponse());
     const sub = Notifications.addNotificationResponseReceivedListener(open);

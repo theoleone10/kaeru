@@ -2,7 +2,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Appearance, AppState, useColorScheme } from 'react-native';
 import { getAllCards, getKv, setKv } from '../db/repo';
-import { rescheduleReminder } from '../notifications/schedule';
+import { rescheduleNotifications } from '../notifications/schedule';
 import type { StoredCard } from '../srs/scheduler';
 import { dark, LEVEL_COLORS, LEVEL_COLORS_DARK, light, type LineColors, type Palette } from '../theme/colors';
 import { setSoundEnabled } from '../sound/sounds';
@@ -64,20 +64,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const scheme = useColorScheme();
   const isDark = settings.theme === 'system' ? scheme === 'dark' : settings.theme === 'dark';
 
-  // Re-plan the review reminder when the app goes to the background and when
-  // reminder settings change (not on every review — that would churn needlessly).
+  // Re-plan notifications when the app goes to the background and when notification
+  // or goal settings change (not on every review — that would churn needlessly).
   const latest = useRef({ settings, cards });
   useEffect(() => {
     latest.current = { settings, cards };
   }, [settings, cards]);
-  const { notificationsEnabled, quietStart, quietEnd, minReminderGapHours } = settings;
+  const { notificationsEnabled, quietStart, quietEnd, minReminderGapHours, notifyReviews, notifyStreak, notifyPlan, notifyWins, dailyNewGrammar, dailyTimeGoalMin } =
+    settings;
   useEffect(() => {
     if (!loaded) return;
-    rescheduleReminder(db, latest.current.settings, latest.current.cards);
-  }, [db, loaded, notificationsEnabled, quietStart, quietEnd, minReminderGapHours]);
+    rescheduleNotifications(db, latest.current.settings, latest.current.cards);
+  }, [db, loaded, notificationsEnabled, quietStart, quietEnd, minReminderGapHours, notifyReviews, notifyStreak, notifyPlan, notifyWins, dailyNewGrammar, dailyTimeGoalMin]);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'background') rescheduleReminder(db, latest.current.settings, latest.current.cards);
+      if (state === 'background') rescheduleNotifications(db, latest.current.settings, latest.current.cards);
     });
     return () => sub.remove();
   }, [db]);

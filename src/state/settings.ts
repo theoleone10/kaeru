@@ -13,6 +13,11 @@ export interface Settings {
   quietStart: number;
   quietEnd: number;
   minReminderGapHours: number;
+  /** Which kinds of notification to send (when notifications are on). */
+  notifyReviews: boolean;
+  notifyStreak: boolean;
+  notifyPlan: boolean;
+  notifyWins: boolean;
   /** Log in-app study sessions to the Study activity when no timer is running. */
   autoTrackStudy: boolean;
   /** New Anki cards introduced per deck per day. */
@@ -31,6 +36,10 @@ export const DEFAULT_SETTINGS: Settings = {
   quietStart: 22 * 60,
   quietEnd: 8 * 60,
   minReminderGapHours: 4,
+  notifyReviews: true,
+  notifyStreak: true,
+  notifyPlan: true,
+  notifyWins: true,
   autoTrackStudy: true,
   ankiNewPerDay: 20,
   ankiMaxReviewsPerDay: 200,
@@ -67,7 +76,17 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
   if (qs !== undefined) s.quietStart = clamp(qs, 0, 24 * 60 - 1);
   const qe = num('quietEnd');
   if (qe !== undefined) s.quietEnd = clamp(qe, 0, 24 * 60 - 1);
-  for (const k of ['furigana', 'romajiInput', 'notificationsEnabled', 'autoTrackStudy', 'soundEffects'] as const) {
+  for (const k of [
+    'furigana',
+    'romajiInput',
+    'notificationsEnabled',
+    'notifyReviews',
+    'notifyStreak',
+    'notifyPlan',
+    'notifyWins',
+    'autoTrackStudy',
+    'soundEffects',
+  ] as const) {
     const b = bool(k);
     if (b !== undefined) s[k] = b;
   }
