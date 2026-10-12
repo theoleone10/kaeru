@@ -45,7 +45,7 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 
 /**
  * The day, in order: learn today's 1–2 new grammar points (lesson + quiz), review
- * grammar that's due, study flashcards, then reach the immersion/study time goal.
+ * grammar that's due, study flashcards, then reach the daily practice time goal (all tracked activities count).
  * Steps that don't apply (no decks, no time goal, nothing left to learn) are left out.
  */
 export function dailyPlan(s: DayState): DayPlan {
@@ -95,8 +95,8 @@ export function dailyPlan(s: DayState): DayPlan {
     const done = s.timeTodayMs >= s.timeGoalMs;
     steps.push({
       id: 'time',
-      title: `Immerse ${formatDuration(s.timeGoalMs)}`,
-      detail: `${formatDuration(s.timeTodayMs)} of ${formatDuration(s.timeGoalMs)} tracked today`,
+      title: `${s.timeGoalMs < 60 * 60 * 1000 ? plural(Math.round(s.timeGoalMs / 60000), 'minute') : formatDuration(s.timeGoalMs)} practicing`,
+      detail: `${formatDuration(s.timeTodayMs)} of ${formatDuration(s.timeGoalMs)} today · all activities count`,
       done,
       progress: Math.min(1, s.timeTodayMs / s.timeGoalMs),
     });

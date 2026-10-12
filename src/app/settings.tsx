@@ -38,8 +38,10 @@ function TimeStepper({ value, onChange }: { value: number; onChange: (v: number)
   return <Stepper value={1} display={formatMinuteOfDay(value)} min={0} max={2} onChange={(v) => onChange(wrap(value + (v - 1) * 30))} />;
 }
 
-function AccountCard() {
+/** Account, cloud backup, backup files, sign out and delete — together at the bottom of Settings. */
+function AccountCard({ fileRows }: { fileRows: React.ReactNode }) {
   const db = useSQLiteContext();
+  const { colors } = useApp();
   const { configured, user, signOut, deleteAccount } = useAuth();
   const [busy, setBusy] = useState<'sync' | 'signout' | 'delete' | null>(null);
   const [lastSync, setLastSync] = useState<number | null>(null);
@@ -48,13 +50,16 @@ function AccountCard() {
     getKv(db, 'meta').then((m) => setLastSync(typeof m.lastCloudSync === 'number' ? m.lastCloudSync : null));
   }, [db, user, busy]);
 
-  if (!configured) return null;
-
-  if (!user) {
+  if (!configured || !user) {
     return (
-      <Section label="Account">
-        <T variant="small">Progress is only on this phone.</T>
-        <Button label="Sign in" onPress={() => router.push('/sign-in')} />
+      <Section label="Account & backup">
+        {configured && (
+          <>
+            <T variant="small">Progress is only on this phone. Sign in to back it up.</T>
+            <Button label="Sign in" onPress={() => router.push('/sign-in')} />
+          </>
+        )}
+        {fileRows}
       </Section>
     );
   }
@@ -107,14 +112,20 @@ function AccountCard() {
     );
 
   return (
-    <Section label="Account">
-      <View style={{ gap: 2 }}>
-        <T variant="body" style={{ fontWeight: '800' }}>
-          {accountLabel(user)}
-        </T>
-        <T variant="small">{lastSync ? `Backed up ${new Date(lastSync).toLocaleString()}` : 'Not backed up yet'}</T>
+    <Section label="Account & backup">
+      <View style={styles.row}>
+        <Ionicons name="person-circle-outline" size={36} color={colors.accent} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <T variant="body" style={{ fontWeight: '800' }} numberOfLines={1}>
+            {accountLabel(user)}
+          </T>
+          <T variant="small">{lastSync ? `Backed up ${new Date(lastSync).toLocaleString()}` : 'Not backed up yet'}</T>
+        </View>
       </View>
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
       <LinkRow label="Back up now" icon="cloud-upload-outline" onPress={syncNow} busy={busy === 'sync'} />
+      {fileRows}
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
       <LinkRow label="Sign out" icon="log-out-outline" onPress={confirmSignOut} busy={busy === 'signout'} />
       <LinkRow label="Delete account" icon="trash-outline" onPress={confirmDelete} busy={busy === 'delete'} danger />
     </Section>
@@ -216,8 +227,6 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: insets.bottom + spacing.xxl }}>
-      <AccountCard />
-
       <Section label="Daily plan">
         <Row label="New grammar per day">
           <Stepper value={settings.dailyNewGrammar} {...LIMITS.dailyNewGrammar} onChange={(v) => updateSettings({ dailyNewGrammar: v })} />
@@ -303,11 +312,6 @@ export default function SettingsScreen() {
         )}
       </Section>
 
-      <Section label="Backup file">
-        <LinkRow label="Export progress" icon="share-outline" onPress={doExport} busy={busy === 'export'} />
-        <LinkRow label="Restore from a file" icon="download-outline" onPress={doImport} busy={busy === 'import'} />
-      </Section>
-
       <Section label="About">
         <LinkRow label="Privacy Policy" icon="shield-checkmark-outline" href="/legal/privacy" />
         <LinkRow label="Terms of Use" icon="document-text-outline" href="/legal/terms" />
@@ -315,6 +319,15 @@ export default function SettingsScreen() {
           <LinkRow label="Contact support" icon="mail-outline" onPress={() => Linking.openURL(`mailto:${supportEmail}?subject=Kaeru%20support`)} />
         )}
       </Section>
+
+      <AccountCard
+        fileRows={
+          <>
+            <LinkRow label="Export progress to a file" icon="share-outline" onPress={doExport} busy={busy === 'export'} />
+            <LinkRow label="Restore from a file" icon="download-outline" onPress={doImport} busy={busy === 'import'} />
+          </>
+        }
+      />
 
       <View style={{ alignItems: 'center', gap: spacing.xs, marginTop: spacing.md }}>
         <Logo size={56} />
@@ -331,6 +344,7 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: TAP },
+  divider: { height: 1 },
   segmented: { flexDirection: 'row', borderRadius: radius.md, padding: 3 },
   segment: { flex: 1, minHeight: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
 });

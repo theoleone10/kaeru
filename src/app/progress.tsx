@@ -3,6 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Svg, { Line } from 'react-native-svg';
 import { Flame } from '@/components/Flame';
 import { ForecastChart } from '@/components/ForecastChart';
 import { Button, ProgressBar, Section, Stat, T } from '@/components/ui';
@@ -72,36 +73,49 @@ function Totals({ totals, activities }: { totals: Map<number, number>; activitie
   );
 }
 
-/** Last 7 days, stacked by activity. */
-function WeekChart({ entries, activities, now }: { entries: TimeEntry[]; activities: Map<number, Activity>; now: number }) {
+/** Last 7 days, stacked by activity, with a dotted line at the daily goal. */
+function WeekChart({ entries, activities, now, goalMs }: { entries: TimeEntry[]; activities: Map<number, Activity>; now: number; goalMs: number }) {
   const { colors } = useApp();
   const days = dailyTotals(entries, 7, now);
-  const max = Math.max(30 * 60 * 1000, ...days.map((d) => d.total));
+  const max = Math.max(goalMs * 1.25, ...days.map((d) => d.total));
   const H = 110;
+  const LABEL = 16; // room above the tallest bar for its value
+  const goalY = LABEL + H - (goalMs / max) * H;
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm, height: H + 36 }}>
-      {days.map((d) => (
-        <View key={d.dayStart} style={{ flex: 1, alignItems: 'center', gap: 4 }} accessibilityLabel={`${dayLabel(d.dayStart, now)}: ${formatDuration(d.total)}`}>
-          <T variant="small" style={{ fontSize: 10 }}>
-            {d.total >= 60_000 ? formatDuration(d.total).replace(' ', '') : ''}
-          </T>
-          <View style={{ width: '70%', height: H, justifyContent: 'flex-end', borderRadius: 4, overflow: 'hidden', backgroundColor: colors.surfaceAlt }}>
-            {[...d.byActivity.entries()].map(([id, ms]) => (
-              <View key={id} style={{ height: (ms / max) * H, backgroundColor: activities.get(id)?.color ?? colors.chartBar }} />
-            ))}
-          </View>
-          <T variant="small" style={{ fontSize: 11 }}>
+    <View style={{ gap: 4 }}>
+      <View style={{ height: H + LABEL }}>
+        <Svg width="100%" height={H + LABEL} style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Line x1="0" x2="100%" y1={goalY} y2={goalY} stroke={colors.textMuted} strokeWidth={1.5} strokeDasharray="3 4" strokeLinecap="round" />
+        </Svg>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm }}>
+          {days.map((d) => (
+            <View key={d.dayStart} style={{ flex: 1, alignItems: 'center', gap: 2 }} accessibilityLabel={`${dayLabel(d.dayStart, now)}: ${formatDuration(d.total)}`}>
+              <T variant="small" style={{ fontSize: 10 }} numberOfLines={1}>
+                {d.total >= 60_000 ? formatDuration(d.total).replace(' ', '') : ''}
+              </T>
+              <View style={{ width: '70%', borderTopLeftRadius: 4, borderTopRightRadius: 4, overflow: 'hidden' }}>
+                {[...d.byActivity.entries()].map(([id, ms]) => (
+                  <View key={id} style={{ height: (ms / max) * H, backgroundColor: activities.get(id)?.color ?? colors.chartBar }} />
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', gap: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 4 }}>
+        {days.map((d) => (
+          <T key={d.dayStart} variant="small" style={{ flex: 1, textAlign: 'center', fontSize: 11 }} color={d.dayStart === startOfDay(now) ? colors.accent : colors.textMuted}>
             {new Date(d.dayStart).toLocaleDateString([], { weekday: 'narrow' })}
           </T>
-        </View>
-      ))}
+        ))}
+      </View>
     </View>
   );
 }
 
 /** Time tracking stats: totals, the week by activity, and the editable history. */
 function TimeStats() {
-  const { colors } = useApp();
+  const { colors, settings } = useApp();
   const { entries, running, activityById } = useTime();
   const now = useNow(running ? 1000 : 30_000);
   const [showDays, setShowDays] = useState(HISTORY_DAYS_SHOWN);
@@ -124,7 +138,7 @@ function TimeStats() {
   return (
     <>
       <Section label="Time · last 7 days">
-        <WeekChart entries={entries} activities={activityById} now={now} />
+        <WeekChart entries={entries} activities={activityById} now={now} goalMs={(settings.dailyTimeGoalMin || 30) * 60 * 1000} />
       </Section>
 
       <View style={styles.row}>
