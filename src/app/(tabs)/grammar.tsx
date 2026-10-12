@@ -16,6 +16,10 @@ import { isMastered } from '@/srs/scheduler';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing, TAP, type LineColors } from '@/theme/colors';
 
+const UNIT_H = 52;
+const STATION_H = 62;
+const CURRENT_H = 74;
+
 const fold = (s: string) => katakanaToHiragana(s.toLowerCase());
 // Japanese side (title + structure) and English side (meaning) are searched separately
 // so a romaji query like "mo" matches も without matching every English word containing "mo".
@@ -95,7 +99,7 @@ export default function GrammarMap() {
   const [query, setQuery] = useState('');
   const line = lines[level];
 
-  const { rows, current } = useMemo(() => {
+  const { rows, current, startIndex, layout } = useMemo(() => {
     const units = unitsFor(level);
     const stations = units.flatMap((u) => u.stations);
     const currentStation = stations.find((s) => !cardsById.has(s.point.id)) ?? stations[stations.length - 1];
@@ -108,7 +112,17 @@ export default function GrammarMap() {
         out.push({ kind: 'station', station: s, status, last: ui === units.length - 1 && si === u.stations.length - 1 });
       });
     });
-    return { rows: out, current: currentStation };
+    // The unit you're on opens at the top of the map.
+    const startIndex = Math.max(0, out.findIndex((r) => r.kind === 'unit' && r.unit === currentStation?.unit));
+    // Fixed row heights, so the list can jump straight there.
+    const layout: { length: number; offset: number; index: number }[] = [];
+    let offset = 0;
+    out.forEach((r, index) => {
+      const length = r.kind === 'unit' ? UNIT_H : r.station === currentStation ? CURRENT_H : STATION_H;
+      layout.push({ length, offset, index });
+      offset += length;
+    });
+    return { rows: out, current: currentStation, startIndex, layout };
   }, [level, cardsById]);
 
   const results = useMemo(() => {
@@ -144,7 +158,7 @@ export default function GrammarMap() {
   const isNextLesson = current && nextGlobal?.id === current.point.id && !cardsById.has(current.point.id);
 
   const header = current ? (
-    <View style={{ gap: spacing.sm, paddingBottom: spacing.xl }}>
+    <View style={{ gap: spacing.sm, paddingBottom: spacing.md }}>
       <T variant="small" color={line.ink} style={{ fontWeight: '900', letterSpacing: 1 }}>
         {`${level} · UNIT ${current.unit}`}
       </T>
@@ -255,57 +269,63 @@ export default function GrammarMap() {
           }}
         />
       ) : (
-        <FlatList
-          data={rows}
-          keyExtractor={(r) => (r.kind === 'unit' ? `u${r.unit}` : r.station.point.id)}
-          ListHeaderComponent={header}
-          contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl }}
-          renderItem={({ item }) => {
-            if (item.kind === 'unit') {
+        <>
+          <View style={{ paddingHorizontal: spacing.lg }}>{header}</View>
+          <FlatList
+            // A fresh list per line, so switching lines opens at that line's current unit too.
+            key={level}
+            data={rows}
+            keyExtractor={(r) => (r.kind === 'unit' ? `u${r.unit}` : r.station.point.id)}
+            initialScrollIndex={startIndex}
+            getItemLayout={(_data, index) => layout[index]}
+            contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl }}
+            renderItem={({ item }) => {
+              if (item.kind === 'unit') {
+                return (
+                  <Pressable
+                    onPress={() => unitOptions(item.unit, item.points)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Unit ${item.unit}`}
+                    accessibilityHint="Skip to this unit, or mark it as known"
+                    style={({ pressed }) => [styles.unitRow, { opacity: pressed ? 0.6 : 1 }]}
+                  >
+                    <View style={styles.trackCol}>
+                      <View style={[styles.transfer, { borderColor: line.line, backgroundColor: colors.background }]} />
+                    </View>
+                    <T variant="small" color={line.ink} style={{ flex: 1, fontWeight: '900', letterSpacing: 1 }}>
+                      {`UNIT ${item.unit}`}
+                    </T>
+                    <Ionicons name="ellipsis-horizontal" size={18} color={colors.textMuted} />
+                  </Pressable>
+                );
+              }
+              const { station, status } = item;
+              const travelled = status === 'learned' || status === 'mastered';
+              const isCurrent = status === 'current';
               return (
                 <Pressable
-                  onPress={() => unitOptions(item.unit, item.points)}
+                  onPress={() => router.push(`/grammar/${station.point.id}`)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Unit ${item.unit}`}
-                  accessibilityHint="Skip to this unit, or mark it as known"
-                  style={({ pressed }) => [styles.unitRow, { opacity: pressed ? 0.6 : 1 }]}
+                  accessibilityLabel={`${stationCode(station)} ${station.point.title}, ${station.point.meaning}, ${status === 'ahead' ? 'not learned yet' : status === 'current' ? 'you are here' : status}`}
+                  style={({ pressed }) => [styles.stationRow, isCurrent && { height: CURRENT_H }, { opacity: pressed ? 0.7 : 1 }]}
                 >
                   <View style={styles.trackCol}>
-                    <View style={[styles.transfer, { borderColor: line.line, backgroundColor: colors.background }]} />
+                    {!isCurrent && <Track solid={travelled} color={line.line} dots={colors.border} />}
+                    <StationMarker station={station} status={status} line={line} />
                   </View>
-                  <T variant="small" color={line.ink} style={{ flex: 1, fontWeight: '900', letterSpacing: 1 }}>
-                    {`UNIT ${item.unit}`}
-                  </T>
-                  <Ionicons name="ellipsis-horizontal" size={18} color={colors.textMuted} />
+                  <View style={{ flex: 1, gap: 1 }}>
+                    <T variant="body" color={status === 'ahead' ? colors.textMuted : colors.text} style={{ fontSize: 17, fontWeight: isCurrent ? '800' : '700' }} numberOfLines={1}>
+                      {station.point.title}
+                    </T>
+                    <T variant="small" numberOfLines={1}>
+                      {station.point.meaning}
+                    </T>
+                  </View>
                 </Pressable>
               );
-            }
-            const { station, status } = item;
-            const travelled = status === 'learned' || status === 'mastered';
-            const isCurrent = status === 'current';
-            return (
-              <Pressable
-                onPress={() => router.push(`/grammar/${station.point.id}`)}
-                accessibilityRole="button"
-                accessibilityLabel={`${stationCode(station)} ${station.point.title}, ${station.point.meaning}, ${status === 'ahead' ? 'not learned yet' : status === 'current' ? 'you are here' : status}`}
-                style={({ pressed }) => [styles.stationRow, isCurrent && { minHeight: 74 }, { opacity: pressed ? 0.7 : 1 }]}
-              >
-                <View style={styles.trackCol}>
-                  {!isCurrent && <Track solid={travelled} color={line.line} dots={colors.border} />}
-                  <StationMarker station={station} status={status} line={line} />
-                </View>
-                <View style={{ flex: 1, gap: 1 }}>
-                  <T variant="body" color={status === 'ahead' ? colors.textMuted : colors.text} style={{ fontSize: 17, fontWeight: isCurrent ? '800' : '700' }} numberOfLines={1}>
-                    {station.point.title}
-                  </T>
-                  <T variant="small" numberOfLines={1}>
-                    {station.point.meaning}
-                  </T>
-                </View>
-              </Pressable>
-            );
-          }}
-        />
+            }}
+          />
+        </>
       )}
     </View>
   );
@@ -316,9 +336,9 @@ const styles = StyleSheet.create({
   lines: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center' },
   linePill: { minWidth: 40, height: 40, borderRadius: 20, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
   search: { flex: 1, minHeight: 46, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 17 },
-  unitRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 52 },
+  unitRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, height: UNIT_H },
   transfer: { width: 42, height: 28, borderRadius: 14, borderWidth: 4 },
-  stationRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 62 },
+  stationRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, height: STATION_H },
   trackCol: { width: 64, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
   track: { position: 'absolute', top: 0, bottom: 0, width: 10, borderRadius: 5 },
   dotTrack: { position: 'absolute', top: 0, bottom: 0, justifyContent: 'space-evenly', alignItems: 'center' },
