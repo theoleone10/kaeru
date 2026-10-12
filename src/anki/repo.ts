@@ -360,3 +360,35 @@ export async function ankiToday(db: Db, now: number, limits: Limits): Promise<{ 
     reviewed: await reviewsToday(db, now),
   };
 }
+
+/** Anki's card maturity: young until the interval reaches three weeks. */
+export const MATURE_DAYS = 21;
+
+export interface DeckMaturity {
+  /** Top-level deck; subdecks count toward it. */
+  path: string;
+  new: number;
+  /** Learning, relearning, and reviews with an interval under three weeks. */
+  young: number;
+  mature: number;
+}
+
+/** New / young / mature card counts for each top-level deck (suspended cards left out). */
+export async function deckMaturity(db: Db): Promise<DeckMaturity[]> {
+  const rows = await db.getAllAsync<{ top: string; n: number; m: number; t: number }>(
+    `SELECT CASE WHEN instr(d.name, '::') > 0 THEN substr(d.name, 1, instr(d.name, '::') - 1) ELSE d.name END AS top,
+            TOTAL(c.state = ${State.New}) AS n,
+            TOTAL(c.state = ${State.Review} AND c.scheduled_days >= ${MATURE_DAYS}) AS m,
+            COUNT(*) AS t
+     FROM anki_cards c JOIN anki_decks d ON d.id = c.deck_id
+     WHERE c.suspended = 0
+     GROUP BY top ORDER BY top`,
+  );
+  return rows.map((r) => ({ path: r.top, new: r.n, mature: r.m, young: r.t - r.n - r.m }));
+}
+
+/** Due times of every studied (not new), unsuspended flashcard, for the review forecast. */
+export async function ankiDueTimes(db: Db): Promise<number[]> {
+  const rows = await db.getAllAsync<{ due: number }>(`SELECT due FROM anki_cards WHERE suspended = 0 AND state != ${State.New}`);
+  return rows.map((r) => r.due);
+}

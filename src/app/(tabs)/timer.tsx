@@ -9,12 +9,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 import { Button, IconButton, Stat, T } from '@/components/ui';
 import { useApp, useNow } from '@/state/AppProvider';
-import { entryDuration, formatClock, formatDuration, formatTimeOfDay, parseTogglCsv, startOfDay, startOfWeek, totalsByActivity } from '@/time/model';
+import { dailyTotals, entryDuration, formatClock, formatDuration, formatTimeOfDay, parseTogglCsv } from '@/time/model';
 import { importEntries } from '@/time/repo';
 import { useTime } from '@/time/TimeProvider';
 import { spacing } from '@/theme/colors';
 
-const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
 
 /** Big progress ring: fills once per hour of the running timer. */
@@ -63,8 +62,11 @@ export default function Timer() {
 
   // Time with the app open is logged quietly for Progress; the timer only shows time you timed.
   const timed = entries.filter((e) => e.source !== 'auto');
-  const todayTotal = [...totalsByActivity(timed, startOfDay(now), startOfDay(now) + 2 * DAY, now).values()].reduce((a, b) => a + b, 0);
-  const weekTotal = [...totalsByActivity(timed, startOfWeek(now), now + DAY, now).values()].reduce((a, b) => a + b, 0);
+  // Totals for the selected timer only: today and the past 7 days (today included).
+  const week = dailyTotals(timed, 7, now);
+  const of = (d: (typeof week)[number] | undefined) => (selectedId != null ? (d?.byActivity.get(selectedId) ?? 0) : 0);
+  const todayTotal = of(week[week.length - 1]);
+  const weekTotal = week.reduce((s, d) => s + of(d), 0);
   const elapsed = running ? entryDuration(running, now) : 0;
 
   const choose = (id: number) => {
@@ -162,7 +164,7 @@ export default function Timer() {
 
       <View style={styles.row}>
         <Stat value={formatDuration(todayTotal)} label="Today" />
-        <Stat value={formatDuration(weekTotal)} label="This week" />
+        <Stat value={formatDuration(weekTotal)} label="Past 7 days" />
       </View>
     </ScrollView>
   );

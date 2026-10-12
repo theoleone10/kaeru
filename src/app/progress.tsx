@@ -3,7 +3,8 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import Svg, { Circle, Line } from 'react-native-svg';
+import { ankiDueTimes, deckMaturity, type DeckMaturity } from '@/anki/repo';
 import { Flame } from '@/components/Flame';
 import { ForecastChart } from '@/components/ForecastChart';
 import { Button, ProgressBar, Section, Stat, T } from '@/components/ui';
@@ -13,23 +14,28 @@ import { getReviewTimes } from '@/db/repo';
 import { forecast } from '@/srs/forecast';
 import { levelProgress } from '@/stats/levelProgress';
 import { useApp, useNow } from '@/state/AppProvider';
-import {
-  dailyTotals,
-  entryDuration,
-  formatClock,
-  formatDuration,
-  formatTimeOfDay,
-  startOfDay,
-  startOfWeek,
-  totalsByActivity,
-  type Activity,
-  type TimeEntry,
-} from '@/time/model';
+import { dailyTotals, entryDuration, formatClock, formatDuration, formatTimeOfDay, startOfDay, type TimeEntry } from '@/time/model';
 import { useTime } from '@/time/TimeProvider';
-import { spacing, TAP } from '@/theme/colors';
+import { radius, spacing, TAP } from '@/theme/colors';
 
 const DAY = 24 * 60 * 60 * 1000;
-const HISTORY_DAYS_SHOWN = 14;
+/** The history lists this many recent entries; shorter blips are left out. */
+const HISTORY_ENTRIES = 30;
+const MIN_ENTRY_MS = 60 * 1000;
+const MATURITY_COLORS = { new: '#2F7FC1', young: '#7BC67E', mature: '#2E8B3E' };
+
+type TabId = 'grammar' | 'decks' | 'time';
+const TABS: { id: TabId; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { id: 'grammar', label: 'Grammar', icon: 'train-outline' },
+  { id: 'decks', label: 'Decks', icon: 'albums-outline' },
+  { id: 'time', label: 'Time', icon: 'timer-outline' },
+];
+
+interface Loaded {
+  reviews: { grammar: number[]; cards: number[] };
+  decks: DeckMaturity[];
+  cardDue: number[];
+}
 
 function dayLabel(t: number, now: number): string {
   const today = startOfDay(now);
@@ -42,60 +48,54 @@ function Dot({ color, size = 10 }: { color: string; size?: number }) {
   return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color }} />;
 }
 
-/** Horizontal bars of per-activity totals. */
-function Totals({ totals, activities }: { totals: Map<number, number>; activities: Map<number, Activity> }) {
-  const { colors } = useApp();
-  const rows = [...totals.entries()].sort((a, b) => b[1] - a[1]);
-  const max = Math.max(1, ...rows.map((r) => r[1]));
-  if (rows.length === 0) return <T variant="small">Nothing tracked yet.</T>;
-  return (
-    <View style={{ gap: spacing.sm }}>
-      {rows.map(([id, ms]) => {
-        const a = activities.get(id);
-        return (
-          <View key={id} style={{ gap: 4 }}>
-            <View style={styles.rowBetween}>
-              <View style={styles.inline}>
-                <Dot color={a?.color ?? colors.textMuted} />
-                <T variant="body">{a?.name ?? 'Deleted'}</T>
-              </View>
-              <T variant="body" style={{ fontVariant: ['tabular-nums'], fontWeight: '600' }}>
-                {formatDuration(ms)}
-              </T>
-            </View>
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.surfaceAlt, overflow: 'hidden' }}>
-              <View style={{ width: `${(ms / max) * 100}%`, height: 6, backgroundColor: a?.color ?? colors.chartBar }} />
-            </View>
-          </View>
-        );
-      })}
-    </View>
-  );
+/** The last 7 days (today last) as day starts. */
+function lastWeek(now: number): number[] {
+  return dailyTotals([], 7, now).map((d) => d.dayStart);
 }
 
-/** Last 7 days, stacked by activity, with a dotted line at the daily goal. */
-function WeekChart({ entries, activities, now, goalMs }: { entries: TimeEntry[]; activities: Map<number, Activity>; now: number; goalMs: number }) {
+/** How many of `times` fall on each day. */
+function countByDay(times: number[], days: number[]): number[] {
+  return days.map((day) => times.filter((t) => startOfDay(t) === day).length);
+}
+
+interface Bar {
+  dayStart: number;
+  segments: { key: string | number; color: string; value: number }[];
+}
+
+/** One bar per day for the last week, open (no boxes), the value over each bar, an optional dotted goal line. */
+function WeekBars({ bars, now, format, goal }: { bars: Bar[]; now: number; format: (v: number) => string; goal?: number }) {
   const { colors } = useApp();
-  const days = dailyTotals(entries, 7, now);
-  const max = Math.max(goalMs * 1.25, ...days.map((d) => d.total));
+  const totals = bars.map((b) => b.segments.reduce((s, x) => s + x.value, 0));
+  const max = Math.max(1, (goal ?? 0) * 1.25, ...totals);
   const H = 110;
   const LABEL = 16; // room above the tallest bar for its value
-  const goalY = LABEL + H - (goalMs / max) * H;
   return (
     <View style={{ gap: 4 }}>
       <View style={{ height: H + LABEL }}>
-        <Svg width="100%" height={H + LABEL} style={StyleSheet.absoluteFill} pointerEvents="none">
-          <Line x1="0" x2="100%" y1={goalY} y2={goalY} stroke={colors.textMuted} strokeWidth={1.5} strokeDasharray="3 4" strokeLinecap="round" />
-        </Svg>
+        {goal ? (
+          <Svg width="100%" height={H + LABEL} style={StyleSheet.absoluteFill} pointerEvents="none">
+            <Line
+              x1="0"
+              x2="100%"
+              y1={LABEL + H - (goal / max) * H}
+              y2={LABEL + H - (goal / max) * H}
+              stroke={colors.textMuted}
+              strokeWidth={1.5}
+              strokeDasharray="3 4"
+              strokeLinecap="round"
+            />
+          </Svg>
+        ) : null}
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm }}>
-          {days.map((d) => (
-            <View key={d.dayStart} style={{ flex: 1, alignItems: 'center', gap: 2 }} accessibilityLabel={`${dayLabel(d.dayStart, now)}: ${formatDuration(d.total)}`}>
+          {bars.map((b, i) => (
+            <View key={b.dayStart} style={{ flex: 1, alignItems: 'center', gap: 2 }} accessibilityLabel={`${dayLabel(b.dayStart, now)}: ${format(totals[i]) || 'nothing'}`}>
               <T variant="small" style={{ fontSize: 10 }} numberOfLines={1}>
-                {d.total >= 60_000 ? formatDuration(d.total).replace(' ', '') : ''}
+                {format(totals[i])}
               </T>
               <View style={{ width: '70%', borderTopLeftRadius: 4, borderTopRightRadius: 4, overflow: 'hidden' }}>
-                {[...d.byActivity.entries()].map(([id, ms]) => (
-                  <View key={id} style={{ height: (ms / max) * H, backgroundColor: activities.get(id)?.color ?? colors.chartBar }} />
+                {b.segments.map((s) => (
+                  <View key={s.key} style={{ height: (s.value / max) * H, backgroundColor: s.color }} />
                 ))}
               </View>
             </View>
@@ -103,9 +103,9 @@ function WeekChart({ entries, activities, now, goalMs }: { entries: TimeEntry[];
         </View>
       </View>
       <View style={{ flexDirection: 'row', gap: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 4 }}>
-        {days.map((d) => (
-          <T key={d.dayStart} variant="small" style={{ flex: 1, textAlign: 'center', fontSize: 11 }} color={d.dayStart === startOfDay(now) ? colors.accent : colors.textMuted}>
-            {new Date(d.dayStart).toLocaleDateString([], { weekday: 'narrow' })}
+        {bars.map((b) => (
+          <T key={b.dayStart} variant="small" style={{ flex: 1, textAlign: 'center', fontSize: 11 }} color={b.dayStart === startOfDay(now) ? colors.accent : colors.textMuted}>
+            {new Date(b.dayStart).toLocaleDateString([], { weekday: 'narrow' })}
           </T>
         ))}
       </View>
@@ -113,44 +113,192 @@ function WeekChart({ entries, activities, now, goalMs }: { entries: TimeEntry[];
   );
 }
 
-/** Time tracking stats: totals, the week by activity, and the editable history. */
-function TimeStats() {
+const countLabel = (n: number) => (n > 0 ? String(n) : '');
+
+/** A pie (donut) of parts, drawn clockwise from the top. */
+function Donut({ parts, size = 76 }: { parts: { key: string; color: string; value: number }[]; size?: number }) {
+  const { colors } = useApp();
+  const stroke = size * 0.22;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const total = parts.reduce((s, p) => s + p.value, 0);
+  let offset = 0;
+  return (
+    <Svg width={size} height={size}>
+      <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surfaceAlt} strokeWidth={stroke} fill="none" />
+      {total > 0 &&
+        parts.map((p) => {
+          const len = (p.value / total) * c;
+          const el = (
+            <Circle
+              key={p.key}
+              cx={size / 2}
+              cy={size / 2}
+              r={r}
+              stroke={p.color}
+              strokeWidth={stroke}
+              fill="none"
+              strokeDasharray={`${len} ${c - len}`}
+              strokeDashoffset={-offset}
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+            />
+          );
+          offset += len;
+          return p.value > 0 ? el : null;
+        })}
+    </Svg>
+  );
+}
+
+function GrammarTab({ reviews, now }: { reviews: number[]; now: number }) {
+  const { colors, lines, cards } = useApp();
+  const days = lastWeek(now);
+  const counts = countByDay(reviews, days);
+  const levels = levelProgress(curriculum, cards);
+  const buckets = forecast(
+    cards.filter((c) => !c.suspended).map((c) => c.due),
+    now,
+  );
+  return (
+    <>
+      <Section label="Reviews · last 7 days">
+        <WeekBars bars={days.map((d, i) => ({ dayStart: d, segments: [{ key: 'g', color: colors.correct, value: counts[i] }] }))} now={now} format={countLabel} />
+      </Section>
+
+      <Section label="Train lines">
+        {levels
+          .filter((l) => l.total > 0)
+          .map((l) => (
+            <Pressable key={l.level} onPress={() => router.navigate({ pathname: '/grammar', params: { level: l.level } })} accessibilityRole="button" style={styles.lineRow}>
+              <View style={[styles.lineBadge, { borderColor: lines[l.level].line }]}>
+                <T variant="small" color={lines[l.level].ink} style={{ fontSize: 11, fontWeight: '900' }}>
+                  {l.level}
+                </T>
+              </View>
+              <View style={{ flex: 1, gap: 4 }}>
+                <ProgressBar value={l.learned / l.total} secondary={l.mastered / l.total} color={lines[l.level].line} height={10} />
+              </View>
+              <T variant="small" style={{ width: 64, textAlign: 'right', fontVariant: ['tabular-nums'] }}>
+                {l.learned}/{l.total}
+              </T>
+            </Pressable>
+          ))}
+      </Section>
+
+      <Section label="Upcoming reviews · next 30 days">
+        <ForecastChart buckets={buckets} />
+      </Section>
+    </>
+  );
+}
+
+function DecksTab({ reviews, decks, cardDue, now }: { reviews: number[]; decks: DeckMaturity[]; cardDue: number[]; now: number }) {
+  const { colors } = useApp();
+  const days = lastWeek(now);
+  const counts = countByDay(reviews, days);
+  if (decks.length === 0) {
+    return (
+      <Section label="Decks">
+        <T variant="small">No flashcards yet. Import an Anki deck or make your own from the Cards tab.</T>
+        <Button label="Go to Cards" kind="secondary" onPress={() => router.navigate('/decks')} />
+      </Section>
+    );
+  }
+  return (
+    <>
+      <Section label="Reviews · last 7 days">
+        <WeekBars bars={days.map((d, i) => ({ dayStart: d, segments: [{ key: 'c', color: colors.blue, value: counts[i] }] }))} now={now} format={countLabel} />
+      </Section>
+
+      <Section label="Cards by deck">
+        <View style={styles.legend}>
+          {(['new', 'young', 'mature'] as const).map((k) => (
+            <View key={k} style={styles.inline}>
+              <Dot color={MATURITY_COLORS[k]} />
+              <T variant="small" style={{ fontWeight: '800' }}>
+                {k[0].toUpperCase() + k.slice(1)}
+              </T>
+            </View>
+          ))}
+        </View>
+        {decks.map((d) => {
+          const total = d.new + d.young + d.mature;
+          return (
+            <View key={d.path} style={styles.deckRow} accessibilityLabel={`${d.path}: ${d.new} new, ${d.young} young, ${d.mature} mature`}>
+              <Donut
+                parts={[
+                  { key: 'new', color: MATURITY_COLORS.new, value: d.new },
+                  { key: 'young', color: MATURITY_COLORS.young, value: d.young },
+                  { key: 'mature', color: MATURITY_COLORS.mature, value: d.mature },
+                ]}
+              />
+              <View style={{ flex: 1, gap: 4 }}>
+                <T variant="body" style={{ fontWeight: '800' }} numberOfLines={1}>
+                  {d.path}
+                </T>
+                <T variant="small">{`${total.toLocaleString()} cards`}</T>
+                <View style={styles.counts}>
+                  {(['new', 'young', 'mature'] as const).map((k) => (
+                    <T key={k} variant="small" color={MATURITY_COLORS[k]} style={{ fontWeight: '900', fontVariant: ['tabular-nums'] }}>
+                      {`${d[k].toLocaleString()} ${k}`}
+                    </T>
+                  ))}
+                </View>
+              </View>
+            </View>
+          );
+        })}
+      </Section>
+
+      <Section label="Upcoming reviews · next 30 days">
+        <ForecastChart buckets={forecast(cardDue, now)} />
+      </Section>
+    </>
+  );
+}
+
+function TimeTab() {
   const { colors, settings } = useApp();
   const { entries, running, activityById } = useTime();
   const now = useNow(running ? 1000 : 30_000);
-  const [showDays, setShowDays] = useState(HISTORY_DAYS_SHOWN);
 
-  const today = totalsByActivity(entries, startOfDay(now), startOfDay(now) + 2 * DAY, now);
-  const week = totalsByActivity(entries, startOfWeek(now), now + DAY, now);
-  const todayTotal = [...today.values()].reduce((a, b) => a + b, 0);
-  const weekTotal = [...week.values()].reduce((a, b) => a + b, 0);
+  const week = dailyTotals(entries, 7, now);
+  const todayMs = week[week.length - 1]?.total ?? 0;
+  const weekMs = week.reduce((s, d) => s + d.total, 0);
 
+  // The latest entries of a minute or more (a running timer always shows), grouped by day.
   const byDay = useMemo(() => {
+    const recent = entries
+      .filter((e) => !e.ended_at || entryDuration(e, now) >= MIN_ENTRY_MS)
+      .sort((a, b) => b.started_at - a.started_at)
+      .slice(0, HISTORY_ENTRIES);
     const groups = new Map<number, TimeEntry[]>();
-    for (const e of entries) {
+    for (const e of recent) {
       const d = startOfDay(e.started_at);
       if (!groups.has(d)) groups.set(d, []);
       groups.get(d)!.push(e);
     }
-    return [...groups.entries()].sort((a, b) => b[0] - a[0]);
-  }, [entries]);
+    return [...groups.entries()];
+  }, [entries, now]);
 
   return (
     <>
       <Section label="Time · last 7 days">
-        <WeekChart entries={entries} activities={activityById} now={now} goalMs={(settings.dailyTimeGoalMin || 30) * 60 * 1000} />
+        <WeekBars
+          bars={week.map((d) => ({
+            dayStart: d.dayStart,
+            segments: [...d.byActivity.entries()].map(([id, ms]) => ({ key: id, color: activityById.get(id)?.color ?? colors.chartBar, value: ms })),
+          }))}
+          now={now}
+          format={(ms) => (ms >= MIN_ENTRY_MS ? formatDuration(ms).replace(' ', '') : '')}
+          goal={(settings.dailyTimeGoalMin || 30) * 60 * 1000}
+        />
       </Section>
 
       <View style={styles.row}>
-        <Stat value={formatDuration(todayTotal)} label="Today" />
-        <Stat value={formatDuration(weekTotal)} label="This week" />
+        <Stat value={formatDuration(todayMs)} label="Today" />
+        <Stat value={formatDuration(weekMs)} label="Past 7 days" />
       </View>
-
-      {week.size > 0 && (
-        <Section label="This week by activity">
-          <Totals totals={week} activities={activityById} />
-        </Section>
-      )}
 
       <Section
         label="History"
@@ -161,7 +309,7 @@ function TimeStats() {
         }
       >
         {byDay.length === 0 && <T variant="small">Nothing tracked yet.</T>}
-        {byDay.slice(0, showDays).map(([day, list]) => (
+        {byDay.map(([day, list]) => (
           <View key={day} style={{ marginBottom: spacing.sm }}>
             <View style={styles.rowBetween}>
               <T variant="body" style={{ fontWeight: '900' }}>
@@ -197,51 +345,39 @@ function TimeStats() {
             })}
           </View>
         ))}
-        {byDay.length > showDays && <Button label="Show more" kind="ghost" onPress={() => setShowDays(showDays + HISTORY_DAYS_SHOWN)} />}
       </Section>
     </>
   );
 }
 
-/** Everything together: streak, the last week across grammar, flashcards and time, and each JLPT line. */
-function Overview() {
+/** Streak, grammar learned and time this week up top; then Grammar, Decks and Time in tabs. Opened from the streak on Today. */
+export default function Progress() {
   const db = useSQLiteContext();
-  const { colors, lines, cards } = useApp();
-  const { entries } = useTime();
+  const { colors, cards } = useApp();
+  const { entries, refresh } = useTime();
   const today = useToday();
   const { now, streak } = today;
-  const [reviews, setReviews] = useState<{ grammar: number[]; cards: number[] }>({ grammar: [], cards: [] });
+  const [tab, setTab] = useState<TabId>('grammar');
+  const [loaded, setLoaded] = useState<Loaded>({ reviews: { grammar: [], cards: [] }, decks: [], cardDue: [] });
 
   const load = useCallback(async () => {
-    setReviews(await getReviewTimes(db, startOfDay(Date.now()) - 7 * DAY));
+    const [reviews, decks, cardDue] = await Promise.all([getReviewTimes(db, startOfDay(Date.now()) - 7 * DAY), deckMaturity(db), ankiDueTimes(db)]);
+    setLoaded({ reviews, decks, cardDue });
     // Reload after any grammar or flashcard study.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, cards, today.cardsReviewedToday]);
   useFocusEffect(
     useCallback(() => {
+      // Pick up the latest app time (saved every minute in the background).
+      refresh();
       load();
-    }, [load]),
+    }, [refresh, load]),
   );
 
-  const days = dailyTotals(entries, 7, now).map((d) => {
-    const end = d.dayStart + DAY + 60 * 60 * 1000; // DST slack; the next day's start is later anyway
-    const inDay = (t: number) => t >= d.dayStart && t < end && startOfDay(t) === d.dayStart;
-    return { ...d, grammar: reviews.grammar.filter(inDay).length, cards: reviews.cards.filter(inDay).length };
-  });
-  const levels = levelProgress(curriculum, cards);
-  const buckets = forecast(
-    cards.filter((c) => !c.suspended).map((c) => c.due),
-    now,
-  );
-  const weekMs = days.reduce((s, d) => s + d.total, 0);
-  const rows: { label: string; color: string; value: (d: (typeof days)[number]) => string }[] = [
-    { label: 'Grammar', color: colors.correct, value: (d) => (d.grammar ? String(d.grammar) : '·') },
-    { label: 'Cards', color: colors.blue, value: (d) => (d.cards ? String(d.cards) : '·') },
-    { label: 'Time', color: colors.gold, value: (d) => (d.total >= 60_000 ? String(Math.round(d.total / 60_000)) : '·') },
-  ];
+  const weekMs = dailyTotals(entries, 7, now).reduce((s, d) => s + d.total, 0);
 
   return (
-    <>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
           <View style={styles.inline}>
@@ -256,81 +392,34 @@ function Overview() {
         <Stat value={formatDuration(weekMs)} label="last 7 days" />
       </View>
 
-      <Section label="Last 7 days">
-        <View style={styles.gridRow}>
-          <View style={styles.gridLabel} />
-          {days.map((d) => (
-            <T key={d.dayStart} variant="small" style={[styles.gridCell, { fontWeight: '900' }]} color={d.dayStart === startOfDay(now) ? colors.accent : colors.textMuted}>
-              {new Date(d.dayStart).toLocaleDateString([], { weekday: 'narrow' })}
-            </T>
-          ))}
-        </View>
-        {rows.map((r) => (
-          <View key={r.label} style={styles.gridRow}>
-            <View style={[styles.gridLabel, styles.inline]}>
-              <Dot color={r.color} />
-              <T variant="small" style={{ fontWeight: '800' }}>
-                {r.label}
-              </T>
-            </View>
-            {days.map((d) => (
-              <T key={d.dayStart} variant="body" style={[styles.gridCell, { fontWeight: '800', fontVariant: ['tabular-nums'] }]}>
-                {r.value(d)}
-              </T>
-            ))}
-          </View>
-        ))}
-      </Section>
-
-      <Section label="Grammar">
-        {levels
-          .filter((l) => l.total > 0)
-          .map((l) => (
-            <Pressable key={l.level} onPress={() => router.navigate({ pathname: '/grammar', params: { level: l.level } })} accessibilityRole="button" style={styles.lineRow}>
-              <View style={[styles.lineBadge, { borderColor: lines[l.level].line }]}>
-                <T variant="small" color={lines[l.level].ink} style={{ fontSize: 11, fontWeight: '900' }}>
-                  {l.level}
-                </T>
-              </View>
-              <View style={{ flex: 1, gap: 4 }}>
-                <ProgressBar value={l.learned / l.total} secondary={l.mastered / l.total} color={lines[l.level].line} height={10} />
-              </View>
-              <T variant="small" style={{ width: 64, textAlign: 'right', fontVariant: ['tabular-nums'] }}>
-                {l.learned}/{l.total}
+      <View style={[styles.tabs, { backgroundColor: colors.surfaceAlt }]} accessibilityRole="tablist">
+        {TABS.map((t) => {
+          const active = tab === t.id;
+          return (
+            <Pressable
+              key={t.id}
+              onPress={() => setTab(t.id)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              style={[styles.tab, active && { backgroundColor: colors.surface }]}
+            >
+              <Ionicons name={active ? (t.icon.replace('-outline', '') as keyof typeof Ionicons.glyphMap) : t.icon} size={18} color={active ? colors.accent : colors.textMuted} />
+              <T variant="small" color={active ? colors.accent : colors.textMuted} style={{ fontWeight: '900' }}>
+                {t.label}
               </T>
             </Pressable>
-          ))}
-      </Section>
+          );
+        })}
+      </View>
 
-      <Section label="Reviews · next 30 days">
-        <ForecastChart buckets={buckets} />
-      </Section>
-    </>
-  );
-}
-
-/** Everything you've done: the overview, then time tracking stats. Opened from the streak on Today. */
-export default function Progress() {
-  const { colors } = useApp();
-  const { refresh } = useTime();
-  // Pick up the latest app time (saved every minute in the background).
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh]),
-  );
-  return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
-      <Overview />
-      <TimeStats />
+      {tab === 'grammar' && <GrammarTab reviews={loaded.reviews.grammar} now={now} />}
+      {tab === 'decks' && <DecksTab reviews={loaded.reviews.cards} decks={loaded.decks} cardDue={loaded.cardDue} now={now} />}
+      {tab === 'time' && <TimeTab />}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  gridRow: { flexDirection: 'row', alignItems: 'center', minHeight: 30 },
-  gridLabel: { width: 76 },
-  gridCell: { flex: 1, textAlign: 'center' },
   lineBadge: { width: 30, height: 30, borderRadius: 15, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
   content: { padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxl },
   lineRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 40 },
@@ -338,4 +427,9 @@ const styles = StyleSheet.create({
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   inline: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
   entry: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: TAP },
+  tabs: { flexDirection: 'row', borderRadius: radius.md, padding: 4, gap: 4 },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 40, borderRadius: radius.md - 2 },
+  legend: { flexDirection: 'row', gap: spacing.lg },
+  deckRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingVertical: spacing.xs },
+  counts: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.md },
 });
