@@ -130,6 +130,7 @@ export default function Lessons() {
                     : `Added to your reviews. ${shaky.map((p) => p.title).join(' and ')} needs another look, so it comes back in 10 minutes.`
                 }
                 confetti={shaky.length === 0}
+                sound="lesson"
                 stats={[
                   { label: 'Learned', value: String(batch.length), tone: 'accent' },
                   { label: 'Quiz', value: summary.reviewed ? `${summary.correct}/${summary.reviewed}` : '—', tone: 'green' },

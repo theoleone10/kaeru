@@ -15,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { migrate } from '@/db/migrations';
 import { AppProvider, useApp } from '@/state/AppProvider';
+import { useMilestoneSounds } from '@/sound/useMilestoneSounds';
 import { useCloudSync } from '@/sync/useCloudSync';
 import { useAppTimeTracking } from '@/time/useAppTimeTracking';
 import { TimeProvider } from '@/time/TimeProvider';
@@ -40,6 +41,7 @@ function ThemedStack() {
   useNotificationTaps();
   useCloudSync();
   useAppTimeTracking();
+  useMilestoneSounds();
   const base = isDark ? DarkTheme : DefaultTheme;
   const theme = {
     ...base,

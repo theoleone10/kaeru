@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { playSound } from '../sound/sounds';
+import { playSound, type SoundName } from '../sound/sounds';
 import { View } from 'react-native';
 import { spacing } from '../theme/colors';
 import { Confetti } from './Confetti';
@@ -19,6 +19,7 @@ export function Celebration({
   stats = [],
   mood = 'cheer',
   confetti = false,
+  sound = 'complete',
   children,
 }: {
   title: string;
@@ -26,11 +27,13 @@ export function Celebration({
   stats?: Stat[];
   mood?: Mood;
   confetti?: boolean;
+  /** Jingle played with the confetti. */
+  sound?: SoundName;
   children?: ReactNode;
 }) {
   useEffect(() => {
-    if (confetti) playSound('complete');
-  }, [confetti]);
+    if (confetti) playSound(sound);
+  }, [confetti, sound]);
   return (
     <View style={{ flex: 1, padding: spacing.xl, gap: spacing.xl, justifyContent: 'center' }}>
       <View style={{ alignItems: 'center', gap: spacing.md }}>

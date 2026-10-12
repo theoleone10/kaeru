@@ -7,6 +7,17 @@ const SOURCES = {
   tap: require('../../assets/sounds/tap.wav'),
   start: require('../../assets/sounds/start.wav'),
   stop: require('../../assets/sounds/stop.wav'),
+  /** Main (primary) buttons: a little bubble pop. */
+  button: require('../../assets/sounds/button.wav'),
+  /** Finishing things. */
+  lesson: require('../../assets/sounds/lesson.wav'),
+  reviews: require('../../assets/sounds/reviews.wav'),
+  deck: require('../../assets/sounds/deck.wav'),
+  dayDone: require('../../assets/sounds/daydone.wav'),
+  /** Milestones. */
+  goal: require('../../assets/sounds/goal.wav'),
+  streak: require('../../assets/sounds/streak.wav'),
+  level: require('../../assets/sounds/level.wav'),
 } as const;
 
 export type SoundName = keyof typeof SOURCES;
@@ -30,11 +41,16 @@ function player(name: SoundName): AudioPlayer {
 }
 
 /**
- * Play a short effect. Mixes with whatever else is playing (your podcast or anime keeps
+ * Play a short effect, optionally after a delay (so a milestone fanfare can follow the
+ * end-of-session jingle instead of talking over it). Mixes with whatever else is playing (your podcast or anime keeps
  * going) and stays quiet when the phone's silent switch is on. Never throws.
  */
-export function playSound(name: SoundName): void {
+export function playSound(name: SoundName, delayMs = 0): void {
   if (!enabled) return;
+  if (delayMs > 0) {
+    setTimeout(() => playSound(name), delayMs);
+    return;
+  }
   try {
     if (!configured) {
       configured = true;

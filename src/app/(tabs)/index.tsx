@@ -13,6 +13,7 @@ import { curriculum } from '@/content/loader';
 import { stationOf } from '@/content/units';
 import { frogLines } from '@/daily/frogLines';
 import { useToday } from '@/daily/useToday';
+import { useDayMilestones } from '@/sound/useMilestoneSounds';
 import { useApp } from '@/state/AppProvider';
 import { useTime } from '@/time/TimeProvider';
 import { spacing } from '@/theme/colors';
@@ -25,6 +26,8 @@ export default function Today() {
   const { running } = useTime();
   const today = useToday();
   const { plan, now, streak } = today;
+  // Catches a day finished outside a study session (e.g. by stopping the timer).
+  useDayMilestones({ loaded: today.loaded, allDone: plan.allDone, streak: streak.days, studiedToday: streak.studiedToday });
   // Which of the frog's lines to show: a new one each visit, and each tap on the frog.
   const [seed, setSeed] = useState(pick);
   useFocusEffect(useCallback(() => setSeed(pick()), []));

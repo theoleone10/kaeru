@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { playSound } from '../sound/sounds';
 import { useApp } from '../state/AppProvider';
 import { fontFor, LIP, radius, spacing, TAP, type Palette } from '../theme/colors';
 
@@ -154,9 +155,12 @@ export function Button({
   accessibilityHint,
   icon,
   small,
+  sound,
 }: {
   label: string;
   onPress: () => void;
+  /** Main buttons pop by default; pass false where the action has its own sound. */
+  sound?: boolean;
   kind?: ButtonKind;
   disabled?: boolean;
   loading?: boolean;
@@ -176,7 +180,10 @@ export function Button({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!(disabled || loading) }}
       disabled={disabled || loading}
-      onPress={onPress}
+      onPress={() => {
+        if (sound ?? kind === 'primary') playSound('button');
+        onPress();
+      }}
       onPressIn={() => Haptics.selectionAsync().catch(() => undefined)}
       hitSlop={6}
       style={[{ minHeight: height + lip, opacity: disabled ? 0.45 : 1 }, style]}

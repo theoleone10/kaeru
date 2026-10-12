@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import type { Step, StepId } from '../daily/plan';
 import { useToday } from '../daily/useToday';
+import { useDayMilestones } from '../sound/useMilestoneSounds';
 import { useApp } from '../state/AppProvider';
 import type { Palette } from '../theme/colors';
 import { spacing } from '../theme/colors';
@@ -97,7 +98,8 @@ export function StepList({ steps, next, onOpen }: { steps: Step[]; next: Step | 
  */
 export function NextUp({ from }: { from: StepId }) {
   const { colors } = useApp();
-  const { plan, goTo, loaded } = useToday();
+  const { plan, goTo, loaded, streak } = useToday();
+  useDayMilestones({ loaded, allDone: plan.allDone, streak: streak.days, studiedToday: streak.studiedToday });
   if (!loaded) return null;
   const next = plan.steps.find((s) => !s.done && s.id !== from) ?? null;
   const left = plan.steps.filter((s) => !s.done && s.id !== from).length;

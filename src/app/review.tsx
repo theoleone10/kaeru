@@ -40,6 +40,7 @@ export default function Review() {
               title="Reviews done!"
               subtitle={formatNext(nextDue)}
               confetti={summary.correct / summary.reviewed >= 0.8}
+              sound="reviews"
               stats={[
                 { label: 'Reviewed', value: String(summary.reviewed), tone: 'blue' },
                 { label: 'Accuracy', value: `${Math.round((summary.correct / summary.reviewed) * 100)}%`, tone: 'green' },

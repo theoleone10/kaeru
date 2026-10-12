@@ -220,6 +220,7 @@ export default function AnkiStudy() {
           }
           mood={answered > 0 ? 'cheer' : 'sleep'}
           confetti={answered > 0}
+          sound="deck"
           stats={answered > 0 ? [{ label: 'Answered', value: String(answered), tone: 'green' }] : []}
         >
           {answered > 0 && <Button label="Undo last answer" kind="ghost" onPress={undo} />}
