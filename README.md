@@ -1,6 +1,6 @@
 # kaeru
 
-A JLPT grammar trainer (N5 → N1) inspired by Bunpro, covering every section of Tae Kim's *Guide to Japanese Grammar*. Expo SDK 57 + React Native + TypeScript, Expo Router, SQLite, FSRS. Works fully offline; optional accounts (Apple, Google, email) back progress up to Supabase.
+A JLPT grammar trainer (N5 → N1). Expo SDK 57 + React Native + TypeScript, Expo Router, SQLite, FSRS. Works fully offline; optional accounts (Apple, Google, email) back progress up to Supabase.
 
 ## Run it on your phone (Expo Go)
 
