@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as Haptics from 'expo-haptics';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -172,7 +171,6 @@ export default function AnkiStudy() {
     if (!showing?.previews || !session) return;
     const now = clock();
     const after = showing.previews.byRating[rating];
-    Haptics.selectionAsync().catch(() => undefined);
     playSound(rating === 1 ? 'wrong' : 'tap');
     const logId = await answerCard(db, showing.card.card, after, rating, now, Math.min(now - showing.shownAt, 60_000));
     const id = showing.card.card.id;
@@ -296,7 +294,7 @@ export default function AnkiStudy() {
 
       <View style={[styles.bar, { paddingBottom: insets.bottom + spacing.md, borderTopColor: colors.border, backgroundColor: colors.background }]}>
         {!showing?.previews ? (
-          <Button label="Show answer" onPress={reveal} disabled={!showing} />
+          <Button label="Show answer" onPress={reveal} disabled={!showing} haptic={false} />
         ) : (
           <View style={styles.grades}>
             {GRADES.map(({ rating, label }) => {
