@@ -189,6 +189,14 @@ Click **Add for Review → Submit**. Review usually takes 1–3 days. If Apple r
 
 ### After launch
 
+**Releasing:** work happens on `dev`; merging `dev` into `master` ships it. Every push to `master` runs `.eas/workflows/deploy-to-production.yml` on EAS: a production iOS build (build number bumps automatically), then an upload to App Store Connect, where it appears in TestFlight after processing. It does not send the version to App Review: pick the build on the version page and click **Add for Review** yourself (step 7). One-time setup:
+
+1. On [expo.dev](https://expo.dev) → the kaeru project → **Project settings → GitHub**, install the Expo GitHub app and connect `theoleone10/kaeru`.
+2. Make sure EAS has the iOS credentials and an App Store Connect API key: if you've done steps 4–5 once by hand, it does. Otherwise run `npx eas-cli@latest credentials --platform ios` → *production* → *App Store Connect: Manage your API Key* → *Set up your project to use an API Key for EAS Submit* (this can't be done non-interactively).
+3. Put the app's **Apple ID** (App Store Connect → your app → App Information → *Apple ID*, a number) in `eas.json` as `submit.production.ios.ascAppId`, so submitting never needs a prompt.
+
+Bump `version` in `app.json` before merging a release whose previous version is already live; Apple won't accept a new build for an approved version.
+
 - **Content-only or JS fixes** can go out without review via OTA updates: `npx eas-cli@latest update --channel production` (set up once with `npx eas-cli@latest update:configure`).
 - **New native modules or app.json changes** need a new build (step 4) and review.
 - Bump `version` in `app.json` (e.g. 1.0.1) for each store release.
