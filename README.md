@@ -193,7 +193,7 @@ Click **Add for Review → Submit**. Review usually takes 1–3 days. If Apple r
 
 1. On [expo.dev](https://expo.dev) → the kaeru project → **Project settings → GitHub**, install the Expo GitHub app and connect `theoleone10/kaeru`.
 2. Make sure EAS has the iOS credentials and an App Store Connect API key: if you've done steps 4–5 once by hand, it does. Otherwise run `npx eas-cli@latest credentials --platform ios` → *production* → *App Store Connect: Manage your API Key* → *Set up your project to use an API Key for EAS Submit* (this can't be done non-interactively).
-3. Put the app's **Apple ID** (App Store Connect → your app → App Information → *Apple ID*, a number) in `eas.json` as `submit.production.ios.ascAppId`, so submitting never needs a prompt.
+3. The app's **Apple ID** (App Store Connect → App Information) is set in `eas.json` as `submit.production.ios.ascAppId` (6821724249), so submitting never needs a prompt.
 
 Bump `version` in `app.json` before merging a release whose previous version is already live; Apple won't accept a new build for an approved version.
 
