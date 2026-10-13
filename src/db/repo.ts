@@ -1,5 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { Platform } from 'react-native';
+import { readAnkiForBackup, replaceAnki } from '../anki/backup';
 import type { BackupData, ExampleSeenRow } from '../backup/format';
 import type { ExampleSeen } from '../srs/exampleRotation';
 import { cardBeforeLog, knownCard, type StoredCard, type StoredLog } from '../srs/scheduler';
@@ -258,13 +259,14 @@ export async function setKv(db: Executor, table: 'settings' | 'meta', key: strin
 // ---------- backup ----------
 
 export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> {
-  const [cards, logs, seen, settings, activities, timeEntries] = await Promise.all([
+  const [cards, logs, seen, settings, activities, timeEntries, anki] = await Promise.all([
     getAllCards(db),
     db.getAllAsync<StoredLog & { id?: number }>('SELECT * FROM review_logs ORDER BY id'),
     db.getAllAsync<ExampleSeenRow>('SELECT * FROM example_seen'),
     getKv(db, 'settings'),
     db.getAllAsync<Activity>('SELECT * FROM activities ORDER BY id'),
     db.getAllAsync<TimeEntry>('SELECT * FROM time_entries ORDER BY id'),
+    readAnkiForBackup(db),
   ]);
   return {
     cards,
@@ -273,11 +275,17 @@ export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> 
     settings,
     activities,
     time_entries: timeEntries,
+    anki,
   };
 }
 
-/** Replace all progress with the backup's contents, in one transaction. */
-export async function replaceAllFromBackup(db: SQLiteDatabase, data: BackupData): Promise<void> {
+/**
+ * Replace all progress with the backup's contents, in one transaction. A timer that was
+ * running when the backup was made is stopped at `stopRunningAt` (when the backup was
+ * made), so it doesn't keep counting on this phone.
+ */
+export async function replaceAllFromBackup(db: SQLiteDatabase, data: BackupData, stopRunningAt: number): Promise<void> {
+  const stopAt = Number.isFinite(stopRunningAt) ? stopRunningAt : Date.now();
   await transaction(db, async (txn) => {
     await txn.execAsync('DELETE FROM cards; DELETE FROM review_logs; DELETE FROM example_seen; DELETE FROM settings;');
     for (const card of data.cards) await upsertCard(txn, card);
@@ -305,11 +313,13 @@ export async function replaceAllFromBackup(db: SQLiteDatabase, data: BackupData)
           e.id,
           e.activity_id,
           e.started_at,
-          e.ended_at,
+          e.ended_at ?? Math.max(e.started_at, stopAt),
           e.note,
           e.source,
         );
       }
     }
+    // Backups made before Anki decks were included: keep the phone's own decks.
+    if (data.anki) await replaceAnki(txn, data.anki);
   });
 }

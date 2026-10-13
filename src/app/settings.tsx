@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, S
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { accountLabel, useAuth } from '@/auth/AuthProvider';
 import { exportBackup, pickBackup, restoreBackup } from '@/backup/exportImport';
+import { backupCounts, describeCounts } from '@/backup/format';
 import { Logo } from '@/components/Mascot';
 import { Button, Section, Stepper, T } from '@/components/ui';
 import { getKv, setKv } from '@/db/repo';
@@ -15,7 +16,8 @@ import { formatMinuteOfDay } from '@/notifications/plan';
 import { requestNotificationPermission } from '@/notifications/schedule';
 import { useApp } from '@/state/AppProvider';
 import { LIMITS, sanitizeSettings, type ThemePreference } from '@/state/settings';
-import { uploadProgress } from '@/sync/cloud';
+import { ANKI_MEDIA_NOTE, uploadProgress } from '@/sync/cloud';
+import { useTime } from '@/time/TimeProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
 
 function Row({ label, detail, children }: { label: string; detail?: string; children: React.ReactNode }) {
@@ -75,7 +77,9 @@ function AccountCard({ fileRows }: { fileRows: React.ReactNode }) {
     }
   };
 
-  const syncNow = () => run('sync', () => uploadProgress(db, user.id), 'Backup failed');
+  const syncNow = () => run('sync', async () => {
+    await uploadProgress(db, user.id, { force: true });
+  }, 'Backup failed');
 
   const confirmSignOut = () =>
     Alert.alert('Sign out?', 'Your progress stays on this phone. Log in again any time to keep backing it up.', [
@@ -170,6 +174,7 @@ export default function SettingsScreen() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
   const { settings, updateSettings, colors, refresh } = useApp();
+  const { refresh: refreshTime } = useTime();
   const [busy, setBusy] = useState<'export' | 'import' | null>(null);
   const switchColors = { true: colors.accent, false: colors.border };
 
@@ -199,7 +204,7 @@ export default function SettingsScreen() {
       if (!backup) return;
       Alert.alert(
         'Replace all progress?',
-        `This backup from ${new Date(backup.exported_at).toLocaleString()} has ${backup.cards.length} learned points and ${backup.review_logs.length} reviews. Your current progress will be replaced.`,
+        `This backup from ${new Date(backup.exported_at).toLocaleString()} has ${describeCounts(backupCounts(backup))}. Your current progress will be replaced.`,
         [
           { text: 'Cancel', style: 'cancel' },
           {
@@ -209,8 +214,8 @@ export default function SettingsScreen() {
               try {
                 await restoreBackup(db, backup);
                 await updateSettings(sanitizeSettings(await getKv(db, 'settings')));
-                await refresh();
-                Alert.alert('Backup restored');
+                await Promise.all([refresh(), refreshTime()]);
+                Alert.alert('Backup restored', backupCounts(backup).flashcards > 0 ? ANKI_MEDIA_NOTE : undefined);
               } catch (e) {
                 Alert.alert('Import failed', e instanceof Error ? e.message : String(e));
               }

@@ -9,12 +9,12 @@ import { buildBackup, parseBackup, type BackupFile } from './format';
 export async function exportBackup(db: SQLiteDatabase): Promise<void> {
   const now = Date.now();
   const backup = buildBackup(await readAllForBackup(db), now);
-  const file = new File(Paths.cache, `grammar-backup-${dayKey(now)}.json`);
+  const file = new File(Paths.cache, `kaeru-backup-${dayKey(now)}.json`);
   if (file.exists) file.delete();
   file.create();
   file.write(JSON.stringify(backup));
   if (!(await Sharing.isAvailableAsync())) throw new Error('Sharing is not available on this device.');
-  await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json', dialogTitle: 'Save grammar backup' });
+  await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json', dialogTitle: 'Save Kaeru backup' });
 }
 
 /** Let the user pick a backup file and parse it. Returns null if they cancel. */
@@ -25,5 +25,5 @@ export async function pickBackup(): Promise<BackupFile | null> {
 }
 
 export async function restoreBackup(db: SQLiteDatabase, backup: BackupFile): Promise<void> {
-  await replaceAllFromBackup(db, backup);
+  await replaceAllFromBackup(db, backup, Date.parse(backup.exported_at));
 }

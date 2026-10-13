@@ -43,7 +43,7 @@ describe('backup format', () => {
 
   it('rejects non-JSON and foreign files', () => {
     expect(() => parseBackup('not json')).toThrow('not valid JSON');
-    expect(() => parseBackup('{"app":"other"}')).toThrow('not a grammar app backup');
+    expect(() => parseBackup('{"app":"other"}')).toThrow('not a Kaeru backup');
   });
 
   it('rejects backups from a newer format', () => {

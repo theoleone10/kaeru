@@ -57,7 +57,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "test": "TZ=UTC jest",
+    "test": "jest",
+    "test:zones": "TZ=UTC jest && TZ=Asia/Tokyo jest && TZ=America/New_York jest && TZ=Pacific/Auckland jest",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint"
   },

@@ -43,11 +43,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = useCallback(
     async (patch: Partial<Settings>) => {
-      const next = { ...settings, ...patch };
-      setSettings(next);
+      // Functional update: two quick changes in a row must not undo each other.
+      setSettings((prev) => ({ ...prev, ...patch }));
       for (const [k, v] of Object.entries(patch)) await setKv(db, 'settings', k, v);
     },
-    [db, settings],
+    [db],
   );
 
   useEffect(() => {

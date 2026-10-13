@@ -58,13 +58,23 @@ function levelsJustFinished(cards: readonly StoredCard[], now: number): string[]
   });
 }
 
+/** The reschedule in progress; calls queue behind it so two never interleave. */
+let queue: Promise<void> = Promise.resolve();
+
 /**
  * Replace every pending notification with a fresh plan for the next few days.
+ * Calls run one at a time: two at once could each cancel, then each schedule, leaving duplicates.
  * meta.reminder_at is when the last review reminder was scheduled; once it has passed
  * we assume it was delivered and use it for the minimum-gap rule. meta.celebrated maps
  * each one-off win to when it was scheduled, so wins are only sent once.
  */
-export async function rescheduleNotifications(db: SQLiteDatabase, settings: Settings, cards: readonly StoredCard[]): Promise<void> {
+export function rescheduleNotifications(db: SQLiteDatabase, settings: Settings, cards: readonly StoredCard[]): Promise<void> {
+  const run = queue.then(() => reschedule(db, settings, cards));
+  queue = run;
+  return run;
+}
+
+async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonly StoredCard[]): Promise<void> {
   if (Platform.OS === 'web') return;
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();

@@ -2,10 +2,10 @@ import { pick, reviewsMessage, streakMessage } from '@/notifications/messages';
 import { MAX_PER_DAY, MIN_SPACING, planNotifications, streakMinute, studyHabit, type NotifyInput } from '@/notifications/planner';
 
 // Tests run with TZ=UTC (see package.json), so local time == UTC here.
-const at = (h: number, m = 0, day = 10) => Date.UTC(2026, 9, day, h, m);
+const at = (h: number, m = 0, day = 10) => +new Date(2026, 9, day, h, m);
 const HOUR = 60 * 60 * 1000;
-const hourOf = (t: number) => new Date(t).getUTCHours();
-const dayOf = (t: number) => new Date(t).getUTCDate();
+const hourOf = (t: number) => new Date(t).getHours();
+const dayOf = (t: number) => new Date(t).getDate();
 
 /** Studied at `h`:00 on each of the given days. */
 const studied = (h: number, days: number[]) => days.map((d) => at(h, 0, d));
@@ -84,7 +84,7 @@ describe('planNotifications', () => {
   it('sends the morning plan a little before you usually start', () => {
     const plan = planNotifications(base({ now: at(6), activity: [...studied(9, [7, 8, 9])], grammarDue: [at(5)] }));
     const morning = plan.find((n) => n.kind === 'plan' && dayOf(n.at) === 10)!;
-    expect(new Date(morning.at).getUTCHours() * 60 + new Date(morning.at).getUTCMinutes()).toBe(8 * 60 + 40);
+    expect(new Date(morning.at).getHours() * 60 + new Date(morning.at).getMinutes()).toBe(8 * 60 + 40);
     expect(morning.message.body).toBe('2 new points · 1 review · 30m practice');
   });
 
