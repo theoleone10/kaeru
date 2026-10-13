@@ -6,6 +6,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 import { getKv, setKv } from '../db/repo';
+import { getGoogleIdToken, nativeGoogleSignIn, signOutOfGoogle } from './google';
 import { parseAuthRedirect } from './redirect';
 import { authConfigured, supabase } from './supabase';
 
@@ -72,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(next);
       // Logged out (signed out, account deleted, or the session ended): back to the log-in screen.
       if (event === 'SIGNED_OUT') {
+        signOutOfGoogle().catch(() => undefined);
         setOnboarded(false);
         setReturning(true);
         setKv(db, 'meta', 'onboarded', false)
@@ -136,7 +138,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   }, [signInWithOAuth]);
 
-  const signInWithGoogle = useCallback(() => signInWithOAuth('google'), [signInWithOAuth]);
+  const signInWithGoogle = useCallback(async (): Promise<boolean> => {
+    // iOS uses Google's native account sheet, so no "wants to use supabase.co to sign in" prompt.
+    if (!nativeGoogleSignIn) return signInWithOAuth('google');
+    const token = await getGoogleIdToken();
+    if (!token) return false; // cancelled
+    const { error } = await client().auth.signInWithIdToken({ provider: 'google', token });
+    fail(error);
+    return true;
+  }, [signInWithOAuth]);
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     const { error } = await client().auth.signInWithPassword({ email: email.trim(), password });

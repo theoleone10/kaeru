@@ -135,6 +135,7 @@ Skip this whole step if you want to ship without accounts: with no Supabase valu
    - **Email**: already on. Leave "Confirm email" on.
    - **Apple**: turn on, and in *Client IDs* enter `com.theoleone.kaeru`. That's all native iPhone sign-in needs. (Apple sign-in on Android additionally needs a Services ID + key from the Apple portal; skip unless you ship Android.)
    - **Google**: in [Google Cloud Console](https://console.cloud.google.com) create a project → **APIs & Services → OAuth consent screen** (External, app name, your email, publish it) → **Credentials → Create credentials → OAuth client ID**, type *Web application*, and add the *Callback URL* Supabase shows on its Google provider page as an authorised redirect URI. Paste the client ID and secret back into Supabase and turn Google on.
+     - For the native iOS sign-in sheet, create a second OAuth client ID of type *iOS* with bundle ID `com.theoleone.kaeru`. Put both client IDs in `src/auth/google.ts`, put the iOS client's reversed ID (`com.googleusercontent.apps.…`) as `iosUrlScheme` on the google-signin plugin in `app.json`, and in Supabase's Google provider add the iOS client ID to **Client IDs** (comma-separated after the web one) and turn on **Skip nonce checks**.
 6. Give the build these values (the `.env` file is never uploaded, so EAS needs its own copy):
    ```bash
    npx eas-cli@latest env:create --environment production --name EXPO_PUBLIC_SUPABASE_URL --value "https://YOUR-PROJECT.supabase.co" --visibility plaintext

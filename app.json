@@ -62,6 +62,12 @@
           "recordAudioAndroid": false,
           "enableBackgroundPlayback": false
         }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.547797680841-ulnhb3c7oqafesb9ugutftb34alu3vcq"
+        }
       ]
     ],
     "scheme": "kaeru",
