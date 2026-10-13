@@ -45,13 +45,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash-icon.png",
-          "imageWidth": 160,
-          "resizeMode": "contain",
-          "backgroundColor": "#E4E8F7",
+          "backgroundColor": "#48559C",
           "dark": {
-            "image": "./assets/splash-icon.png",
-            "backgroundColor": "#12141C"
+            "backgroundColor": "#48559C"
           }
         }
       ],
@@ -65,6 +61,12 @@
           "microphonePermission": false,
           "recordAudioAndroid": false,
           "enableBackgroundPlayback": false
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.547797680841-ulnhb3c7oqafesb9ugutftb34alu3vcq"
         }
       ]
     ],

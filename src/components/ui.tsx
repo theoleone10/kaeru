@@ -165,12 +165,15 @@ export function Button({
   icon,
   small,
   sound,
+  haptic = true,
   color,
 }: {
   label: string;
   onPress: () => void;
   /** Main buttons pop by default; pass false where the action has its own sound. */
   sound?: boolean;
+  /** Pass false to skip the tap vibration. */
+  haptic?: boolean;
   kind?: ButtonKind;
   disabled?: boolean;
   loading?: boolean;
@@ -196,7 +199,7 @@ export function Button({
         if (sound ?? kind === 'primary') playSound('button');
         onPress();
       }}
-      onPressIn={() => Haptics.selectionAsync().catch(() => undefined)}
+      onPressIn={haptic ? () => Haptics.selectionAsync().catch(() => undefined) : undefined}
       hitSlop={6}
       style={[{ minHeight: height + lip, opacity: disabled ? 0.45 : 1 }, style]}
     >
