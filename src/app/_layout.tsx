@@ -8,11 +8,13 @@ import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
 import { SQLiteProvider } from 'expo-sqlite';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { migrate } from '@/db/migrations';
 import { AppProvider, useApp } from '@/state/AppProvider';
 import { useMilestoneSounds } from '@/sound/useMilestoneSounds';
@@ -20,6 +22,9 @@ import { useCloudSync } from '@/sync/useCloudSync';
 import { useAppTimeTracking } from '@/time/useAppTimeTracking';
 import { TimeProvider } from '@/time/TimeProvider';
 import { FONTS } from '@/theme/colors';
+
+// The native splash (plain blue) stays up until the loading screen has drawn over it.
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 function useNotificationTaps() {
   useEffect(() => {
@@ -35,13 +40,14 @@ function useNotificationTaps() {
   }, []);
 }
 
-function ThemedStack() {
+function ThemedStack({ onReady }: { onReady: () => void }) {
   const { colors, isDark } = useApp();
   const { onboarded } = useAuth();
   useNotificationTaps();
   useCloudSync();
   useAppTimeTracking();
   useMilestoneSounds();
+  useEffect(onReady, [onReady]);
   const base = isDark ? DarkTheme : DefaultTheme;
   const theme = {
     ...base,
@@ -94,6 +100,8 @@ function ThemedStack() {
 
 export default function RootLayout() {
   // Keep the splash screen up until the fonts are ready (no flash of system font).
+  const [ready, setReady] = useState(false);
+  const markReady = useCallback(() => setReady(true), []);
   const [fontsLoaded, fontError] = useFonts({
     Nunito_600SemiBold,
     Nunito_700Bold,
@@ -109,11 +117,12 @@ export default function RootLayout() {
         <AppProvider>
           <AuthProvider>
             <TimeProvider>
-              <ThemedStack />
+              <ThemedStack onReady={markReady} />
             </TimeProvider>
           </AuthProvider>
         </AppProvider>
       </SQLiteProvider>
+      <LoadingScreen ready={ready} />
     </SafeAreaProvider>
   );
 }
