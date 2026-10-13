@@ -4,7 +4,7 @@ import { startOfNextLocalDay } from '@/stats/dates';
 import { pickExample, type ExampleSeen } from '@/srs/exampleRotation';
 import type { Example } from '@/content/types';
 
-const NOW = Date.UTC(2026, 0, 1, 12);
+const NOW = +new Date(2026, 0, 1, 12);
 const MIN = 60 * 1000;
 const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;

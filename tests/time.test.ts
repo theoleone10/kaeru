@@ -15,7 +15,7 @@ import {
 // Tests run with TZ=UTC.
 const H = 60 * 60 * 1000;
 const DAY = 24 * H;
-const MON = Date.UTC(2026, 8, 28); // Monday 28 Sep 2026
+const MON = +new Date(2026, 8, 28); // Monday 28 Sep 2026
 
 let nextId = 1;
 const entry = (activity_id: number, start: number, end: number | null): TimeEntry => ({
@@ -47,7 +47,7 @@ describe('durations and totals', () => {
 
   it('weeks start on Monday', () => {
     expect(startOfWeek(MON + 3 * DAY + 5 * H)).toBe(MON);
-    expect(startOfWeek(MON - H)).toBe(MON - 7 * DAY);
+    expect(startOfWeek(MON - H)).toBe(+new Date(2026, 8, 21)); // calendar week, even across a DST change
   });
 });
 
@@ -113,8 +113,8 @@ describe('Toggl CSV import', () => {
     ].join('\n');
     const out = parseTogglCsv(csv);
     expect(out).toEqual([
-      { activity: 'Immersion', started_at: Date.UTC(2026, 8, 1, 20), ended_at: Date.UTC(2026, 8, 1, 21, 30), note: 'Anime, subbed' },
-      { activity: 'Study', started_at: Date.UTC(2026, 8, 2, 23, 30), ended_at: Date.UTC(2026, 8, 3, 0, 15), note: '' },
+      { activity: 'Immersion', started_at: +new Date(2026, 8, 1, 20), ended_at: +new Date(2026, 8, 1, 21, 30), note: 'Anime, subbed' },
+      { activity: 'Study', started_at: +new Date(2026, 8, 2, 23, 30), ended_at: +new Date(2026, 8, 3, 0, 15), note: '' },
     ]);
   });
 

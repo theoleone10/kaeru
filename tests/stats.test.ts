@@ -5,7 +5,7 @@ import { levelProgress } from '@/stats/levelProgress';
 import { newCard, State } from '@/srs/scheduler';
 import type { GrammarPoint } from '@/content/types';
 
-const at = (h: number, m = 0, day = 10) => Date.UTC(2026, 0, day, h, m);
+const at = (h: number, m = 0, day = 10) => +new Date(2026, 0, day, h, m);
 
 describe('forecast', () => {
   it('buckets the next 30 days by local day, with overdue in today', () => {

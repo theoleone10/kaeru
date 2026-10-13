@@ -1,10 +1,12 @@
+import { validateAnki, type AnkiBackup } from '../anki/backup';
 import type { ExampleSeen } from '../srs/exampleRotation';
 import type { StoredCard, StoredLog } from '../srs/scheduler';
 import type { Activity, TimeEntry } from '../time/model';
 
+/** Kept from before the app was called Kaeru, so older backup files still load. */
 export const BACKUP_APP_ID = 'jlpt-grammar';
-/** v2 added time tracking (activities, time_entries). v1 files still load. */
-export const BACKUP_FORMAT_VERSION = 2;
+/** v2 added time tracking (activities, time_entries); v3 added Anki decks (anki). Older files still load. */
+export const BACKUP_FORMAT_VERSION = 3;
 
 export interface ExampleSeenRow extends ExampleSeen {
   grammar_id: string;
@@ -18,6 +20,8 @@ export interface BackupData {
   settings: Record<string, unknown>;
   activities: Activity[];
   time_entries: TimeEntry[];
+  /** Missing in v1/v2 files: restoring one of those keeps the phone's own decks. */
+  anki?: AnkiBackup;
 }
 
 export interface BackupFile extends BackupData {
@@ -74,7 +78,7 @@ export function parseBackup(json: string): BackupFile {
   } catch {
     throw new Error('This file is not valid JSON.');
   }
-  if (!isObj(raw) || raw.app !== BACKUP_APP_ID) throw new Error('This is not a grammar app backup file.');
+  if (!isObj(raw) || raw.app !== BACKUP_APP_ID) throw new Error('This is not a Kaeru backup file.');
   if (typeof raw.format_version !== 'number' || raw.format_version > BACKUP_FORMAT_VERSION) {
     throw new Error('This backup was made by a newer version of the app.');
   }
@@ -102,5 +106,40 @@ export function parseBackup(json: string): BackupFile {
     const end = (e as Record<string, unknown>).ended_at;
     if (end !== null && typeof end !== 'number') throw new Error(`time_entries[${i}]: "ended_at" must be a number or null`);
   });
-  return { ...(raw as unknown as BackupFile), activities, time_entries: entries } as BackupFile;
+  const anki = raw.anki === undefined ? undefined : validateAnki(raw.anki);
+  return { ...(raw as unknown as BackupFile), activities, time_entries: entries, anki } as BackupFile;
+}
+
+export interface BackupCounts {
+  points: number;
+  reviews: number;
+  flashcards: number;
+  /** Time entries you made yourself (timer, Shortcuts, manual, imports), not the automatic time-in-app ones. */
+  timeEntries: number;
+}
+
+export function backupCounts(data: BackupData): BackupCounts {
+  return {
+    points: data.cards.length,
+    reviews: data.review_logs.length,
+    flashcards: data.anki?.anki_cards.length ?? 0,
+    timeEntries: data.time_entries.filter((e) => e.source !== 'auto').length,
+  };
+}
+
+export function isEmptyProgress(c: BackupCounts): boolean {
+  return c.points === 0 && c.reviews === 0 && c.flashcards === 0 && c.timeEntries === 0;
+}
+
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
+
+/** "12 grammar points, 340 flashcards and 25 time entries" (or "no progress"). */
+export function describeCounts(c: BackupCounts): string {
+  const parts = [
+    c.points || c.reviews ? plural(c.points, 'grammar point') : '',
+    c.flashcards ? plural(c.flashcards, 'flashcard') : '',
+    c.timeEntries ? plural(c.timeEntries, 'time entry').replace('entrys', 'entries') : '',
+  ].filter(Boolean);
+  if (parts.length === 0) return 'no progress';
+  return parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
 }

@@ -2,6 +2,19 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { transaction } from './repo';
 
 /**
+ * Triggers that bump sync_state.version on any change to `tables`, so cloud sync knows the
+ * cloud copy is out of date. A new backed-up table needs a new migration calling this.
+ */
+const bumpTriggers = (tables: readonly string[]) =>
+  tables
+    .flatMap((t) =>
+      (['INSERT', 'UPDATE', 'DELETE'] as const).map(
+        (op) => `CREATE TRIGGER sync_bump_${t}_${op.toLowerCase()} AFTER ${op} ON ${t} BEGIN UPDATE sync_state SET version = version + 1; END;`,
+      ),
+    )
+    .join('\n  ');
+
+/**
  * Ordered schema migrations. The array index + 1 is the schema version stored in
  * PRAGMA user_version. Never edit a shipped migration — append a new one.
  */
@@ -159,6 +172,26 @@ const MIGRATIONS: string[] = [
   `
   -- New cards in study order per deck, so a session reads each deck's first few without sorting them all.
   CREATE INDEX idx_anki_cards_new_order ON anki_cards(deck_id, suspended, state, new_position, id);
+  `,
+  `
+  -- A counter bumped by every change to backed-up data, so cloud sync can skip uploads when nothing changed.
+  CREATE TABLE sync_state (version INTEGER NOT NULL);
+  INSERT INTO sync_state (version) VALUES (1);
+  ${bumpTriggers([
+    'cards',
+    'review_logs',
+    'example_seen',
+    'settings',
+    'activities',
+    'time_entries',
+    'anki_imports',
+    'anki_decks',
+    'anki_notetypes',
+    'anki_notes',
+    'anki_cards',
+    'anki_revlog',
+    'anki_deck_limits',
+  ])}
   `,
 ];
 

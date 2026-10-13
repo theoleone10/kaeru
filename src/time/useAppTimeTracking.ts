@@ -1,6 +1,7 @@
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
+import { trackWrite } from '../db/pendingWrites';
 import { useApp } from '../state/AppProvider';
 import { createAppTimeTracker } from './appTime';
 import { useTime } from './TimeProvider';
@@ -23,7 +24,8 @@ export function useAppTimeTracking() {
     if (AppState.currentState === 'active') t.begin(Date.now());
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'active') t.begin(Date.now());
-      else t.end(Date.now()).then(refresh, () => undefined);
+      // Tracked so the cloud upload on going to the background waits for this entry.
+      else trackWrite(t.end(Date.now())).then(refresh, () => undefined);
     });
     const tick = setInterval(() => {
       if (AppState.currentState === 'active') t.check(Date.now()).catch(() => undefined);

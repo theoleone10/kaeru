@@ -1,6 +1,6 @@
 import { parseAuthRedirect } from '@/auth/redirect';
 import { validEmail } from '@/auth/validation';
-import type { BackupFile } from '@/backup/format';
+import type { BackupData } from '@/backup/format';
 import { reconcileAction } from '@/sync/cloud';
 
 jest.mock('@/auth/supabase', () => ({ supabase: null, authConfigured: false }));
@@ -34,24 +34,40 @@ describe('validEmail', () => {
 });
 
 describe('reconcileAction', () => {
-  const remote = (cards: number, logs: number) =>
-    ({ cards: new Array(cards).fill({}), review_logs: new Array(logs).fill({}) }) as unknown as BackupFile;
+  const data = (o: { cards?: number; logs?: number; flashcards?: number; entries?: string[] } = {}) =>
+    ({
+      cards: new Array(o.cards ?? 0).fill({}),
+      review_logs: new Array(o.logs ?? 0).fill({}),
+      time_entries: (o.entries ?? []).map((source) => ({ source })),
+      anki: o.flashcards === undefined ? undefined : { anki_cards: new Array(o.flashcards).fill({}) },
+    }) as unknown as BackupData;
 
   it('does nothing when both sides are empty', () => {
-    expect(reconcileAction(0, 0, null)).toBe('none');
-    expect(reconcileAction(0, 0, remote(0, 0))).toBe('none');
+    expect(reconcileAction(data(), null)).toBe('none');
+    expect(reconcileAction(data(), data())).toBe('none');
   });
 
   it('uploads phone progress to an empty account', () => {
-    expect(reconcileAction(5, 20, null)).toBe('upload');
-    expect(reconcileAction(5, 20, remote(0, 0))).toBe('upload');
+    expect(reconcileAction(data({ cards: 5, logs: 20 }), null)).toBe('upload');
+    expect(reconcileAction(data({ cards: 5, logs: 20 }), data())).toBe('upload');
   });
 
   it('restores account progress onto an empty phone', () => {
-    expect(reconcileAction(0, 0, remote(3, 9))).toBe('restore');
+    expect(reconcileAction(data(), data({ cards: 3, logs: 9 }))).toBe('restore');
   });
 
   it('asks when both sides have progress', () => {
-    expect(reconcileAction(1, 0, remote(3, 9))).toBe('ask');
+    expect(reconcileAction(data({ cards: 1 }), data({ cards: 3, logs: 9 }))).toBe('ask');
+  });
+
+  it('counts flashcards and time entries as progress, so they are never silently replaced', () => {
+    expect(reconcileAction(data({ flashcards: 40 }), data({ cards: 3 }))).toBe('ask');
+    expect(reconcileAction(data({ entries: ['timer'] }), data({ cards: 3 }))).toBe('ask');
+    expect(reconcileAction(data({ entries: ['manual'] }), null)).toBe('upload');
+    expect(reconcileAction(data(), data({ flashcards: 40 }))).toBe('restore');
+  });
+
+  it('ignores the automatic time-in-app entries a fresh install makes', () => {
+    expect(reconcileAction(data({ entries: ['auto', 'auto'] }), data({ cards: 3 }))).toBe('restore');
   });
 });

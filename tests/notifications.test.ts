@@ -1,7 +1,7 @@
 import { isQuietTime, moveOutOfQuietHours, planReminder, type ReminderSettings } from '@/notifications/plan';
 
 // Tests run with TZ=UTC (see package.json), so local time == UTC here.
-const at = (h: number, m = 0, day = 1) => Date.UTC(2026, 0, day, h, m);
+const at = (h: number, m = 0, day = 1) => +new Date(2026, 0, day, h, m);
 const HOUR = 60 * 60 * 1000;
 const settings: ReminderSettings = { enabled: true, quietStart: 22 * 60, quietEnd: 8 * 60, minGapHours: 4 };
 

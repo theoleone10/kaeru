@@ -18,7 +18,8 @@ Everything except native Sign in with Apple runs in Expo Go (review reminders ar
 
 | Command | What it does |
 | --- | --- |
-| `npm test` | Jest tests: SRS scheduling, answer checking, romaji input, furigana, reminders, backup format, time tracking, Anki import (real `.apkg` fixtures through the real migrations on Node's SQLite) and rendering, and validation of every file in `/content` |
+| `npm test` | Jest tests: SRS scheduling, answer checking, romaji input, furigana, reminders, backup format and restore (including Anki decks), cloud sync, time tracking, Anki import (real `.apkg` fixtures through the real migrations on Node's SQLite) and rendering, and validation of every file in `/content` |
+| `npm run test:zones` | The tests in four time zones (UTC, Tokyo, New York, Auckland): day boundaries, quiet hours and streaks use local time. CI runs the same four |
 | `npm run typecheck` | TypeScript |
 | `npm run lint` | ESLint (expo config) |
 
@@ -58,7 +59,7 @@ Each step shows its progress. One button always takes you to the next step. When
 - **Settings → Daily plan** sets new grammar per day (1–5, default 2) and the daily time goal (default 30m, or Off). *Learn one more* on Today lets you go past the goal.
 - **Reviews** → type the missing grammar. Romaji is converted to kana as you type (wanakana, IME mode); Japanese-keyboard input is never altered. Typing `wa`/`e`/`o` where the particle は/へ/を is expected gives a "Close!" retry rather than a fail. Sentences rotate so you don't memorise one.
 - **SRS** → [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs), retention 0.9, one 10-minute (re)learning step, pass/fail grading (Good/Again). **Undo** restores the card exactly as it was before the answer.
-- **Storage** → SQLite (`src/db/migrations.ts`), fully offline. Settings → Backup file exports/imports everything as JSON.
+- **Storage** → SQLite (`src/db/migrations.ts`), fully offline. Settings → Backup file exports/imports everything as JSON: grammar progress, settings, time tracking and Anki decks with their progress. Anki images and audio aren't included (they can be hundreds of MB); after restoring on a new phone, re-import the decks' `.apkg` files to bring them back, and the newer progress is kept.
 - **Time tracking** → a Toggl-style timer (Immersion, Study, or your own activities).
   - **Where:** start and stop it on the Timer tab or from the chips on Today; daily and weekly totals, a 7-day chart and editable history are on Progress.
   - **Time in Kaeru:** time with the app open logs to Study in the background when no timer is running. It counts on Progress and toward the daily goal, but not in the Timer tab's totals (Settings → Time tracking).
@@ -70,7 +71,7 @@ Each step shows its progress. One button always takes you to the next step. When
   - `kaeru://timer/toggle?activity=Study` (one button to start / stop)
   Timer → ⋯ → *Set up iPhone Shortcuts* lists copyable links. The app opens briefly to record the time.
 - **Anki decks** → Cards tab → Import imports an `.apkg` / `.colpkg` exported from Anki with *Include scheduling information* and *Include media*. Both package formats are read (Anki ≤ 2.1.49 and the current zstd/protobuf format). Notes, note types (templates + CSS), decks and subdecks, media, review history and each card's progress come across: if you used FSRS in Anki its memory state is used directly, otherwise stability ≈ current interval and difficulty is estimated from ease. Cards render in a WebView with Anki's template language (fields, conditionals, cloze, furigana/kana/kanji, hint, FrontSide, [sound:]). Reviews use FSRS with Anki's four buttons, 1m/10m learning steps, and per-day new/review limits: defaults in Settings → Anki decks, and each deck's own in its options (⚙︎ on the Cards tab, which can also delete it). Like Anki, a subdeck's own limit still applies when you study its parent. Re-importing a newer export of the same deck updates it; for each card the more recently reviewed copy wins. `{{type:}}` fields show the answer instead of a typing box, and add-on-specific template features aren't supported.
-- **Accounts (optional)** → Supabase Auth. The first launch shows a welcome screen (Apple / Google / email, or *Use without an account*). A signed-in phone uploads the same backup JSON to `user_progress` whenever the app goes to the background; signing in on a phone that already has progress asks which copy to keep. Settings → Account has back up now, sign out and delete account.
+- **Accounts (optional)** → Supabase Auth. The first launch shows a welcome screen (Apple / Google / email, or *Use without an account*). A signed-in phone uploads the same backup JSON to `user_progress` when the app goes to the background or comes back, but only if something changed (a trigger-maintained counter in `sync_state` tracks changes). Signing in on a phone that already has progress (grammar, flashcards or time entries) asks which copy to keep; an empty side never silently replaces the other. Settings → Account has back up now, sign out and delete account.
 
 ## Look & feel
 
@@ -109,8 +110,8 @@ Everything in the code is done; what's left needs your accounts, so only you can
 
 1. Install [Node.js 22+](https://nodejs.org) and Git, then:
    ```bash
-   git clone https://github.com/theoleone10/grammarapp.git
-   cd grammarapp
+   git clone https://github.com/theoleone10/kaeru.git
+   cd kaeru
    npm install
    npx eas-cli@latest login          # create a free Expo account at expo.dev first
    npx eas-cli@latest init           # links the project to your Expo account (writes the projectId into app.json — commit it)
@@ -194,5 +195,5 @@ Click **Add for Review → Submit**. Review usually takes 1–3 days. If Apple r
 
 ### Known gaps to be aware of
 
-- Apple asks apps with Sign in with Apple to also revoke the Apple token when an account is deleted. That needs a small server function holding your Apple private key and isn't built; reviewers rarely test it, but it's the one guideline not fully covered.
-- Anki decks and their progress stay on the phone (not in the cloud backup); time tracking and grammar progress are backed up.
+- Apple asks apps with Sign in with Apple to also revoke the Apple token when an account is deleted. The app does this through the `revoke-apple` edge function (`supabase/functions/revoke-apple`): deploy it with `npx supabase functions deploy revoke-apple` and set its secrets (`APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_CLIENT_ID`). Without it, deleting still works and only the revoke is skipped.
+- Anki media (images, audio, fonts) stays on the phone; decks, cards and their progress are backed up. On Android, deck fonts loaded with `@font-face` may not show, because the card WebView isn't allowed to read files from other files (so a deck's scripts can't read the app's data).
