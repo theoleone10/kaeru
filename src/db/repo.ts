@@ -3,7 +3,9 @@ import { Platform } from 'react-native';
 import { readAnkiForBackup, replaceAnki } from '../anki/backup';
 import type { BackupData, ExampleSeenRow } from '../backup/format';
 import type { ExampleSeen } from '../srs/exampleRotation';
+import { QUIZ_ANSWER } from '../srs/quiz';
 import { cardBeforeLog, knownCard, type StoredCard, type StoredLog } from '../srs/scheduler';
+import { SEED_GOAL_DAYS_SQL } from '../stats/goalDays';
 import type { Activity, TimeEntry } from '../time/model';
 
 const CARD_COLUMNS = [
@@ -195,10 +197,11 @@ export interface PointStats {
   lastReviewedAt: number | null;
 }
 
+/** Reviews of a point, not counting the quiz after its lesson. */
 export async function getPointStats(db: SQLiteDatabase, grammarId: string): Promise<PointStats> {
   const row = await db.getFirstAsync<{ reviews: number; correct: number | null; last: number | null }>(
     `SELECT COUNT(*) AS reviews, SUM(CASE WHEN rating > 1 THEN 1 ELSE 0 END) AS correct, MAX(reviewed_at) AS last
-     FROM review_logs WHERE grammar_id = ?`,
+     FROM review_logs WHERE grammar_id = ? AND answer != '${QUIZ_ANSWER}'`,
     grammarId,
   );
   return { reviews: row?.reviews ?? 0, correct: row?.correct ?? 0, lastReviewedAt: row?.last ?? null };
@@ -222,10 +225,10 @@ export async function getActivityTimes(db: Pick<SQLiteDatabase, 'getAllAsync'>, 
   return rows.map((r) => r.t);
 }
 
-/** Review timestamps since `since`, split into grammar and flashcards (for per-day charts). */
+/** Review timestamps since `since`, split into grammar and flashcards (for per-day charts). Lesson quizzes aren't reviews. */
 export async function getReviewTimes(db: Pick<SQLiteDatabase, 'getAllAsync'>, since: number): Promise<{ grammar: number[]; cards: number[] }> {
   const rows = await db.getAllAsync<{ t: number; k: string }>(
-    `SELECT reviewed_at AS t, 'g' AS k FROM review_logs WHERE reviewed_at >= ?
+    `SELECT reviewed_at AS t, 'g' AS k FROM review_logs WHERE reviewed_at >= ? AND answer != '${QUIZ_ANSWER}'
      UNION ALL SELECT reviewed_at AS t, 'c' AS k FROM anki_revlog WHERE reviewed_at >= ?`,
     since,
     since,
@@ -259,7 +262,7 @@ export async function setKv(db: Executor, table: 'settings' | 'meta', key: strin
 // ---------- backup ----------
 
 export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> {
-  const [cards, logs, seen, settings, activities, timeEntries, anki] = await Promise.all([
+  const [cards, logs, seen, settings, activities, timeEntries, anki, goalDays] = await Promise.all([
     getAllCards(db),
     db.getAllAsync<StoredLog & { id?: number }>('SELECT * FROM review_logs ORDER BY id'),
     db.getAllAsync<ExampleSeenRow>('SELECT * FROM example_seen'),
@@ -267,6 +270,7 @@ export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> 
     db.getAllAsync<Activity>('SELECT * FROM activities ORDER BY id'),
     db.getAllAsync<TimeEntry>('SELECT * FROM time_entries ORDER BY id'),
     readAnkiForBackup(db),
+    db.getAllAsync<{ day: string }>('SELECT day FROM goal_days ORDER BY day'),
   ]);
   return {
     cards,
@@ -276,6 +280,7 @@ export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> 
     activities,
     time_entries: timeEntries,
     anki,
+    goal_days: goalDays.map((g) => g.day),
   };
 }
 
@@ -321,5 +326,13 @@ export async function replaceAllFromBackup(db: SQLiteDatabase, data: BackupData,
     }
     // Backups made before Anki decks were included: keep the phone's own decks.
     if (data.anki) await replaceAnki(txn, data.anki);
+    // Backups made before goal days were saved: count every day with study in them, as the
+    // migration did (and keep the phone's own).
+    if (data.goal_days) {
+      await txn.execAsync('DELETE FROM goal_days;');
+      for (const day of data.goal_days) await txn.runAsync('INSERT OR IGNORE INTO goal_days (day) VALUES (?)', day);
+    } else {
+      await txn.execAsync(SEED_GOAL_DAYS_SQL);
+    }
   });
 }

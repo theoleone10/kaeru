@@ -3,6 +3,9 @@ import { startOfNextLocalDay } from '../stats/dates';
 import { shuffle, type Rng } from './queue';
 import { gradeCard, newCard, type StoredCard, type StoredLog } from './scheduler';
 
+/** The `answer` on the review log a lesson quiz leaves: it seeds the SRS but isn't a review. */
+export const QUIZ_ANSWER = 'quiz';
+
 /** Sentences asked per grammar point in the post-lesson quiz. */
 export const QUIZ_PER_POINT = 3;
 
@@ -89,7 +92,7 @@ export function cardsFromQuiz(
       correct: passed,
       now,
       exampleId: last?.exampleId ?? p.examples[0].id,
-      answer: 'quiz',
+      answer: QUIZ_ANSWER,
     });
     const due = Math.max(graded.card.due, startOfNextLocalDay(now));
     return { card: { ...graded.card, due }, log: graded.log, passed };

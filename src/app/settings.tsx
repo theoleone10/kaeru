@@ -293,6 +293,14 @@ export default function SettingsScreen() {
         <Row label="Max reviews per day">
           <Stepper value={settings.ankiMaxReviewsPerDay} min={50} max={2000} step={50} onChange={(v) => updateSettings({ ankiMaxReviewsPerDay: v })} />
         </Row>
+        <Row label="Desired retention" detail="Higher: shorter gaps between reviews, more of them">
+          <Stepper
+            value={settings.ankiRetention}
+            display={`${settings.ankiRetention}%`}
+            {...LIMITS.ankiRetention}
+            onChange={(v) => updateSettings({ ankiRetention: v })}
+          />
+        </Row>
       </Section>
 
       <Section label="Time tracking">
@@ -310,7 +318,7 @@ export default function SettingsScreen() {
             <Row label="Reviews ready" detail="When grammar or flashcards come due">
               <Switch value={settings.notifyReviews} onValueChange={(v) => updateSettings({ notifyReviews: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
             </Row>
-            <Row label="Streak saver" detail="An evening nudge if you haven't studied yet">
+            <Row label="Streak saver" detail="An evening nudge if no daily goal is done yet">
               <Switch value={settings.notifyStreak} onValueChange={(v) => updateSettings({ notifyStreak: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
             </Row>
             <Row label="Daily plan" detail="What's on today, before you usually start">

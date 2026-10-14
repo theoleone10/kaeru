@@ -27,7 +27,7 @@ export default function Today() {
   const today = useToday();
   const { plan, now, streak } = today;
   // Catches a day finished outside a study session (e.g. by stopping the timer).
-  useDayMilestones({ loaded: today.loaded, allDone: plan.allDone, streak: streak.days, studiedToday: streak.studiedToday });
+  useDayMilestones({ loaded: today.loaded, allDone: plan.allDone, streak: streak.days, goalMetToday: streak.goalMetToday });
   // Which of the frog's lines to show: a new one each visit, and each tap on the frog.
   const [seed, setSeed] = useState(pick);
   useFocusEffect(useCallback(() => setSeed(pick()), []));
@@ -72,8 +72,8 @@ export default function Today() {
             hitSlop={8}
             style={({ pressed }) => [styles.topStat, { opacity: pressed ? 0.6 : 1 }]}
           >
-            <Flame color={streak.studiedToday ? '#F08A3C' : colors.textMuted} />
-            <T variant="heading" color={streak.studiedToday ? '#D9663D' : colors.textMuted} style={{ fontWeight: '900' }}>
+            <Flame color={streak.goalMetToday ? '#F08A3C' : colors.textMuted} />
+            <T variant="heading" color={streak.goalMetToday ? '#D9663D' : colors.textMuted} style={{ fontWeight: '900' }}>
               {streak.days}
             </T>
           </Pressable>

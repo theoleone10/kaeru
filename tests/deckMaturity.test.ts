@@ -1,5 +1,5 @@
 import { addNote } from '@/anki/notes';
-import { ankiDueTimes, deckMaturity } from '@/anki/repo';
+import { ankiForecastInput, deckMaturity, setDeckLimits } from '@/anki/repo';
 import { State } from '@/anki/schedule';
 import { migrate } from '@/db/migrations';
 import { openNodeDb } from './helpers/nodeDb';
@@ -26,6 +26,11 @@ describe('deckMaturity', () => {
       { path: 'Japanese', new: 1, young: 2, mature: 2 },
       { path: 'Kana', new: 1, young: 0, mature: 0 },
     ]);
-    expect((await ankiDueTimes(db)).length).toBe(4);
+    await setDeckLimits(db, 'Kana', { newPerDay: null, reviewsPerDay: 50 });
+    const f = await ankiForecastInput(db, NOW, { newPerDay: 20, reviewsPerDay: 200 });
+    expect(f.learning).toHaveLength(1);
+    expect(f.review).toHaveLength(3);
+    expect(f.reviewsLeftToday).toBe(0);
+    expect(f.reviewsPerDay).toBe(250); // Japanese at the default + Kana's own limit
   });
 });

@@ -2,8 +2,10 @@
 import { dailyPlan, type DayState } from '@/daily/plan';
 import { buildQuiz, cardsFromQuiz, scoreQuiz, type QuizAnswer } from '@/srs/quiz';
 import { State } from '@/srs/scheduler';
-import { getActivityTimes, getAllCards, getExampleSeen, saveQuizResults } from '@/db/repo';
+import { getActivityTimes, getAllCards, getExampleSeen, getPointStats, getReviewTimes, saveQuizResults } from '@/db/repo';
 import { migrate } from '@/db/migrations';
+import { SEED_GOAL_DAYS_SQL, getGoalDays, markGoalDays, timeGoalDays } from '@/stats/goalDays';
+import { dayKey } from '@/stats/dates';
 import type { GrammarPoint } from '@/content/types';
 import { startOfNextLocalDay } from '@/stats/dates';
 import { openNodeDb } from './helpers/nodeDb';
@@ -50,6 +52,30 @@ describe('dailyPlan', () => {
     expect(fresh.steps.map((s) => s.id)).toEqual(['learn']);
     const finished = dailyPlan({ ...base, unlearned: 0 });
     expect(finished.steps.map((s) => s.id)).toEqual(['review', 'cards', 'time']);
+  });
+
+  it('counts a goal for the streak only when it was actually done today', () => {
+    expect(dailyPlan(base).goalMet).toBe(false);
+    // Nothing due and nothing reviewed: no review steps today, so nothing to earn there.
+    const idle = dailyPlan({ ...base, grammarDue: 0, cardsDue: 0 });
+    expect(idle.steps.map((x) => x.id)).toEqual(['learn', 'time']);
+    expect(idle.goalMet).toBe(false);
+    expect(dailyPlan({ ...base, grammarDue: 0, grammarReviewedToday: 3 }).goalMet).toBe(true);
+    expect(dailyPlan({ ...base, cardsDue: 0, cardsReviewedToday: 5 }).goalMet).toBe(true);
+    expect(dailyPlan({ ...base, learnedToday: 2 }).goalMet).toBe(true);
+    expect(dailyPlan({ ...base, timeTodayMs: 30 * MIN }).goalMet).toBe(true);
+    // Some reviews done but some still due: not yet.
+    expect(dailyPlan({ ...base, grammarReviewedToday: 5, cardsReviewedToday: 5, timeTodayMs: 29 * MIN, learnedToday: 1 }).goalMet).toBe(false);
+  });
+
+  it('does not tick reviews off after a lesson: its quiz is not a review', () => {
+    // Just learned the first points: their first review is tomorrow, so nothing is due.
+    const afterLesson = dailyPlan({ ...base, learnedToday: 2, grammarCards: 2, grammarDue: 0, grammarReviewedToday: 0 });
+    expect(afterLesson.steps.map((x) => x.id)).toEqual(['learn', 'cards', 'time']);
+    expect(afterLesson.doneCount).toBe(1);
+    // Reviews done today keep the step, ticked.
+    const reviewed = dailyPlan({ ...base, grammarDue: 0, grammarReviewedToday: 4 });
+    expect(reviewed.steps.find((x) => x.id === 'review')).toMatchObject({ done: true, detail: '4 reviewed today' });
   });
 
   it('only asks for what is left of the curriculum', () => {
@@ -118,6 +144,10 @@ describe('quiz', () => {
     const seen = await getExampleSeen(db, 'a');
     expect(seen.get('a-2')?.last_shown_at).toBe(NOW);
     expect(seen.has('a-1')).toBe(true);
+    // The quiz seeds the SRS but isn't a review.
+    expect((await getPointStats(db, 'a')).reviews).toBe(0);
+    expect((await getReviewTimes(db, NOW - DAY)).grammar).toEqual([]);
+    expect(await getActivityTimes(db, NOW - DAY)).toContain(NOW);
   });
 });
 
@@ -128,5 +158,24 @@ describe('streak activity', () => {
     await db.runAsync("INSERT INTO time_entries (activity_id, started_at, ended_at, note, source) VALUES (1, ?, ?, '', 'timer')", NOW - DAY, NOW - DAY + 30 * MIN);
     const times = await getActivityTimes(db, NOW - 7 * DAY);
     expect(times).toEqual([NOW - DAY]);
+  });
+});
+
+describe('goal days', () => {
+  it('starts from every day that already had study, so existing streaks carry over', async () => {
+    const db = openNodeDb();
+    await migrate(db);
+    await db.runAsync("INSERT INTO time_entries (activity_id, started_at, ended_at, note, source) VALUES (1, ?, ?, '', 'timer')", NOW - DAY, NOW - DAY + 5 * MIN);
+    await db.execAsync(SEED_GOAL_DAYS_SQL);
+    expect(await getGoalDays(db, NOW - 7 * DAY)).toEqual([dayKey(NOW - DAY)]);
+    await markGoalDays(db, [dayKey(NOW), dayKey(NOW)]);
+    expect(await getGoalDays(db, NOW - 7 * DAY)).toEqual([dayKey(NOW - DAY), dayKey(NOW)]);
+  });
+
+  it('finds recent days whose time goal was met, even when logged later', () => {
+    const entry = (start: number, mins: number) => ({ id: 1, activity_id: 1, started_at: start, ended_at: start + mins * MIN, note: '', source: 'manual' });
+    const entries = [entry(NOW - 2 * DAY, 35), entry(NOW - DAY, 10)];
+    expect(timeGoalDays(entries, 30 * MIN, NOW)).toEqual([dayKey(NOW - 2 * DAY)]);
+    expect(timeGoalDays(entries, 0, NOW)).toEqual([]);
   });
 });

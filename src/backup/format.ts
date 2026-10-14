@@ -5,8 +5,8 @@ import type { Activity, TimeEntry } from '../time/model';
 
 /** Kept from before the app was called Kaeru, so older backup files still load. */
 export const BACKUP_APP_ID = 'jlpt-grammar';
-/** v2 added time tracking (activities, time_entries); v3 added Anki decks (anki). Older files still load. */
-export const BACKUP_FORMAT_VERSION = 3;
+/** v2 added time tracking (activities, time_entries); v3 added Anki decks (anki); v4 the streak (goal_days). Older files still load. */
+export const BACKUP_FORMAT_VERSION = 4;
 
 export interface ExampleSeenRow extends ExampleSeen {
   grammar_id: string;
@@ -22,6 +22,8 @@ export interface BackupData {
   time_entries: TimeEntry[];
   /** Missing in v1/v2 files: restoring one of those keeps the phone's own decks. */
   anki?: AnkiBackup;
+  /** Days a daily goal was reached (dayKey). Missing before v4: restoring rebuilds it from the study history. */
+  goal_days?: string[];
 }
 
 export interface BackupFile extends BackupData {
@@ -107,7 +109,11 @@ export function parseBackup(json: string): BackupFile {
     if (end !== null && typeof end !== 'number') throw new Error(`time_entries[${i}]: "ended_at" must be a number or null`);
   });
   const anki = raw.anki === undefined ? undefined : validateAnki(raw.anki);
-  return { ...(raw as unknown as BackupFile), activities, time_entries: entries, anki } as BackupFile;
+  const goalDays = raw.goal_days;
+  if (goalDays !== undefined && (!Array.isArray(goalDays) || goalDays.some((d) => typeof d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d)))) {
+    throw new Error('Backup has malformed goal_days.');
+  }
+  return { ...(raw as unknown as BackupFile), activities, time_entries: entries, anki, goal_days: goalDays } as BackupFile;
 }
 
 export interface BackupCounts {

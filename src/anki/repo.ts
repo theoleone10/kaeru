@@ -344,8 +344,9 @@ export async function deleteDeck(db: Db, path: string): Promise<void> {
   });
 }
 
+/** Distinct flashcards answered today: a card seen again after a miss still counts once. */
 export async function reviewsToday(db: Db, now: number): Promise<number> {
-  const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM anki_revlog WHERE imported = 0 AND reviewed_at >= ?', startOfDay(now));
+  const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(DISTINCT card_id) AS n FROM anki_revlog WHERE imported = 0 AND reviewed_at >= ?', startOfDay(now));
   return row?.n ?? 0;
 }
 
@@ -387,8 +388,30 @@ export async function deckMaturity(db: Db): Promise<DeckMaturity[]> {
   return rows.map((r) => ({ path: r.top, new: r.n, mature: r.m, young: r.t - r.n - r.m }));
 }
 
-/** Due times of every studied (not new), unsuspended flashcard, for the review forecast. */
-export async function ankiDueTimes(db: Db): Promise<number[]> {
-  const rows = await db.getAllAsync<{ due: number }>(`SELECT due FROM anki_cards WHERE suspended = 0 AND state != ${State.New}`);
-  return rows.map((r) => r.due);
+export interface AnkiForecastInput {
+  /** Due times of cards in (re)learning: not held back by any limit. */
+  learning: number[];
+  /** Due times of cards in review. */
+  review: number[];
+  /** Reviews left today after every deck's limit (what the decks list shows). */
+  reviewsLeftToday: number;
+  /** Reviews a day allows across all top-level decks (each deck's own limit or the default). */
+  reviewsPerDay: number;
+}
+
+/** What the flashcard review forecast is worked out from, with the same limits as studying. */
+export async function ankiForecastInput(db: Db, now: number, defaults: Limits): Promise<AnkiForecastInput> {
+  const [rows, decks, own] = await Promise.all([
+    db.getAllAsync<{ due: number; state: number }>(`SELECT due, state FROM anki_cards WHERE suspended = 0 AND state != ${State.New}`),
+    listDecks(db, now, defaults),
+    db.getAllAsync<{ path: string; reviews_per_day: number | null }>('SELECT path, reviews_per_day FROM anki_deck_limits'),
+  ]);
+  const limit = new Map(own.map((r) => [r.path, r.reviews_per_day]));
+  const top = decks.filter((d) => d.depth === 0);
+  return {
+    learning: rows.filter((r) => r.state !== State.Review).map((r) => r.due),
+    review: rows.filter((r) => r.state === State.Review).map((r) => r.due),
+    reviewsLeftToday: top.reduce((n, d) => n + d.reviewCount, 0),
+    reviewsPerDay: top.reduce((n, d) => n + (limit.get(d.path) ?? defaults.reviewsPerDay), 0),
+  };
 }

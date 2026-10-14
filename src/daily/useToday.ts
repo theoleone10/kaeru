@@ -1,11 +1,13 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ankiToday } from '../anki/repo';
 import { curriculum } from '../content/loader';
 import { getActivityTimes } from '../db/repo';
 import { lessonsLearnedToday } from '../srs/lessons';
 import { todaysReviews } from '../srs/queue';
+import { dayKey } from '../stats/dates';
+import { getGoalDays, markGoalDays, timeGoalDays } from '../stats/goalDays';
 import { computeStreak } from '../stats/streak';
 import { useApp, useNow } from '../state/AppProvider';
 import { startOfDay, totalsByActivity } from '../time/model';
@@ -20,12 +22,14 @@ interface Loaded {
   cardsReviewedToday: number;
   firstDeck: string | null;
   activity: number[];
+  goalDays: string[];
 }
 
 export interface Today {
   plan: DayPlan;
   now: number;
-  streak: { days: number; studiedToday: boolean };
+  /** Days in a row with at least one goal reached. */
+  streak: { days: number; goalMetToday: boolean };
   /** Every study timestamp from the last ~13 months (grammar, flashcards, tracked time). */
   activity: number[];
   grammarDue: number;
@@ -55,11 +59,12 @@ export function useToday(): Today {
   // Reload whenever the screen comes into focus, or progress changes while it's open.
   const load = useCallback(async () => {
     const t = Date.now();
-    const [anki, activity] = await Promise.all([
+    const [anki, activity, goalDays] = await Promise.all([
       ankiToday(db, t, { newPerDay: ankiNewPerDay, reviewsPerDay: ankiMaxReviewsPerDay }),
       getActivityTimes(db, t - 400 * DAY),
+      getGoalDays(db, t - 400 * DAY),
     ]);
-    setLoaded({ decks: anki.decks, cardsDue: anki.due, cardsReviewedToday: anki.reviewed, firstDeck: anki.firstDeck, activity });
+    setLoaded({ decks: anki.decks, cardsDue: anki.due, cardsReviewedToday: anki.reviewed, firstDeck: anki.firstDeck, activity, goalDays });
     // `cards` and `entries` are deliberate triggers: they change after every study step.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, ankiNewPerDay, ankiMaxReviewsPerDay, cards, entries]);
@@ -78,7 +83,7 @@ export function useToday(): Today {
   const grammar = todaysReviews(cards, now, { maxPerDay: settings.grammarMaxReviewsPerDay });
   const grammarDue = grammar.queue.length;
   const timeTodayMs = [...totalsByActivity(entries, startOfDay(now), startOfDay(now) + 2 * DAY, now).values()].reduce((a, b) => a + b, 0);
-  const l = loaded ?? { decks: 0, cardsDue: 0, cardsReviewedToday: 0, firstDeck: null, activity: [] };
+  const l = loaded ?? { decks: 0, cardsDue: 0, cardsReviewedToday: 0, firstDeck: null, activity: [], goalDays: [] };
 
   const plan = dailyPlan({
     newGoal: settings.dailyNewGrammar,
@@ -94,6 +99,17 @@ export function useToday(): Today {
     timeGoalMs: settings.dailyTimeGoalMin * 60 * 1000,
     timeTodayMs,
   });
+
+  // Save goal days as they happen: today's once the plan shows a goal reached, plus recent
+  // days whose time goal was met by time logged afterwards.
+  const timeGoalMs = settings.dailyTimeGoalMin * 60 * 1000;
+  const reached = [...timeGoalDays(entries, timeGoalMs, now), ...(loaded && plan.goalMet ? [dayKey(now)] : [])];
+  const missing = reached.filter((d) => !l.goalDays.includes(d));
+  const missingKey = missing.join(',');
+  useEffect(() => {
+    if (!loaded || !missingKey) return;
+    markGoalDays(db, missingKey.split(',')).then(load, (e) => console.warn('Could not save goal day', e));
+  }, [db, loaded, missingKey, load]);
 
   const goTo = useCallback(
     (step: StepId, how: 'push' | 'replace' = 'push') => {
@@ -112,7 +128,7 @@ export function useToday(): Today {
   return {
     plan,
     now,
-    streak: computeStreak(l.activity, now),
+    streak: computeStreak([...l.goalDays, ...missing], now),
     activity: l.activity,
     grammarDue,
     learnedToday,

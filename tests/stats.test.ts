@@ -1,6 +1,7 @@
-import { forecast } from '@/srs/forecast';
+import { addForecasts, applyDailyLimit, forecast } from '@/srs/forecast';
 import { availableLessonCount, lessonsLearnedToday, nextLessonBatch } from '@/srs/lessons';
 import { computeStreak } from '@/stats/streak';
+import { dayKey } from '@/stats/dates';
 import { levelProgress } from '@/stats/levelProgress';
 import { newCard, State } from '@/srs/scheduler';
 import type { GrammarPoint } from '@/content/types';
@@ -21,16 +22,34 @@ describe('forecast', () => {
   });
 });
 
+describe('applyDailyLimit', () => {
+  const b = (...counts: number[]) => counts.map((count, i) => ({ start: i, count }));
+  it('shows what is left today and rolls the rest over, a day at a time', () => {
+    // 250 due today, 100 a day: 100 today, then the backlog fills the next days.
+    expect(applyDailyLimit(b(250, 20, 0, 0), 100, 100).map((x) => x.count)).toEqual([100, 100, 70, 0]);
+  });
+  it('leaves days under the limit alone', () => {
+    expect(applyDailyLimit(b(3, 5, 1), 3, 100).map((x) => x.count)).toEqual([3, 5, 1]);
+  });
+  it('uses what is left today after reviews done today', () => {
+    expect(applyDailyLimit(b(4, 2), 1, 10).map((x) => x.count)).toEqual([1, 5]);
+  });
+  it('adds forecasts day by day', () => {
+    expect(addForecasts(b(1, 2), b(3, 4)).map((x) => x.count)).toEqual([4, 6]);
+  });
+});
+
 describe('streak', () => {
-  it('counts consecutive days ending today', () => {
-    expect(computeStreak([at(9, 0, 8), at(22, 0, 9), at(8, 0, 10), at(9, 0, 10)], at(12))).toEqual({ days: 3, studiedToday: true });
+  const days = (...ts: number[]) => ts.map(dayKey);
+  it('counts consecutive goal days ending today', () => {
+    expect(computeStreak(days(at(9, 0, 8), at(22, 0, 9), at(8, 0, 10)), at(12))).toEqual({ days: 3, goalMetToday: true });
   });
-  it('stays alive until the end of today if yesterday was studied', () => {
-    expect(computeStreak([at(9, 0, 8), at(9, 0, 9)], at(12))).toEqual({ days: 2, studiedToday: false });
+  it('stays alive until the end of today if yesterday reached a goal', () => {
+    expect(computeStreak(days(at(9, 0, 8), at(9, 0, 9)), at(12))).toEqual({ days: 2, goalMetToday: false });
   });
-  it('breaks after a missed day', () => {
-    expect(computeStreak([at(9, 0, 7), at(9, 0, 8)], at(12))).toEqual({ days: 0, studiedToday: false });
-    expect(computeStreak([], at(12))).toEqual({ days: 0, studiedToday: false });
+  it('breaks after a day without a goal', () => {
+    expect(computeStreak(days(at(9, 0, 7), at(9, 0, 8)), at(12))).toEqual({ days: 0, goalMetToday: false });
+    expect(computeStreak([], at(12))).toEqual({ days: 0, goalMetToday: false });
   });
 });
 

@@ -35,8 +35,8 @@ export function useOncePerDaySound(sound: SoundName, when: boolean, delayMs = 0)
 }
 
 /** Fanfares for the end of a session: a streak milestone, else the whole day's plan done. */
-export function useDayMilestones({ loaded, allDone, streak, studiedToday }: { loaded: boolean; allDone: boolean; streak: number; studiedToday: boolean }): void {
-  const milestone = loaded && studiedToday && STREAK_MILESTONES.includes(streak);
+export function useDayMilestones({ loaded, allDone, streak, goalMetToday }: { loaded: boolean; allDone: boolean; streak: number; goalMetToday: boolean }): void {
+  const milestone = loaded && goalMetToday && STREAK_MILESTONES.includes(streak);
   useOncePerDaySound('streak', milestone, 1400);
   useOncePerDaySound('dayDone', loaded && allDone && !milestone, 1400);
 }

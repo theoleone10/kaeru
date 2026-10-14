@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { State } from '../anki/schedule';
 import { curriculum } from '../content/loader';
 import { getActivityTimes, getKv, setKv } from '../db/repo';
+import { getGoalDays } from '../stats/goalDays';
 import { lessonsLearnedToday } from '../srs/lessons';
 import type { StoredCard } from '../srs/scheduler';
 import type { Settings } from '../state/settings';
@@ -92,8 +93,9 @@ async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonl
     if (!perm.granted) return;
     await ensureChannels();
 
-    const [activity, cardRows, entries, running, activities] = await Promise.all([
+    const [activity, goalDays, cardRows, entries, running, activities] = await Promise.all([
       getActivityTimes(db, now - 60 * DAY),
+      getGoalDays(db, now - 60 * DAY),
       db.getAllAsync<{ due: number }>('SELECT due FROM anki_cards WHERE suspended = 0 AND state != ?', State.New),
       listEntriesSince(db, startOfDay(now) - DAY),
       getRunning(db),
@@ -116,6 +118,7 @@ async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonl
       grammarDue: cards.filter((c) => !c.suspended).map((c) => c.due),
       cardDue: cardRows.map((r) => r.due),
       activity,
+      goalDays,
       learnedToday: lessonsLearnedToday(
         cards.map((c) => c.learned_at),
         now,

@@ -6,7 +6,7 @@ import { readCollection, type AnkiCollection } from '@/anki/collection';
 import { unpackPackage } from '@/anki/package';
 import { cardContent, cardDocument, cloze, showScript, clozeNumbers, furigana, kana, kanji, renderCard, stripHtml, type RenderContext } from '@/anki/render';
 import { convertAnkiCard, convertRevlog, difficultyFromEase, formatInterval, previewGrades, createAnkiScheduler, Rating, State } from '@/anki/schedule';
-import { answerCard, buildStudyQueue, deleteDeck, getDeckLimits, getStudyCard, interleave, listDecks, setDeckLimits, takeWithinLimits, undoAnswer } from '@/anki/repo';
+import { answerCard, ankiToday, buildStudyQueue, deleteDeck, getDeckLimits, getStudyCard, interleave, listDecks, setDeckLimits, takeWithinLimits, undoAnswer } from '@/anki/repo';
 import { saveCollection } from '@/anki/store';
 import { migrate } from '@/db/migrations';
 import { openNodeDb } from './helpers/nodeDb';
@@ -158,6 +158,13 @@ describe('scheduling answers', () => {
     expect(iv[1]).toBeLessThan(iv[2]);
     expect(iv[2]).toBeLessThan(iv[3]);
     expect(p[Rating.Again].lapses).toBe(1);
+  });
+
+  it('gives shorter intervals at a higher desired retention', () => {
+    const s = convertAnkiCard({ id: 1, nid: 1, did: 1, ord: 0, type: 2, queue: 2, due: 95, ivl: 10, factor: 2500, reps: 3, lapses: 0, odue: 0, odid: 0, data: '' }, CRT, NOW);
+    const good = (r: number) => previewGrades(s, NOW, createAnkiScheduler(false, r))[Rating.Good].due;
+    expect(good(0.95)).toBeLessThan(good(0.92));
+    expect(good(0.92)).toBeLessThan(good(0.9));
   });
 
   it.each([

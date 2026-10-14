@@ -25,6 +25,8 @@ export interface Settings {
   /** New Anki cards introduced per deck per day. */
   ankiNewPerDay: number;
   ankiMaxReviewsPerDay: number;
+  /** Flashcards' desired retention in percent (FSRS): higher means shorter intervals. */
+  ankiRetention: number;
   soundEffects: boolean;
 }
 
@@ -46,6 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoTrackStudy: true,
   ankiNewPerDay: 5,
   ankiMaxReviewsPerDay: 200,
+  ankiRetention: 92,
   soundEffects: true,
 };
 
@@ -56,6 +59,7 @@ export const LIMITS = {
   minReminderGapHours: { min: 1, max: 12 },
   ankiNewPerDay: { min: 0, max: 200 },
   ankiMaxReviewsPerDay: { min: 10, max: 9999 },
+  ankiRetention: { min: 80, max: 97 },
 } as const;
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, Math.round(n)));
@@ -78,6 +82,8 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
   if (anew !== undefined) s.ankiNewPerDay = clamp(anew, LIMITS.ankiNewPerDay.min, LIMITS.ankiNewPerDay.max);
   const arev = num('ankiMaxReviewsPerDay');
   if (arev !== undefined) s.ankiMaxReviewsPerDay = clamp(arev, LIMITS.ankiMaxReviewsPerDay.min, LIMITS.ankiMaxReviewsPerDay.max);
+  const ret = num('ankiRetention');
+  if (ret !== undefined) s.ankiRetention = clamp(ret, LIMITS.ankiRetention.min, LIMITS.ankiRetention.max);
   const qs = num('quietStart');
   if (qs !== undefined) s.quietStart = clamp(qs, 0, 24 * 60 - 1);
   const qe = num('quietEnd');

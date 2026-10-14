@@ -99,7 +99,7 @@ export function StepList({ steps, next, onOpen }: { steps: Step[]; next: Step | 
 export function NextUp({ from }: { from: StepId }) {
   const { colors } = useApp();
   const { plan, goTo, loaded, streak } = useToday();
-  useDayMilestones({ loaded, allDone: plan.allDone, streak: streak.days, studiedToday: streak.studiedToday });
+  useDayMilestones({ loaded, allDone: plan.allDone, streak: streak.days, goalMetToday: streak.goalMetToday });
   if (!loaded) return null;
   const next = plan.steps.find((s) => !s.done && s.id !== from) ?? null;
   const left = plan.steps.filter((s) => !s.done && s.id !== from).length;
