@@ -1,4 +1,4 @@
-import { forecast } from '@/srs/forecast';
+import { addForecasts, applyDailyLimit, forecast } from '@/srs/forecast';
 import { availableLessonCount, lessonsLearnedToday, nextLessonBatch } from '@/srs/lessons';
 import { computeStreak } from '@/stats/streak';
 import { dayKey } from '@/stats/dates';
@@ -19,6 +19,23 @@ describe('forecast', () => {
     expect(buckets[10].count).toBe(1);
     expect(buckets[29]).toEqual({ start: new Date(2026, 1, 8).getTime(), count: 1 });
     expect(buckets.reduce((s, b) => s + b.count, 0)).toBe(7); // day 40 and later are past the window
+  });
+});
+
+describe('applyDailyLimit', () => {
+  const b = (...counts: number[]) => counts.map((count, i) => ({ start: i, count }));
+  it('shows what is left today and rolls the rest over, a day at a time', () => {
+    // 250 due today, 100 a day: 100 today, then the backlog fills the next days.
+    expect(applyDailyLimit(b(250, 20, 0, 0), 100, 100).map((x) => x.count)).toEqual([100, 100, 70, 0]);
+  });
+  it('leaves days under the limit alone', () => {
+    expect(applyDailyLimit(b(3, 5, 1), 3, 100).map((x) => x.count)).toEqual([3, 5, 1]);
+  });
+  it('uses what is left today after reviews done today', () => {
+    expect(applyDailyLimit(b(4, 2), 1, 10).map((x) => x.count)).toEqual([1, 5]);
+  });
+  it('adds forecasts day by day', () => {
+    expect(addForecasts(b(1, 2), b(3, 4)).map((x) => x.count)).toEqual([4, 6]);
   });
 });
 

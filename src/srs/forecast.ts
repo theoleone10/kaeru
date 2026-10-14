@@ -37,3 +37,26 @@ export function forecast(dueTimes: readonly number[], now: number, days = 30): F
   }
   return buckets;
 }
+
+/**
+ * A day only takes so many reviews, like the review queue: today's bucket becomes what is
+ * actually left today (`todayLeft`, after the daily limit and what's done), and anything
+ * over a day's limit waits for the next day, and so on down the month.
+ */
+export function applyDailyLimit(buckets: readonly ForecastBucket[], todayLeft: number, perDay: number): ForecastBucket[] {
+  const out = buckets.map((b) => ({ ...b }));
+  if (out.length === 0) return out;
+  let carry = Math.max(0, out[0].count - todayLeft);
+  out[0].count = Math.min(out[0].count, Math.max(0, todayLeft));
+  for (let i = 1; i < out.length; i++) {
+    const total = out[i].count + carry;
+    out[i].count = Math.min(total, perDay);
+    carry = total - out[i].count;
+  }
+  return out;
+}
+
+/** Day-by-day sum of forecasts over the same days. */
+export function addForecasts(a: readonly ForecastBucket[], b: readonly ForecastBucket[]): ForecastBucket[] {
+  return a.map((x, i) => ({ start: x.start, count: x.count + (b[i]?.count ?? 0) }));
+}

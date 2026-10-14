@@ -4,14 +4,14 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Line } from 'react-native-svg';
-import { ankiDueTimes, deckMaturity, type DeckMaturity } from '@/anki/repo';
+import { ankiForecastInput, deckMaturity, type AnkiForecastInput, type DeckMaturity } from '@/anki/repo';
 import { Flame } from '@/components/Flame';
 import { ForecastChart } from '@/components/ForecastChart';
 import { Button, ProgressBar, Section, Stat, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { useToday } from '@/daily/useToday';
 import { getReviewTimes } from '@/db/repo';
-import { forecast } from '@/srs/forecast';
+import { addForecasts, applyDailyLimit, forecast } from '@/srs/forecast';
 import { levelProgress } from '@/stats/levelProgress';
 import { useApp, useNow } from '@/state/AppProvider';
 import { dailyTotals, entryDuration, formatClock, formatDuration, formatTimeOfDay, startOfDay, type TimeEntry } from '@/time/model';
@@ -34,7 +34,7 @@ const TABS: { id: TabId; label: string; icon: keyof typeof Ionicons.glyphMap }[]
 interface Loaded {
   reviews: { grammar: number[]; cards: number[] };
   decks: DeckMaturity[];
-  cardDue: number[];
+  cardForecast: AnkiForecastInput;
 }
 
 function dayLabel(t: number, now: number): string {
@@ -150,14 +150,19 @@ function Donut({ parts, size = 76 }: { parts: { key: string; color: string; valu
   );
 }
 
-function GrammarTab({ reviews, now }: { reviews: number[]; now: number }) {
-  const { colors, lines, cards } = useApp();
+/** Today's bar is what's left today (as on Today); reviews over the daily maximum roll to the next days. */
+function GrammarTab({ reviews, now, dueToday }: { reviews: number[]; now: number; dueToday: number }) {
+  const { colors, lines, cards, settings } = useApp();
   const days = lastWeek(now);
   const counts = countByDay(reviews, days);
   const levels = levelProgress(curriculum, cards);
-  const buckets = forecast(
-    cards.filter((c) => !c.suspended).map((c) => c.due),
-    now,
+  const buckets = applyDailyLimit(
+    forecast(
+      cards.filter((c) => !c.suspended).map((c) => c.due),
+      now,
+    ),
+    dueToday,
+    settings.grammarMaxReviewsPerDay,
   );
   return (
     <>
@@ -192,7 +197,8 @@ function GrammarTab({ reviews, now }: { reviews: number[]; now: number }) {
   );
 }
 
-function DecksTab({ reviews, decks, cardDue, now }: { reviews: number[]; decks: DeckMaturity[]; cardDue: number[]; now: number }) {
+/** Learning cards as they come due; reviews within the decks' daily limits, like studying (new cards aren't forecast, as in Anki). */
+function DecksTab({ reviews, decks, cardForecast, now }: { reviews: number[]; decks: DeckMaturity[]; cardForecast: AnkiForecastInput; now: number }) {
   const { colors } = useApp();
   const days = lastWeek(now);
   const counts = countByDay(reviews, days);
@@ -251,7 +257,12 @@ function DecksTab({ reviews, decks, cardDue, now }: { reviews: number[]; decks: 
       </Section>
 
       <Section label="Upcoming reviews · next 30 days">
-        <ForecastChart buckets={forecast(cardDue, now)} />
+        <ForecastChart
+          buckets={addForecasts(
+            forecast(cardForecast.learning, now),
+            applyDailyLimit(forecast(cardForecast.review, now), cardForecast.reviewsLeftToday, cardForecast.reviewsPerDay),
+          )}
+        />
       </Section>
     </>
   );
@@ -353,19 +364,28 @@ function TimeTab() {
 /** Streak, grammar learned and time this week up top; then Grammar, Decks and Time in tabs. Opened from the streak on Today. */
 export default function Progress() {
   const db = useSQLiteContext();
-  const { colors, cards } = useApp();
+  const { colors, cards, settings } = useApp();
   const { entries, refresh } = useTime();
   const today = useToday();
   const { now, streak } = today;
   const [tab, setTab] = useState<TabId>('grammar');
-  const [loaded, setLoaded] = useState<Loaded>({ reviews: { grammar: [], cards: [] }, decks: [], cardDue: [] });
+  const [loaded, setLoaded] = useState<Loaded>({
+    reviews: { grammar: [], cards: [] },
+    decks: [],
+    cardForecast: { learning: [], review: [], reviewsLeftToday: 0, reviewsPerDay: 0 },
+  });
 
   const load = useCallback(async () => {
-    const [reviews, decks, cardDue] = await Promise.all([getReviewTimes(db, startOfDay(Date.now()) - 7 * DAY), deckMaturity(db), ankiDueTimes(db)]);
-    setLoaded({ reviews, decks, cardDue });
-    // Reload after any grammar or flashcard study.
+    const t = Date.now();
+    const [reviews, decks, cardForecast] = await Promise.all([
+      getReviewTimes(db, startOfDay(t) - 7 * DAY),
+      deckMaturity(db),
+      ankiForecastInput(db, t, { newPerDay: settings.ankiNewPerDay, reviewsPerDay: settings.ankiMaxReviewsPerDay }),
+    ]);
+    setLoaded({ reviews, decks, cardForecast });
+    // Reload after any grammar or flashcard study, or a change to the daily limits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db, cards, today.cardsReviewedToday]);
+  }, [db, cards, today.cardsReviewedToday, settings.ankiNewPerDay, settings.ankiMaxReviewsPerDay]);
   useFocusEffect(
     useCallback(() => {
       // Pick up the latest app time (saved every minute in the background).
@@ -412,8 +432,8 @@ export default function Progress() {
         })}
       </View>
 
-      {tab === 'grammar' && <GrammarTab reviews={loaded.reviews.grammar} now={now} />}
-      {tab === 'decks' && <DecksTab reviews={loaded.reviews.cards} decks={loaded.decks} cardDue={loaded.cardDue} now={now} />}
+      {tab === 'grammar' && <GrammarTab reviews={loaded.reviews.grammar} now={now} dueToday={today.grammarDue} />}
+      {tab === 'decks' && <DecksTab reviews={loaded.reviews.cards} decks={loaded.decks} cardForecast={loaded.cardForecast} now={now} />}
       {tab === 'time' && <TimeTab />}
     </ScrollView>
   );
