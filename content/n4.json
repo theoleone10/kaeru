@@ -796,7 +796,7 @@
       "explanation": "ぞ and ぜ are rough, masculine sentence endings. ぞ adds force or a warning: 行くぞ!, \"Let's go!\" / \"Here we go!\" 危ないぞ, \"Watch out, it's dangerous.\" ぜ is similar but friendlier and more buddy-like: 飲みに行こうぜ, \"Let's go for a drink.\"\n\nYou'll hear them a lot in anime, games and among male friends.",
       "nuances": [
         "ぞ can be used to yourself to psych yourself up: よし、頑張るぞ!",
-        "ぜ often follows the volitional form: 〜うぜ, \"let's\"."
+        "ぜ often follows the volitional form: 行こうぜ, \"let's go\"."
       ],
       "common_mistakes": [
         "Using them in polite speech — they're strictly casual.",
@@ -1598,96 +1598,6 @@
       ]
     },
     {
-      "id": "n4-te-aru",
-      "level": "N4",
-      "title": "〜てある",
-      "meaning": "has been done (and stays that way)",
-      "structure": [
-        "Thing + が + transitive verb (て-form) + ある"
-      ],
-      "formality": "neutral",
-      "explanation": "Transitive verb (て-form) + ある describes a state someone deliberately created: 窓が開けてあります, \"The window has been left open.\" The focus is on the result, not on who did it.\n\nThe thing takes が (or は), not を.",
-      "nuances": [
-        "Compare 窓が開いています (the window is open — just a state) with 窓が開けてあります (someone opened it on purpose).",
-        "It often implies preparation: 料理が作ってあります, \"The food's ready.\""
-      ],
-      "common_mistakes": [
-        "Using an intransitive verb: 窓が開いてある ✗ → 開けてある or 開いている.",
-        "Using を: 窓を開けてあります is heard, but が is standard."
-      ],
-      "comparisons": [
-        {
-          "id": "n5-te-imasu-state",
-          "note": "開いている just describes the state; 開けてある says someone made it so."
-        }
-      ],
-      "related_ids": [
-        "n4-te-oku",
-        "n5-te-imasu-state"
-      ],
-      "examples": [
-        {
-          "id": "n4-te-aru-1",
-          "japanese": "窓が開けてあります。",
-          "furigana": "{窓|まど}が{開|あ}けてあります。",
-          "english": "The window has been left open.",
-          "cloze_target": "開けてあります",
-          "accepted_answers": [
-            "開けてあります",
-            "あけてあります"
-          ],
-          "hint": "開ける + (deliberate, resulting state)"
-        },
-        {
-          "id": "n4-te-aru-2",
-          "japanese": "壁にカレンダーが掛けてあります。",
-          "furigana": "{壁|かべ}にカレンダーが{掛|か}けてあります。",
-          "english": "A calendar has been hung on the wall.",
-          "cloze_target": "掛けてあります",
-          "accepted_answers": [
-            "掛けてあります",
-            "かけてあります"
-          ],
-          "hint": "掛ける + (resulting state)"
-        },
-        {
-          "id": "n4-te-aru-3",
-          "japanese": "机の上にメモが置いてあります。",
-          "furigana": "{机|つくえ}の{上|うえ}にメモが{置|お}いてあります。",
-          "english": "There's a note (left) on the desk.",
-          "cloze_target": "置いてあります",
-          "accepted_answers": [
-            "置いてあります",
-            "おいてあります"
-          ],
-          "hint": "置く + (resulting state)"
-        },
-        {
-          "id": "n4-te-aru-4",
-          "japanese": "ホテルはもう予約してあります。",
-          "furigana": "ホテルはもう{予約|よやく}してあります。",
-          "english": "The hotel is already booked.",
-          "cloze_target": "してあります",
-          "accepted_answers": [
-            "してあります"
-          ],
-          "hint": "する + (resulting state)"
-        },
-        {
-          "id": "n4-te-aru-5",
-          "japanese": "名前が書いてありません。",
-          "furigana": "{名前|なまえ}が{書|か}いてありません。",
-          "english": "No name has been written on it.",
-          "cloze_target": "書いてありません",
-          "accepted_answers": [
-            "書いてありません",
-            "かいてありません"
-          ],
-          "hint": "書く + (resulting state, negative)"
-        }
-      ]
-    },
-    {
       "id": "n4-transitive-intransitive",
       "level": "N4",
       "title": "Transitive & intransitive verbs (開ける／開く)",
@@ -1782,6 +1692,96 @@
             "こわしました"
           ],
           "hint": "壊す／壊れる (someone did it)"
+        }
+      ]
+    },
+    {
+      "id": "n4-te-aru",
+      "level": "N4",
+      "title": "〜てある",
+      "meaning": "has been done (and stays that way)",
+      "structure": [
+        "Thing + が + transitive verb (て-form) + ある"
+      ],
+      "formality": "neutral",
+      "explanation": "Transitive verb (て-form) + ある describes a state someone deliberately created: 窓が開けてあります, \"The window has been left open.\" The focus is on the result, not on who did it.\n\nThe thing takes が (or は), not を.",
+      "nuances": [
+        "Compare 窓が開いています (the window is open — just a state) with 窓が開けてあります (someone opened it on purpose).",
+        "It often implies preparation: 料理が作ってあります, \"The food's ready.\""
+      ],
+      "common_mistakes": [
+        "Using an intransitive verb: 窓が開いてある ✗ → 開けてある or 開いている.",
+        "Using を: 窓を開けてあります is heard, but が is standard."
+      ],
+      "comparisons": [
+        {
+          "id": "n5-te-imasu-state",
+          "note": "開いている just describes the state; 開けてある says someone made it so."
+        }
+      ],
+      "related_ids": [
+        "n4-te-oku",
+        "n5-te-imasu-state"
+      ],
+      "examples": [
+        {
+          "id": "n4-te-aru-1",
+          "japanese": "窓が開けてあります。",
+          "furigana": "{窓|まど}が{開|あ}けてあります。",
+          "english": "The window has been left open.",
+          "cloze_target": "開けてあります",
+          "accepted_answers": [
+            "開けてあります",
+            "あけてあります"
+          ],
+          "hint": "開ける + (deliberate, resulting state)"
+        },
+        {
+          "id": "n4-te-aru-2",
+          "japanese": "壁にカレンダーが掛けてあります。",
+          "furigana": "{壁|かべ}にカレンダーが{掛|か}けてあります。",
+          "english": "A calendar has been hung on the wall.",
+          "cloze_target": "掛けてあります",
+          "accepted_answers": [
+            "掛けてあります",
+            "かけてあります"
+          ],
+          "hint": "掛ける + (resulting state)"
+        },
+        {
+          "id": "n4-te-aru-3",
+          "japanese": "机の上にメモが置いてあります。",
+          "furigana": "{机|つくえ}の{上|うえ}にメモが{置|お}いてあります。",
+          "english": "There's a note (left) on the desk.",
+          "cloze_target": "置いてあります",
+          "accepted_answers": [
+            "置いてあります",
+            "おいてあります"
+          ],
+          "hint": "置く + (resulting state)"
+        },
+        {
+          "id": "n4-te-aru-4",
+          "japanese": "ホテルはもう予約してあります。",
+          "furigana": "ホテルはもう{予約|よやく}してあります。",
+          "english": "The hotel is already booked.",
+          "cloze_target": "してあります",
+          "accepted_answers": [
+            "してあります"
+          ],
+          "hint": "する + (resulting state)"
+        },
+        {
+          "id": "n4-te-aru-5",
+          "japanese": "名前が書いてありません。",
+          "furigana": "{名前|なまえ}が{書|か}いてありません。",
+          "english": "No name has been written on it.",
+          "cloze_target": "書いてありません",
+          "accepted_answers": [
+            "書いてありません",
+            "かいてありません"
+          ],
+          "hint": "書く + (resulting state, negative)"
         }
       ]
     },

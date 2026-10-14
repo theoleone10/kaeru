@@ -905,7 +905,7 @@
         "Plain form + じゃん (な-adj / noun: no だ)"
       ],
       "formality": "casual",
-      "explanation": "じゃん is a slangy contraction of じゃないか / じゃない. It points out something the listener should see or agree with: いいじゃん, \"That's nice, isn't it!\" / \"What's wrong with that?\" 言ったじゃん, \"I told you, didn't I!\"\n\nIt started in the Yokohama area and is now common casual speech all over Japan.",
+      "explanation": "じゃん is a slangy contraction of じゃないか / じゃない. It points out something the listener should see or agree with: いいじゃん, \"That's nice, isn't it!\" / \"What's wrong with that?\" 言ったじゃん, \"I told you, didn't I!\"\n\nIt began as a regional form west of Tokyo, spread through Yokohama, and is now common casual speech all over Japan.",
       "nuances": [
         "Tone matters: it can sound cheerful (いいじゃん!) or accusing (遅いじゃん).",
         "じゃんか is an even more emphatic variant."
@@ -3727,7 +3727,7 @@
           "id": "n3-to-wa-kagiranai-2",
           "japanese": "日本人なら誰でも漢字が書けるとは限らない。",
           "furigana": "{日本人|にほんじん}なら{誰|だれ}でも{漢字|かんじ}が{書|か}けるとは{限|かぎ}らない。",
-          "english": "Not every Japanese person can necessarily write kanji well.",
+          "english": "Not every Japanese person can necessarily write kanji.",
           "cloze_target": "とは限らない",
           "accepted_answers": [
             "とは限らない",

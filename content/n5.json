@@ -591,7 +591,7 @@
           "id": "n5-name-suffixes-5",
           "japanese": "佐藤先生は日本語の先生です。",
           "furigana": "{佐藤|さとう}{先生|せんせい}は{日本語|にほんご}の{先生|せんせい}です。",
-          "english": "Professor Sato is a Japanese teacher.",
+          "english": "Sato-sensei is a Japanese teacher.",
           "cloze_target": "先生",
           "cloze_occurrence": 1,
           "accepted_answers": [
@@ -2660,7 +2660,7 @@
           "id": "n5-to-with-4",
           "japanese": "家族と一緒に旅行します。",
           "furigana": "{家族|かぞく}と{一緒|いっしょ}に{旅行|りょこう}します。",
-          "english": "I'm traveling together with my family.",
+          "english": "I'm travelling together with my family.",
           "cloze_target": "と",
           "accepted_answers": [
             "と"
@@ -2860,7 +2860,7 @@
         "Person + に + Thing + を + 書く / 貸す / あげる"
       ],
       "formality": "neutral",
-      "explanation": "に marks the person an action is aimed at: 友だちに手紙を書きます \"write a letter to a friend\", 先生に聞きます \"ask the teacher\".\n\nSome verbs always take に for their partner: 会う (meet), 電話する (phone), 質問する (ask a question).",
+      "explanation": "に marks the person an action is aimed at: 友だちに手紙を書きます \"write a letter to a friend\", 先生に聞きます \"ask the teacher\".\n\nSome verbs naturally take に for their partner: 会う (meet), 電話する (phone), 質問する (ask a question).",
       "nuances": [
         "You'll meet this に again with giving and receiving verbs (あげる, もらう) at N4.",
         "友だちに会う (meet a friend) and 友だちと会う (meet up with a friend) are both fine."
@@ -3443,7 +3443,7 @@
           "id": "n5-ka-or-4",
           "japanese": "夏休みは北海道か沖縄に行きたいです。",
           "furigana": "{夏休|なつやす}みは{北海道|ほっかいどう}か{沖縄|おきなわ}に{行|い}きたいです。",
-          "english": "For summer vacation I want to go to Hokkaido or Okinawa.",
+          "english": "For the summer holidays I want to go to Hokkaido or Okinawa.",
           "cloze_target": "か",
           "accepted_answers": [
             "か"
@@ -3889,7 +3889,7 @@
           "id": "n5-counters-5",
           "japanese": "兄弟が二人います。",
           "furigana": "{兄弟|きょうだい}が{二人|ふたり}います。",
-          "english": "I have two brothers and sisters.",
+          "english": "I have two siblings.",
           "cloze_target": "二人",
           "accepted_answers": [
             "二人",
@@ -5630,7 +5630,7 @@
         "話す → 話して, 貸す → 貸して, 出す → 出して"
       ],
       "formality": "neutral",
-      "explanation": "Verbs ending in す swap it for し + て: 話す → 話して, 返す → 返して, 消す → 消して. It's the only う-verb group with no small っ and no ん.\n\nAn easy check: it's the ます-stem plus て. 話します → 話して.",
+      "explanation": "Verbs ending in す swap it for し + て: 話す → 話して, 返す → 返して, 消す → 消して. Unlike the other う-verb groups, no extra sound is added: no small っ, no ん, no い.\n\nAn easy check: it's the ます-stem plus て. 話します → 話して.",
       "nuances": [
         "する also becomes して (勉強して), but that's an irregular verb; it's in the next lesson."
       ],
@@ -6520,7 +6520,7 @@
         "から sounds more personal and direct than ので (N4), which is softer."
       ],
       "common_mistakes": [
-        "Putting the reason after から: 行きません、雨ですから is fine as an afterthought, but 雨から ✗ on its own — a noun needs です or だ first.",
+        "Attaching から straight to a noun: 雨から、行きません ✗ → 雨ですから／雨だから. (雨から on its own means \"from the rain\".)",
         "Mixing up から (because) and てから (after)."
       ],
       "comparisons": [

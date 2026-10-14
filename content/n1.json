@@ -11,7 +11,7 @@
         "Verb (dictionary form) + べく (する → すべく)"
       ],
       "formality": "formal",
-      "explanation": "べく is a literary way to say \"in order to\", linking an aim to an action: 夢を実現すべく、毎日努力している, \"She works hard every day in order to realise her dream.\" It's the connective form of べき and sounds determined and formal.",
+      "explanation": "べく is a literary way to say \"in order to\", linking an aim to an action: 夢を実現すべく、毎日努力している, \"She works hard every day in order to realise her dream.\" It comes from classical べし (the source of べき) and sounds determined and formal.",
       "nuances": [
         "する usually becomes すべく.",
         "Mostly in writing, news and speeches; ために is the everyday form."
@@ -1172,7 +1172,7 @@
         "Noun + はおろか、… も／さえ／まで"
       ],
       "formality": "formal",
-      "explanation": "はおろか says that if even the bigger (or more basic) case fails, the obvious one certainly does: 漢字はおろか、ひらがなも書けない, \"He can't write hiragana, let alone kanji.\" The second part uses も, さえ or まで and is often negative.\n\nIt emphasises how extreme the situation is, usually with surprise or disapproval.",
+      "explanation": "はおろか waves X aside as too obvious to mention and points to an even more extreme case: 漢字はおろか、ひらがなも書けない, \"He can't write hiragana, let alone kanji.\" The second part uses も, さえ or まで and is often negative.\n\nIt emphasises how extreme the situation is, usually with surprise or disapproval.",
       "nuances": [
         "Close to 〜どころか and 〜は言うまでもなく.",
         "Written in hiragana (愚か is the kanji)."
@@ -1222,14 +1222,14 @@
         },
         {
           "id": "n1-wa-oroka-4",
-          "japanese": "彼女は英語はおろか、フランス語も話せる。",
-          "furigana": "{彼女|かのじょ}は{英語|えいご}はおろか、フランス{語|ご}も{話|はな}せる。",
-          "english": "She speaks not only English but French too.",
+          "japanese": "彼は料理はおろか、お湯を沸かすこともできない。",
+          "furigana": "{彼|かれ}は{料理|りょうり}はおろか、お{湯|ゆ}を{沸|わ}かすこともできない。",
+          "english": "He can't even boil water, let alone cook.",
           "cloze_target": "はおろか",
           "accepted_answers": [
             "はおろか"
           ],
-          "hint": "not to mention"
+          "hint": "let alone"
         },
         {
           "id": "n1-wa-oroka-5",
@@ -4512,14 +4512,14 @@
         },
         {
           "id": "n1-wo-oite-2",
-          "japanese": "日本の首都は東京をおいてほかにない。",
-          "furigana": "{日本|にほん}の{首都|しゅと}は{東京|とうきょう}をおいてほかにない。",
-          "english": "Japan's capital could be none other than Tokyo.",
+          "japanese": "日本の伝統文化を学ぶなら、京都をおいてほかにない。",
+          "furigana": "{日本|にほん}の{伝統|でんとう}{文化|ぶんか}を{学|まな}ぶなら、{京都|きょうと}をおいてほかにない。",
+          "english": "If you want to learn about traditional Japanese culture, there's nowhere but Kyoto.",
           "cloze_target": "をおいて",
           "accepted_answers": [
             "をおいて"
           ],
-          "hint": "nothing other than"
+          "hint": "nowhere other than"
         },
         {
           "id": "n1-wo-oite-3",

@@ -686,7 +686,7 @@
         "Noun + の + あげく(に)"
       ],
       "formality": "neutral",
-      "explanation": "あげく describes an outcome reached after a long, often frustrating process: さんざん迷ったあげく、買わなかった, \"After agonizing over it for ages, I didn't buy it in the end.\" The result is usually disappointing or unwelcome.\n\nあげくの果て(に) adds even more emphasis: \"and to top it all off…\"",
+      "explanation": "あげく describes an outcome reached after a long, often frustrating process: さんざん迷ったあげく、買わなかった, \"After agonising over it for ages, I didn't buy it in the end.\" The result is usually disappointing or unwelcome.\n\nあげくの果て(に) adds even more emphasis: \"and to top it all off…\"",
       "nuances": [
         "Often paired with さんざん, いろいろ or 長い時間.",
         "Written 挙句 or 挙げ句 in kanji."
@@ -704,7 +704,7 @@
           "id": "n2-ageku-1",
           "japanese": "さんざん迷ったあげく、結局何も買わなかった。",
           "furigana": "さんざん{迷|まよ}ったあげく、{結局|けっきょく}{何|なに}も{買|か}わなかった。",
-          "english": "After agonizing for ages, I didn't buy anything in the end.",
+          "english": "After agonising for ages, I didn't buy anything in the end.",
           "cloze_target": "あげく",
           "accepted_answers": [
             "あげく"
@@ -808,7 +808,7 @@
           "id": "n2-sue-ni-3",
           "japanese": "悩んだ末に、仕事を辞める決心をした。",
           "furigana": "{悩|なや}んだ{末|すえ}に、{仕事|しごと}を{辞|や}める{決心|けっしん}をした。",
-          "english": "After much agonizing, I decided to quit my job.",
+          "english": "After much agonising, I decided to quit my job.",
           "cloze_target": "末",
           "accepted_answers": [
             "末",
@@ -1781,7 +1781,7 @@
         "上は is formal; 以上は is its common twin."
       ],
       "common_mistakes": [
-        "Using 上に to contrast: 安い上にまずい is fine, but not 安い上に高い.",
+        "Using 上に for a contrast: 安い上にまずい ✗ (good + bad) → 安いけど、まずい. 上に stacks points that pull the same way: 高い上にまずい.",
         "Using 上で with the dictionary form when you mean \"after\"."
       ],
       "related_ids": [
@@ -2513,7 +2513,7 @@
           "id": "n2-ni-kuwaete-4",
           "japanese": "週末はもちろん、平日も混んでいる。",
           "furigana": "{週末|しゅうまつ}はもちろん、{平日|へいじつ}も{混|こ}んでいる。",
-          "english": "It's crowded on weekdays, let alone weekends.",
+          "english": "It's crowded on weekdays, not to mention weekends.",
           "cloze_target": "はもちろん",
           "accepted_answers": [
             "はもちろん"
@@ -4007,7 +4007,7 @@
         {
           "id": "n2-mono-nara-5",
           "japanese": "やり直せるものなら、やり直したい。",
-          "furigana": "{やり直|なお}せるものなら、やり{直|なお}したい。",
+          "furigana": "やり{直|なお}せるものなら、やり{直|なお}したい。",
           "english": "If I could do it over, I would.",
           "cloze_target": "ものなら",
           "accepted_answers": [
