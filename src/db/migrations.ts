@@ -1,4 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
+import { SEED_GOAL_DAYS_SQL } from '../stats/goalDays';
 import { transaction } from './repo';
 
 /**
@@ -192,6 +193,13 @@ const MIGRATIONS: string[] = [
     'anki_revlog',
     'anki_deck_limits',
   ])}
+  `,
+  `
+  -- Days on which at least one daily goal was reached: the streak. Seeded from every day
+  -- with any study, which is what the streak counted before.
+  CREATE TABLE goal_days (day TEXT PRIMARY KEY NOT NULL);
+  ${SEED_GOAL_DAYS_SQL}
+  ${bumpTriggers(['goal_days'])}
   `,
 ];
 

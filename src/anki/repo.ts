@@ -344,8 +344,9 @@ export async function deleteDeck(db: Db, path: string): Promise<void> {
   });
 }
 
+/** Distinct flashcards answered today: a card seen again after a miss still counts once. */
 export async function reviewsToday(db: Db, now: number): Promise<number> {
-  const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM anki_revlog WHERE imported = 0 AND reviewed_at >= ?', startOfDay(now));
+  const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(DISTINCT card_id) AS n FROM anki_revlog WHERE imported = 0 AND reviewed_at >= ?', startOfDay(now));
   return row?.n ?? 0;
 }
 

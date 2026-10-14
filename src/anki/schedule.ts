@@ -22,13 +22,18 @@ export interface AnkiSched {
 }
 
 /**
- * Anki-style FSRS: four buttons, 1m/10m learning steps, 10m relearning step,
- * 90% desired retention (Anki's default).
+ * Desired retention: the chance of still remembering a card when it comes due. Higher means
+ * shorter intervals and more reviews. FSRS-6's default parameters are fitted to Anki users at
+ * large, and at Anki's 90% they space a card answered Good 2d → 11d → 46d → 5mo; 92% gives
+ * 2d → 8d → 28d → 3mo, a little firmer for a new learner. Settings can move it (80–97%).
  */
-export function createAnkiScheduler(enableFuzz = true): FSRS {
+export const DEFAULT_RETENTION = 0.92;
+
+/** Anki-style FSRS-6: four buttons, 1m/10m learning steps, 10m relearning step. */
+export function createAnkiScheduler(enableFuzz = true, retention = DEFAULT_RETENTION): FSRS {
   return fsrs(
     generatorParameters({
-      request_retention: 0.9,
+      request_retention: retention,
       enable_fuzz: enableFuzz,
       enable_short_term: true,
       learning_steps: ['1m', '10m'],
@@ -39,6 +44,15 @@ export function createAnkiScheduler(enableFuzz = true): FSRS {
 }
 
 export const ankiScheduler = createAnkiScheduler();
+
+const byRetention = new Map<number, FSRS>([[DEFAULT_RETENTION, ankiScheduler]]);
+
+/** The scheduler for a desired retention (0–1), made once per value. */
+export function schedulerFor(retention: number): FSRS {
+  let s = byRetention.get(retention);
+  if (!s) byRetention.set(retention, (s = createAnkiScheduler(true, retention)));
+  return s;
+}
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 

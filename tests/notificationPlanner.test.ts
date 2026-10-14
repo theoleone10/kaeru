@@ -1,4 +1,5 @@
 import { pick, reviewsMessage, streakMessage } from '@/notifications/messages';
+import { dayKey } from '@/stats/dates';
 import { MAX_PER_DAY, MIN_SPACING, planNotifications, streakMinute, studyHabit, type NotifyInput } from '@/notifications/planner';
 
 // Tests run with TZ=UTC (see package.json), so local time == UTC here.
@@ -32,6 +33,8 @@ const base = (over: Partial<NotifyInput> = {}): NotifyInput => ({
   lastReviewNotifiedAt: null,
   celebrated: {},
   ...over,
+  // Unless a test says otherwise, every day with study reached a goal.
+  goalDays: over.goalDays ?? (over.activity ?? []).map(dayKey),
 });
 
 describe('studyHabit', () => {
@@ -79,6 +82,13 @@ describe('planNotifications', () => {
     // Tomorrow the streak is still alive, so it gets tomorrow's warning.
     const tomorrow = plan.find((n) => n.kind === 'streak' && dayOf(n.at) === 11)!;
     expect(tomorrow.message.title + tomorrow.message.body).toContain('4 days');
+  });
+
+  it('still warns if you studied today but reached no goal', () => {
+    const activity = [...studied(18, [7, 8, 9]), at(10)];
+    const plan = planNotifications(base({ activity, goalDays: studied(18, [7, 8, 9]).map(dayKey) }));
+    const warn = plan.find((n) => n.kind === 'streak' && dayOf(n.at) === 10)!;
+    expect(warn.message.title + warn.message.body).toContain('3 days');
   });
 
   it('sends the morning plan a little before you usually start', () => {

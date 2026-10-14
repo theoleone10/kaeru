@@ -381,7 +381,7 @@ export default function Progress() {
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
           <View style={styles.inline}>
-            <Flame size={24} color={streak.studiedToday ? '#F08A3C' : colors.textMuted} />
+            <Flame size={24} color={streak.goalMetToday ? '#F08A3C' : colors.textMuted} />
             <T variant="title" style={{ fontSize: 26, lineHeight: 32 }}>
               {streak.days}
             </T>

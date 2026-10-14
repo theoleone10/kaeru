@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deleteNote } from '@/anki/notes';
 import { cardContent, renderCard } from '@/anki/render';
 import { answerCard, buildStudyQueue, getStudyCard, LEARN_AHEAD_MS, nextDue, setCardSuspended, undoAnswer, type StudyCard } from '@/anki/repo';
-import { formatInterval, GRADES, previewGrades, State, type AnkiSched } from '@/anki/schedule';
+import { formatInterval, GRADES, previewGrades, schedulerFor, State, type AnkiSched } from '@/anki/schedule';
 import { AnkiCardView } from '@/components/AnkiCardView';
 import { Celebration } from '@/components/Celebration';
 import { NextUp } from '@/components/DayPlan';
@@ -164,7 +164,7 @@ export default function AnkiStudy() {
   const reveal = () => {
     if (!showing) return;
     const at = clock();
-    setShowing({ ...showing, side: 'answer', previews: { at, byRating: previewGrades(showing.card.card, at) } });
+    setShowing({ ...showing, side: 'answer', previews: { at, byRating: previewGrades(showing.card.card, at, schedulerFor(settings.ankiRetention / 100)) } });
   };
 
   const grade = async (rating: 1 | 2 | 3 | 4) => {

@@ -39,8 +39,10 @@ export interface NotifyInput {
   grammarDue: readonly number[];
   /** Due times of flashcards already in review (new cards aren't "due"). */
   cardDue: readonly number[];
-  /** Every study timestamp from the last couple of months. */
+  /** Every study timestamp from the last couple of months (for when you usually study). */
   activity: readonly number[];
+  /** Days (dayKey) a daily goal was reached: the streak. */
+  goalDays: readonly string[];
   learnedToday: number;
   /** Grammar points not learned yet. */
   unlearned: number;
@@ -150,7 +152,7 @@ export function planNotifications(input: NotifyInput): PlannedNotification[] {
   const out: (PlannedNotification & { rank: number })[] = [];
   const add = (rank: number, n: PlannedNotification) => out.push({ ...n, rank });
   const today = startOfLocalDay(now);
-  const streak = computeStreak(input.activity, now);
+  const streak = computeStreak(input.goalDays, now);
   const habit = studyHabit(input.activity, now);
   const seed = (t: number, salt: number) => Math.floor(startOfLocalDay(t) / DAY) + salt;
   const lastStudy = input.activity.length ? Math.max(...input.activity.filter((t) => t <= now), 0) : 0;
@@ -165,7 +167,7 @@ export function planNotifications(input: NotifyInput): PlannedNotification[] {
   if (st.kinds.wins) {
     const soon = moveOutOfQuietHours(now + 20 * MINUTE, st.quietStart, st.quietEnd);
     const fresh = (key: string) => !(key in input.celebrated) || input.celebrated[key] > now;
-    if (streak.studiedToday && STREAK_MILESTONES.includes(streak.days)) {
+    if (streak.goalMetToday && STREAK_MILESTONES.includes(streak.days)) {
       const key = `streak-${streak.days}-${dayKey(now)}`;
       if (fresh(key)) add(0, { kind: 'wins', at: soon, key, url: '/progress', message: streakMilestoneMessage(streak.days, seed(now, 11)) });
     }
@@ -192,14 +194,14 @@ export function planNotifications(input: NotifyInput): PlannedNotification[] {
   }
 
   days.forEach((day, i) => {
-    // Assume no more studying after now: on later days the streak has either survived
-    // today (if you studied) or is gone.
-    const studiedBy = (d: number) => (d === today ? streak.studiedToday : false);
-    const aliveStreak = i === 0 ? streak.days : i === 1 && streak.studiedToday ? streak.days : 0;
+    // Assume no more goals after now: on later days the streak has either survived
+    // today (if a goal was reached) or is gone.
+    const goalMetBy = (d: number) => (d === today ? streak.goalMetToday : false);
+    const aliveStreak = i === 0 ? streak.days : i === 1 && streak.goalMetToday ? streak.days : 0;
     const missedBefore = lastStudy > 0 && startOfLocalDay(lastStudy) < startOfLocalDay(previousDay(day + 12 * HOUR));
 
     // ---- Streak saver (or a comeback nudge once it's gone).
-    if (st.kinds.streak && !studiedBy(day)) {
+    if (st.kinds.streak && !goalMetBy(day)) {
       const at = atMinute(day, streakMinute(habit, st));
       if (at > now + 30 * MINUTE && aliveStreak > 0) {
         add(1, { kind: 'streak', at, url: '/', message: streakMessage(aliveStreak, seed(at, 3)) });
@@ -207,7 +209,7 @@ export function planNotifications(input: NotifyInput): PlannedNotification[] {
     }
 
     // ---- Morning plan.
-    if (st.kinds.plan && !studiedBy(day)) {
+    if (st.kinds.plan && !goalMetBy(day)) {
       const at = moveOutOfQuietHours(atMinute(day, planMinute(habit)), st.quietStart, st.quietEnd);
       if (at > now + 15 * MINUTE && startOfLocalDay(at) === day) {
         const newLeft = Math.min(st.dailyNewGrammar, input.unlearned) - (day === today ? input.learnedToday : 0);

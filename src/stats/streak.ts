@@ -1,17 +1,18 @@
 import { dayKey, previousDay } from './dates';
 
 /**
- * Consecutive local days with at least one study activity (review or lesson).
- * A streak is still alive if today has no activity yet but yesterday did.
+ * Consecutive local days on which at least one daily goal was reached (`goalDays` are
+ * dayKey strings, see goal_days). A streak is still alive if today has no goal yet but
+ * yesterday did.
  */
-export function computeStreak(activityTimes: readonly number[], now: number): { days: number; studiedToday: boolean } {
-  const days = new Set(activityTimes.map(dayKey));
-  const studiedToday = days.has(dayKey(now));
-  let cursor = studiedToday ? now : previousDay(now);
+export function computeStreak(goalDays: Iterable<string>, now: number): { days: number; goalMetToday: boolean } {
+  const days = new Set(goalDays);
+  const goalMetToday = days.has(dayKey(now));
+  let cursor = goalMetToday ? now : previousDay(now);
   let count = 0;
   while (days.has(dayKey(cursor))) {
     count++;
     cursor = previousDay(cursor);
   }
-  return { days: count, studiedToday };
+  return { days: count, goalMetToday };
 }

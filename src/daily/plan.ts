@@ -39,6 +39,11 @@ export interface DayPlan {
   next: Step | null;
   doneCount: number;
   allDone: boolean;
+  /**
+   * At least one goal was reached today by actually doing it (what keeps the streak going):
+   * a review step with nothing due only counts if something was reviewed today.
+   */
+  goalMet: boolean;
 }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -103,5 +108,12 @@ export function dailyPlan(s: DayState): DayPlan {
   }
 
   const doneCount = steps.filter((x) => x.done).length;
-  return { steps, next: steps.find((x) => !x.done) ?? null, doneCount, allDone: steps.length > 0 && doneCount === steps.length };
+  const earned = (x: Step) => x.done && (x.id === 'review' ? s.grammarReviewedToday > 0 : x.id === 'cards' ? s.cardsReviewedToday > 0 : true);
+  return {
+    steps,
+    next: steps.find((x) => !x.done) ?? null,
+    doneCount,
+    allDone: steps.length > 0 && doneCount === steps.length,
+    goalMet: steps.some(earned),
+  };
 }

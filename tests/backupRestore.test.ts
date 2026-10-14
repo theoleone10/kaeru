@@ -12,6 +12,7 @@ import { backupCounts, buildBackup, describeCounts, parseBackup } from '@/backup
 import { migrate } from '@/db/migrations';
 import { markKnown, readAllForBackup, replaceAllFromBackup } from '@/db/repo';
 import { localVersion, restoreFromCloud, uploadProgress } from '@/sync/cloud';
+import { dayKey } from '@/stats/dates';
 import { addEntry, startTimer } from '@/time/repo';
 import { openNodeDb } from './helpers/nodeDb';
 
@@ -97,6 +98,29 @@ describe('backup with Anki decks', () => {
     expect((await readAllForBackup(phone)).anki).toEqual(decksBefore);
   });
 
+  it('round-trips goal days, and rebuilds them from study history for older backups', async () => {
+    const a = await fullPhone();
+    await a.runAsync("INSERT INTO goal_days (day) VALUES ('2026-01-02')");
+    const original = await readAllForBackup(a);
+    expect(original.goal_days).toContain('2026-01-02');
+
+    const b = await freshDb();
+    await replaceAllFromBackup(b, parseBackup(JSON.stringify(buildBackup(original, NOW))), NOW);
+    expect((await readAllForBackup(b)).goal_days).toEqual(original.goal_days);
+
+    const { goal_days: _g, ...v3 } = buildBackup(original, NOW);
+    const c = await freshDb();
+    await replaceAllFromBackup(c, parseBackup(JSON.stringify({ ...v3, format_version: 3 })), NOW);
+    const rebuilt = (await readAllForBackup(c)).goal_days!;
+    expect(rebuilt).not.toContain('2026-01-02');
+    expect(rebuilt).toContain(dayKey(NOW - 3 * HOUR)); // the tracked time
+  });
+
+  it('rejects malformed goal days', async () => {
+    const backup = buildBackup(await readAllForBackup(await freshDb()), NOW);
+    expect(() => parseBackup(JSON.stringify({ ...backup, goal_days: ['yesterday'] }))).toThrow('goal_days');
+  });
+
   it('rejects malformed Anki rows with a readable path', async () => {
     const backup = buildBackup(await readAllForBackup(await fullPhone()), NOW);
     (backup.anki!.anki_cards[0] as Record<string, unknown>).due = 'soon';
@@ -130,7 +154,7 @@ describe('cloud upload', () => {
     const db = await freshDb();
     const triggers = await db.getAllAsync<{ tbl_name: string }>("SELECT tbl_name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'sync_bump_%'");
     const covered = new Set(triggers.map((t) => t.tbl_name));
-    const backedUp = ['cards', 'review_logs', 'example_seen', 'settings', 'activities', 'time_entries', ...Object.keys(ANKI_TABLES)];
+    const backedUp = ['cards', 'review_logs', 'example_seen', 'settings', 'activities', 'time_entries', 'goal_days', ...Object.keys(ANKI_TABLES)];
     expect(backedUp.filter((t) => !covered.has(t))).toEqual([]);
   });
 
