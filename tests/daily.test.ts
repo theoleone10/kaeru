@@ -2,7 +2,7 @@
 import { dailyPlan, type DayState } from '@/daily/plan';
 import { buildQuiz, cardsFromQuiz, scoreQuiz, type QuizAnswer } from '@/srs/quiz';
 import { State } from '@/srs/scheduler';
-import { getActivityTimes, getAllCards, getExampleSeen, saveQuizResults } from '@/db/repo';
+import { getActivityTimes, getAllCards, getExampleSeen, getPointStats, getReviewTimes, saveQuizResults } from '@/db/repo';
 import { migrate } from '@/db/migrations';
 import { SEED_GOAL_DAYS_SQL, getGoalDays, markGoalDays, timeGoalDays } from '@/stats/goalDays';
 import { dayKey } from '@/stats/dates';
@@ -56,9 +56,9 @@ describe('dailyPlan', () => {
 
   it('counts a goal for the streak only when it was actually done today', () => {
     expect(dailyPlan(base).goalMet).toBe(false);
-    // Nothing due and nothing reviewed: the review steps are "done" but earned nothing.
+    // Nothing due and nothing reviewed: no review steps today, so nothing to earn there.
     const idle = dailyPlan({ ...base, grammarDue: 0, cardsDue: 0 });
-    expect(idle.doneCount).toBe(2);
+    expect(idle.steps.map((x) => x.id)).toEqual(['learn', 'time']);
     expect(idle.goalMet).toBe(false);
     expect(dailyPlan({ ...base, grammarDue: 0, grammarReviewedToday: 3 }).goalMet).toBe(true);
     expect(dailyPlan({ ...base, cardsDue: 0, cardsReviewedToday: 5 }).goalMet).toBe(true);
@@ -66,6 +66,16 @@ describe('dailyPlan', () => {
     expect(dailyPlan({ ...base, timeTodayMs: 30 * MIN }).goalMet).toBe(true);
     // Some reviews done but some still due: not yet.
     expect(dailyPlan({ ...base, grammarReviewedToday: 5, cardsReviewedToday: 5, timeTodayMs: 29 * MIN, learnedToday: 1 }).goalMet).toBe(false);
+  });
+
+  it('does not tick reviews off after a lesson: its quiz is not a review', () => {
+    // Just learned the first points: their first review is tomorrow, so nothing is due.
+    const afterLesson = dailyPlan({ ...base, learnedToday: 2, grammarCards: 2, grammarDue: 0, grammarReviewedToday: 0 });
+    expect(afterLesson.steps.map((x) => x.id)).toEqual(['learn', 'cards', 'time']);
+    expect(afterLesson.doneCount).toBe(1);
+    // Reviews done today keep the step, ticked.
+    const reviewed = dailyPlan({ ...base, grammarDue: 0, grammarReviewedToday: 4 });
+    expect(reviewed.steps.find((x) => x.id === 'review')).toMatchObject({ done: true, detail: '4 reviewed today' });
   });
 
   it('only asks for what is left of the curriculum', () => {
@@ -134,6 +144,10 @@ describe('quiz', () => {
     const seen = await getExampleSeen(db, 'a');
     expect(seen.get('a-2')?.last_shown_at).toBe(NOW);
     expect(seen.has('a-1')).toBe(true);
+    // The quiz seeds the SRS but isn't a review.
+    expect((await getPointStats(db, 'a')).reviews).toBe(0);
+    expect((await getReviewTimes(db, NOW - DAY)).grammar).toEqual([]);
+    expect(await getActivityTimes(db, NOW - DAY)).toContain(NOW);
   });
 });
 

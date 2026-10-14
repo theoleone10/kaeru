@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { readAnkiForBackup, replaceAnki } from '../anki/backup';
 import type { BackupData, ExampleSeenRow } from '../backup/format';
 import type { ExampleSeen } from '../srs/exampleRotation';
+import { QUIZ_ANSWER } from '../srs/quiz';
 import { cardBeforeLog, knownCard, type StoredCard, type StoredLog } from '../srs/scheduler';
 import { SEED_GOAL_DAYS_SQL } from '../stats/goalDays';
 import type { Activity, TimeEntry } from '../time/model';
@@ -196,10 +197,11 @@ export interface PointStats {
   lastReviewedAt: number | null;
 }
 
+/** Reviews of a point, not counting the quiz after its lesson. */
 export async function getPointStats(db: SQLiteDatabase, grammarId: string): Promise<PointStats> {
   const row = await db.getFirstAsync<{ reviews: number; correct: number | null; last: number | null }>(
     `SELECT COUNT(*) AS reviews, SUM(CASE WHEN rating > 1 THEN 1 ELSE 0 END) AS correct, MAX(reviewed_at) AS last
-     FROM review_logs WHERE grammar_id = ?`,
+     FROM review_logs WHERE grammar_id = ? AND answer != '${QUIZ_ANSWER}'`,
     grammarId,
   );
   return { reviews: row?.reviews ?? 0, correct: row?.correct ?? 0, lastReviewedAt: row?.last ?? null };
@@ -223,10 +225,10 @@ export async function getActivityTimes(db: Pick<SQLiteDatabase, 'getAllAsync'>, 
   return rows.map((r) => r.t);
 }
 
-/** Review timestamps since `since`, split into grammar and flashcards (for per-day charts). */
+/** Review timestamps since `since`, split into grammar and flashcards (for per-day charts). Lesson quizzes aren't reviews. */
 export async function getReviewTimes(db: Pick<SQLiteDatabase, 'getAllAsync'>, since: number): Promise<{ grammar: number[]; cards: number[] }> {
   const rows = await db.getAllAsync<{ t: number; k: string }>(
-    `SELECT reviewed_at AS t, 'g' AS k FROM review_logs WHERE reviewed_at >= ?
+    `SELECT reviewed_at AS t, 'g' AS k FROM review_logs WHERE reviewed_at >= ? AND answer != '${QUIZ_ANSWER}'
      UNION ALL SELECT reviewed_at AS t, 'c' AS k FROM anki_revlog WHERE reviewed_at >= ?`,
     since,
     since,

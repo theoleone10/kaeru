@@ -39,10 +39,7 @@ export interface DayPlan {
   next: Step | null;
   doneCount: number;
   allDone: boolean;
-  /**
-   * At least one goal was reached today by actually doing it (what keeps the streak going):
-   * a review step with nothing due only counts if something was reviewed today.
-   */
+  /** At least one goal was reached today (what keeps the streak going). */
   goalMet: boolean;
 }
 
@@ -51,7 +48,8 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 /**
  * The day, in order: learn today's 1–2 new grammar points (lesson + quiz), review
  * grammar that's due, study flashcards, then reach the daily practice time goal (all tracked activities count).
- * Steps that don't apply (no decks, no time goal, nothing left to learn) are left out.
+ * Steps that don't apply (no decks, no time goal, nothing left to learn, no reviews today)
+ * are left out.
  */
 export function dailyPlan(s: DayState): DayPlan {
   const steps: Step[] = [];
@@ -69,28 +67,25 @@ export function dailyPlan(s: DayState): DayPlan {
     });
   }
 
-  if (s.grammarCards > 0) {
+  // Reviews are the SRS recap of earlier lessons, not today's quiz: the step only shows on a
+  // day with reviews to do (or done), so a lesson alone never ticks it.
+  if (s.grammarCards > 0 && (s.grammarDue > 0 || s.grammarReviewedToday > 0)) {
     const done = s.grammarDue === 0;
     steps.push({
       id: 'review',
       title: 'Review grammar',
-      detail:
-        s.grammarDue > 0
-          ? `${s.grammarDue} due`
-          : s.grammarReviewedToday > 0
-            ? `${s.grammarReviewedToday} reviewed today`
-            : 'Nothing due right now',
+      detail: s.grammarDue > 0 ? `${s.grammarDue} due` : `${s.grammarReviewedToday} reviewed today`,
       done,
       progress: done ? 1 : s.grammarReviewedToday / (s.grammarReviewedToday + s.grammarDue),
     });
   }
 
-  if (s.decks > 0) {
+  if (s.decks > 0 && (s.cardsDue > 0 || s.cardsReviewedToday > 0)) {
     const done = s.cardsDue === 0;
     steps.push({
       id: 'cards',
       title: 'Flashcards',
-      detail: s.cardsDue > 0 ? `${plural(s.cardsDue, 'card')} to study` : s.cardsReviewedToday > 0 ? `${s.cardsReviewedToday} studied today` : 'Nothing due today',
+      detail: s.cardsDue > 0 ? `${plural(s.cardsDue, 'card')} to study` : `${s.cardsReviewedToday} studied today`,
       done,
       progress: done ? 1 : s.cardsReviewedToday / (s.cardsReviewedToday + s.cardsDue),
     });
@@ -108,12 +103,11 @@ export function dailyPlan(s: DayState): DayPlan {
   }
 
   const doneCount = steps.filter((x) => x.done).length;
-  const earned = (x: Step) => x.done && (x.id === 'review' ? s.grammarReviewedToday > 0 : x.id === 'cards' ? s.cardsReviewedToday > 0 : true);
   return {
     steps,
     next: steps.find((x) => !x.done) ?? null,
     doneCount,
     allDone: steps.length > 0 && doneCount === steps.length,
-    goalMet: steps.some(earned),
+    goalMet: doneCount > 0,
   };
 }
