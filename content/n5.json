@@ -4918,86 +4918,6 @@
       ]
     },
     {
-      "id": "n5-ni-suru",
-      "level": "N5",
-      "title": "〜にする",
-      "meaning": "decide on, choose, go with",
-      "structure": [
-        "Noun + にする / にします"
-      ],
-      "formality": "neutral",
-      "explanation": "Noun にします means \"I'll have / I'll go with…\" — you're making a choice: コーヒーにします, \"I'll have coffee.\" It's the standard way to order or pick among options.\n\nAs a question: 何にしますか, \"What will you have?\"",
-      "nuances": [
-        "The past にしました reports a decision: 会議は月曜日にしました, \"We set the meeting for Monday.\"",
-        "なる is a change that happens; する is a choice someone makes."
-      ],
-      "common_mistakes": [
-        "Using を: コーヒーをします ✗ → コーヒーにします.",
-        "Confusing にする (choose) with になる (become)."
-      ],
-      "related_ids": [
-        "n5-naru",
-        "n5-o-kudasai"
-      ],
-      "examples": [
-        {
-          "id": "n5-ni-suru-1",
-          "japanese": "私はコーヒーにします。",
-          "furigana": "{私|わたし}はコーヒーにします。",
-          "english": "I'll have coffee.",
-          "cloze_target": "に",
-          "accepted_answers": [
-            "に"
-          ],
-          "hint": "choose (Noun + に + する)"
-        },
-        {
-          "id": "n5-ni-suru-2",
-          "japanese": "何にしますか。",
-          "furigana": "{何|なに}にしますか。",
-          "english": "What will you have?",
-          "cloze_target": "に",
-          "accepted_answers": [
-            "に"
-          ],
-          "hint": "choose (Noun + に + する)"
-        },
-        {
-          "id": "n5-ni-suru-3",
-          "japanese": "会議は月曜日にしました。",
-          "furigana": "{会議|かいぎ}は{月曜日|げつようび}にしました。",
-          "english": "We set the meeting for Monday.",
-          "cloze_target": "に",
-          "accepted_answers": [
-            "に"
-          ],
-          "hint": "decide on"
-        },
-        {
-          "id": "n5-ni-suru-4",
-          "japanese": "この赤いかばんにします。",
-          "furigana": "この{赤|あか}いかばんにします。",
-          "english": "I'll go with this red bag.",
-          "cloze_target": "に",
-          "accepted_answers": [
-            "に"
-          ],
-          "hint": "choose"
-        },
-        {
-          "id": "n5-ni-suru-5",
-          "japanese": "昼ご飯はラーメンにしましょう。",
-          "furigana": "{昼|ひる}ご{飯|はん}はラーメンにしましょう。",
-          "english": "Let's have ramen for lunch.",
-          "cloze_target": "に",
-          "accepted_answers": [
-            "に"
-          ],
-          "hint": "choose"
-        }
-      ]
-    },
-    {
       "id": "n5-yori",
       "level": "N5",
       "title": "AはBより",
@@ -5346,30 +5266,27 @@
     {
       "id": "n5-te-form",
       "level": "N5",
-      "title": "Verb て-form (sequence)",
-      "meaning": "do A and (then) B — linking actions",
+      "title": "て-form: る-verbs (ichidan)",
+      "meaning": "do A and (then) B — る-verbs drop る and add て",
       "structure": [
-        "る-verbs: 食べる → 食べて",
-        "う・つ・る → って (買う → 買って, 待つ → 待って)",
-        "む・ぶ・ぬ → んで (飲む → 飲んで)",
-        "く → いて, ぐ → いで (書く → 書いて, 泳ぐ → 泳いで)",
-        "す → して (話す → 話して)",
-        "Irregular: 行く → 行って, する → して, 来る → 来て"
+        "る-verbs: drop る + て",
+        "食べる → 食べて, 見る → 見て, 起きる → 起きて",
+        "Verb て、Verb — the tense comes from the last verb"
       ],
       "formality": "neutral",
-      "explanation": "The て-form joins actions in the order they happen: 朝ご飯を食べて、学校へ行きます, \"I eat breakfast and go to school.\" The tense comes only from the last verb.\n\nThe て-form is also the building block for many patterns ahead — てください, ています, てもいい — so it's worth drilling until it's automatic.",
+      "explanation": "The て-form joins actions in the order they happen: 朝ご飯を食べて、学校へ行きます, \"I eat breakfast and go to school.\" The tense comes only from the last verb.\n\nThe て-form is built differently for each verb group, so it's split into six short lessons. This one is the easy group, る-verbs (ichidan): drop る and add て. 食べる → 食べて, 見る → 見て, 寝る → 寝て.\n\nIt's also the building block for many patterns ahead — てください, ています, てもいい — so it's worth drilling until it's automatic.",
       "nuances": [
-        "A rhyme many learners use: う・つ・る → って, む・ぶ・ぬ → んで, く → いて, ぐ → いで, す → して.",
-        "行く is the one exception in the く group: 行って, not 行いて."
+        "Most verbs ending in -iru or -eru are る-verbs: 見る, 起きる, 着る, 寝る, 食べる, 開ける.",
+        "Some look like る-verbs but are う-verbs: 帰る, 入る, 走る, 知る. They take って (帰って), which comes in the next lesson."
       ],
       "common_mistakes": [
-        "行いて ✗ → 行って.",
+        "食べって ✗ → 食べて: る-verbs never add a small っ.",
         "Putting the past tense on the first verb: 食べました、学校へ行きました is two sentences; to join them, use 食べて、学校へ行きました."
       ],
       "related_ids": [
+        "n5-te-form-u-tsu-ru",
         "n5-te-kudasai",
-        "n5-te-imasu",
-        "n5-te-kara"
+        "n5-te-imasu"
       ],
       "examples": [
         {
@@ -5385,7 +5302,93 @@
           "hint": "食べる → て-form"
         },
         {
-          "id": "n5-te-form-2",
+          "id": "n5-te-form-7",
+          "japanese": "朝七時に起きて、顔を洗います。",
+          "furigana": "{朝|あさ}{七時|しちじ}に{起|お}きて、{顔|かお}を{洗|あら}います。",
+          "english": "I get up at seven and wash my face.",
+          "cloze_target": "起きて",
+          "accepted_answers": [
+            "起きて",
+            "おきて"
+          ],
+          "hint": "起きる → て-form"
+        },
+        {
+          "id": "n5-te-form-8",
+          "japanese": "テレビを見て、寝ました。",
+          "furigana": "テレビを{見|み}て、{寝|ね}ました。",
+          "english": "I watched TV and went to bed.",
+          "cloze_target": "見て",
+          "accepted_answers": [
+            "見て",
+            "みて"
+          ],
+          "hint": "見る → て-form"
+        },
+        {
+          "id": "n5-te-form-9",
+          "japanese": "窓を開けて、外を見ました。",
+          "furigana": "{窓|まど}を{開|あ}けて、{外|そと}を{見|み}ました。",
+          "english": "I opened the window and looked outside.",
+          "cloze_target": "開けて",
+          "accepted_answers": [
+            "開けて",
+            "あけて"
+          ],
+          "hint": "開ける → て-form"
+        },
+        {
+          "id": "n5-te-form-10",
+          "japanese": "シャツを着て、出かけました。",
+          "furigana": "シャツを{着|き}て、{出|で}かけました。",
+          "english": "I put on a shirt and went out.",
+          "cloze_target": "着て",
+          "accepted_answers": [
+            "着て",
+            "きて"
+          ],
+          "hint": "着る → て-form"
+        }
+      ]
+    },
+    {
+      "id": "n5-te-form-u-tsu-ru",
+      "level": "N5",
+      "title": "て-form: う・つ・る → って",
+      "meaning": "う-verbs ending in う, つ or る take って",
+      "structure": [
+        "Ends in う・つ・る: drop it + って",
+        "買う → 買って, 待つ → 待って, 帰る → 帰って"
+      ],
+      "formality": "neutral",
+      "explanation": "う-verbs (godan) change their last sound before て, and how depends on that sound. Verbs ending in う, つ or る swap it for a small っ + て: 買う → 買って, 待つ → 待って, 取る → 取って.\n\nThe る is the tricky part. る-verbs drop る and add て (食べて), but う-verbs that end in る become って. 帰る, 入る, 走る, 知る and 分かる are all う-verbs: 帰って, 入って.",
+      "nuances": [
+        "If the sound before る is not i or e (取る, 分かる, 作る), the verb is always an う-verb.",
+        "会う → 会って, 言う → 言って: verbs ending in う take って too."
+      ],
+      "common_mistakes": [
+        "帰て ✗ → 帰って: 帰る is an う-verb.",
+        "買いて ✗ → 買って."
+      ],
+      "related_ids": [
+        "n5-te-form",
+        "n5-te-form-nu-bu-mu"
+      ],
+      "examples": [
+        {
+          "id": "n5-te-form-utsuru-1",
+          "japanese": "駅で友だちを待って、一緒に行きました。",
+          "furigana": "{駅|えき}で{友|とも}だちを{待|ま}って、{一緒|いっしょ}に{行|い}きました。",
+          "english": "I waited for my friend at the station and we went together.",
+          "cloze_target": "待って",
+          "accepted_answers": [
+            "待って",
+            "まって"
+          ],
+          "hint": "待つ → て-form"
+        },
+        {
+          "id": "n5-te-form-utsuru-2",
           "japanese": "家に帰って、シャワーを浴びました。",
           "furigana": "{家|いえ}に{帰|かえ}って、シャワーを{浴|あ}びました。",
           "english": "I went home and took a shower.",
@@ -5397,7 +5400,68 @@
           "hint": "帰る → て-form"
         },
         {
-          "id": "n5-te-form-3",
+          "id": "n5-te-form-utsuru-3",
+          "japanese": "スーパーで牛乳を買って、家に帰りました。",
+          "furigana": "スーパーで{牛乳|ぎゅうにゅう}を{買|か}って、{家|いえ}に{帰|かえ}りました。",
+          "english": "I bought milk at the supermarket and went home.",
+          "cloze_target": "買って",
+          "accepted_answers": [
+            "買って",
+            "かって"
+          ],
+          "hint": "買う → て-form"
+        },
+        {
+          "id": "n5-te-form-utsuru-4",
+          "japanese": "写真を撮って、友だちに送りました。",
+          "furigana": "{写真|しゃしん}を{撮|と}って、{友|とも}だちに{送|おく}りました。",
+          "english": "I took a photo and sent it to a friend.",
+          "cloze_target": "撮って",
+          "accepted_answers": [
+            "撮って",
+            "とって"
+          ],
+          "hint": "撮る → て-form"
+        },
+        {
+          "id": "n5-te-form-utsuru-5",
+          "japanese": "友だちに会って、映画を見ました。",
+          "furigana": "{友|とも}だちに{会|あ}って、{映画|えいが}を{見|み}ました。",
+          "english": "I met a friend and watched a movie.",
+          "cloze_target": "会って",
+          "accepted_answers": [
+            "会って",
+            "あって"
+          ],
+          "hint": "会う → て-form"
+        }
+      ]
+    },
+    {
+      "id": "n5-te-form-nu-bu-mu",
+      "level": "N5",
+      "title": "て-form: ぬ・ぶ・む → んで",
+      "meaning": "う-verbs ending in ぬ, ぶ or む take んで",
+      "structure": [
+        "Ends in ぬ・ぶ・む: drop it + んで",
+        "死ぬ → 死んで, 遊ぶ → 遊んで, 飲む → 飲んで"
+      ],
+      "formality": "neutral",
+      "explanation": "Verbs ending in ぬ, ぶ or む swap that sound for ん and take で instead of て: 飲む → 飲んで, 遊ぶ → 遊んで, 死ぬ → 死んで. After ん, the て becomes voiced: で.\n\n死ぬ is the only common verb ending in ぬ, so in practice this group is mostly む and ぶ verbs: 読む, 飲む, 住む, 休む, 呼ぶ, 遊ぶ.",
+      "nuances": [
+        "The same ん sound comes back in the た-form later: 飲んだ, 遊んだ."
+      ],
+      "common_mistakes": [
+        "飲んて ✗ → 飲んで: after ん, て becomes で.",
+        "読みて ✗ → 読んで."
+      ],
+      "related_ids": [
+        "n5-te-form-u-tsu-ru",
+        "n5-te-form-ku-gu"
+      ],
+      "examples": [
+        {
+          "id": "n5-te-form-nubumu-1",
           "japanese": "本を読んで、寝ました。",
           "furigana": "{本|ほん}を{読|よ}んで、{寝|ね}ました。",
           "english": "I read a book and went to sleep.",
@@ -5409,7 +5473,81 @@
           "hint": "読む → て-form"
         },
         {
-          "id": "n5-te-form-4",
+          "id": "n5-te-form-nubumu-2",
+          "japanese": "水を飲んで、少し休みました。",
+          "furigana": "{水|みず}を{飲|の}んで、{少|すこ}し{休|やす}みました。",
+          "english": "I drank some water and rested a little.",
+          "cloze_target": "飲んで",
+          "accepted_answers": [
+            "飲んで",
+            "のんで"
+          ],
+          "hint": "飲む → て-form"
+        },
+        {
+          "id": "n5-te-form-nubumu-3",
+          "japanese": "公園で遊んで、家に帰りました。",
+          "furigana": "{公園|こうえん}で{遊|あそ}んで、{家|いえ}に{帰|かえ}りました。",
+          "english": "I played in the park and went home.",
+          "cloze_target": "遊んで",
+          "accepted_answers": [
+            "遊んで",
+            "あそんで"
+          ],
+          "hint": "遊ぶ → て-form"
+        },
+        {
+          "id": "n5-te-form-nubumu-4",
+          "japanese": "タクシーを呼んで、空港へ行きました。",
+          "furigana": "タクシーを{呼|よ}んで、{空港|くうこう}へ{行|い}きました。",
+          "english": "I called a taxi and went to the airport.",
+          "cloze_target": "呼んで",
+          "accepted_answers": [
+            "呼んで",
+            "よんで"
+          ],
+          "hint": "呼ぶ → て-form"
+        },
+        {
+          "id": "n5-te-form-nubumu-5",
+          "japanese": "犬が死んで、とても悲しかったです。",
+          "furigana": "{犬|いぬ}が{死|し}んで、とても{悲|かな}しかったです。",
+          "english": "My dog died, and I was very sad.",
+          "cloze_target": "死んで",
+          "accepted_answers": [
+            "死んで",
+            "しんで"
+          ],
+          "hint": "死ぬ → て-form"
+        }
+      ]
+    },
+    {
+      "id": "n5-te-form-ku-gu",
+      "level": "N5",
+      "title": "て-form: く → いて, ぐ → いで",
+      "meaning": "う-verbs ending in く take いて; ending in ぐ, いで",
+      "structure": [
+        "Ends in く: drop it + いて (書く → 書いて)",
+        "Ends in ぐ: drop it + いで (泳ぐ → 泳いで)",
+        "Exception: 行く → 行って"
+      ],
+      "formality": "neutral",
+      "explanation": "Verbs ending in く swap it for い + て: 書く → 書いて, 聞く → 聞いて, 歩く → 歩いて. Verbs ending in ぐ do the same, but the て becomes voiced: 泳ぐ → 泳いで, 急ぐ → 急いで.\n\nThink of the ゛ on ぐ moving over to the て.",
+      "nuances": [
+        "行く is the one exception: 行って, not 行いて. It's in the irregular lesson."
+      ],
+      "common_mistakes": [
+        "泳いて ✗ → 泳いで: keep the voicing from ぐ.",
+        "行いて ✗ → 行って."
+      ],
+      "related_ids": [
+        "n5-te-form-nu-bu-mu",
+        "n5-te-form-su"
+      ],
+      "examples": [
+        {
+          "id": "n5-te-form-kugu-1",
           "japanese": "手紙を書いて、出しました。",
           "furigana": "{手紙|てがみ}を{書|か}いて、{出|だ}しました。",
           "english": "I wrote a letter and sent it.",
@@ -5421,7 +5559,180 @@
           "hint": "書く → て-form"
         },
         {
-          "id": "n5-te-form-5",
+          "id": "n5-te-form-kugu-2",
+          "japanese": "音楽を聞いて、勉強しました。",
+          "furigana": "{音楽|おんがく}を{聞|き}いて、{勉強|べんきょう}しました。",
+          "english": "I listened to music and studied.",
+          "cloze_target": "聞いて",
+          "accepted_answers": [
+            "聞いて",
+            "きいて"
+          ],
+          "hint": "聞く → て-form"
+        },
+        {
+          "id": "n5-te-form-kugu-3",
+          "japanese": "駅まで歩いて、電車に乗りました。",
+          "furigana": "{駅|えき}まで{歩|ある}いて、{電車|でんしゃ}に{乗|の}りました。",
+          "english": "I walked to the station and got on the train.",
+          "cloze_target": "歩いて",
+          "accepted_answers": [
+            "歩いて",
+            "あるいて"
+          ],
+          "hint": "歩く → て-form"
+        },
+        {
+          "id": "n5-te-form-kugu-4",
+          "japanese": "海で泳いで、少し寝ました。",
+          "furigana": "{海|うみ}で{泳|およ}いで、{少|すこ}し{寝|ね}ました。",
+          "english": "I swam in the sea and slept a little.",
+          "cloze_target": "泳いで",
+          "accepted_answers": [
+            "泳いで",
+            "およいで"
+          ],
+          "hint": "泳ぐ → て-form"
+        },
+        {
+          "id": "n5-te-form-kugu-5",
+          "japanese": "急いで、駅へ行きました。",
+          "furigana": "{急|いそ}いで、{駅|えき}へ{行|い}きました。",
+          "english": "I hurried to the station.",
+          "cloze_target": "急いで",
+          "accepted_answers": [
+            "急いで",
+            "いそいで"
+          ],
+          "hint": "急ぐ → て-form"
+        },
+        {
+          "id": "n5-te-form-kugu-6",
+          "japanese": "服を脱いで、お風呂に入りました。",
+          "furigana": "{服|ふく}を{脱|ぬ}いで、お{風呂|ふろ}に{入|はい}りました。",
+          "english": "I took off my clothes and got in the bath.",
+          "cloze_target": "脱いで",
+          "accepted_answers": [
+            "脱いで",
+            "ぬいで"
+          ],
+          "hint": "脱ぐ → て-form"
+        }
+      ]
+    },
+    {
+      "id": "n5-te-form-su",
+      "level": "N5",
+      "title": "て-form: す → して",
+      "meaning": "う-verbs ending in す take して",
+      "structure": [
+        "Ends in す: drop it + して",
+        "話す → 話して, 貸す → 貸して, 出す → 出して"
+      ],
+      "formality": "neutral",
+      "explanation": "Verbs ending in す swap it for し + て: 話す → 話して, 返す → 返して, 消す → 消して. It's the only う-verb group with no small っ and no ん.\n\nAn easy check: it's the ます-stem plus て. 話します → 話して.",
+      "nuances": [
+        "する also becomes して (勉強して), but that's an irregular verb; it's in the next lesson."
+      ],
+      "common_mistakes": [
+        "話って ✗ → 話して.",
+        "出して comes from 出す (take out); 出て comes from 出る (leave). They're different verbs."
+      ],
+      "related_ids": [
+        "n5-te-form-ku-gu",
+        "n5-te-form-irregular"
+      ],
+      "examples": [
+        {
+          "id": "n5-te-form-su-1",
+          "japanese": "友だちと話して、少し元気になりました。",
+          "furigana": "{友|とも}だちと{話|はな}して、{少|すこ}し{元気|げんき}になりました。",
+          "english": "I talked with a friend and felt a bit better.",
+          "cloze_target": "話して",
+          "accepted_answers": [
+            "話して",
+            "はなして"
+          ],
+          "hint": "話す → て-form"
+        },
+        {
+          "id": "n5-te-form-su-2",
+          "japanese": "電気を消して、寝ました。",
+          "furigana": "{電気|でんき}を{消|け}して、{寝|ね}ました。",
+          "english": "I turned off the light and went to bed.",
+          "cloze_target": "消して",
+          "accepted_answers": [
+            "消して",
+            "けして"
+          ],
+          "hint": "消す → て-form"
+        },
+        {
+          "id": "n5-te-form-su-3",
+          "japanese": "図書館に本を返して、帰りました。",
+          "furigana": "{図書館|としょかん}に{本|ほん}を{返|かえ}して、{帰|かえ}りました。",
+          "english": "I returned the book to the library and went home.",
+          "cloze_target": "返して",
+          "accepted_answers": [
+            "返して",
+            "かえして"
+          ],
+          "hint": "返す → て-form"
+        },
+        {
+          "id": "n5-te-form-su-4",
+          "japanese": "かばんから財布を出して、お金を払いました。",
+          "furigana": "かばんから{財布|さいふ}を{出|だ}して、お{金|かね}を{払|はら}いました。",
+          "english": "I took my wallet out of my bag and paid.",
+          "cloze_target": "出して",
+          "accepted_answers": [
+            "出して",
+            "だして"
+          ],
+          "hint": "出す → て-form"
+        },
+        {
+          "id": "n5-te-form-su-5",
+          "japanese": "友だちにペンを貸して、ノートを借りました。",
+          "furigana": "{友|とも}だちにペンを{貸|か}して、ノートを{借|か}りました。",
+          "english": "I lent my friend a pen and borrowed a notebook.",
+          "cloze_target": "貸して",
+          "accepted_answers": [
+            "貸して",
+            "かして"
+          ],
+          "hint": "貸す → て-form"
+        }
+      ]
+    },
+    {
+      "id": "n5-te-form-irregular",
+      "level": "N5",
+      "title": "て-form: irregular verbs (する・来る・行く)",
+      "meaning": "する → して, 来る → 来て, 行く → 行って",
+      "structure": [
+        "する → して (勉強する → 勉強して)",
+        "来る → 来て (きて)",
+        "行く → 行って"
+      ],
+      "formality": "neutral",
+      "explanation": "Three verbs don't follow the rules. する becomes して, and so does every する-verb: 勉強して, 掃除して, 電話して. 来る becomes 来て, read きて. 行く ends in く but takes って: 行って.\n\nThese three come up constantly, so learn them as fixed forms.",
+      "nuances": [
+        "来て is read きて, with the same vowel as 来ます (きます).",
+        "Any noun + する verb works the same way: 料理して, 散歩して, 電話して."
+      ],
+      "common_mistakes": [
+        "来って ✗, くて ✗ → 来て (きて).",
+        "行いて ✗ → 行って."
+      ],
+      "related_ids": [
+        "n5-te-form-su",
+        "n5-te-kudasai",
+        "n5-te-imasu"
+      ],
+      "examples": [
+        {
+          "id": "n5-te-form-irregular-1",
           "japanese": "京都へ行って、お寺を見ました。",
           "furigana": "{京都|きょうと}へ{行|い}って、お{寺|てら}を{見|み}ました。",
           "english": "I went to Kyoto and saw temples.",
@@ -5433,16 +5744,143 @@
           "hint": "行く → て-form (irregular)"
         },
         {
-          "id": "n5-te-form-6",
-          "japanese": "友だちと話して、少し元気になりました。",
-          "furigana": "{友|とも}だちと{話|はな}して、{少|すこ}し{元気|げんき}になりました。",
-          "english": "I talked with a friend and felt a bit better.",
-          "cloze_target": "話して",
+          "id": "n5-te-form-irregular-2",
+          "japanese": "宿題をして、テレビを見ました。",
+          "furigana": "{宿題|しゅくだい}をして、テレビを{見|み}ました。",
+          "english": "I did my homework and watched TV.",
+          "cloze_target": "して",
           "accepted_answers": [
-            "話して",
-            "はなして"
+            "して"
           ],
-          "hint": "話す → て-form"
+          "hint": "する → て-form"
+        },
+        {
+          "id": "n5-te-form-irregular-3",
+          "japanese": "図書館で勉強して、家に帰りました。",
+          "furigana": "{図書館|としょかん}で{勉強|べんきょう}して、{家|いえ}に{帰|かえ}りました。",
+          "english": "I studied at the library and went home.",
+          "cloze_target": "勉強して",
+          "accepted_answers": [
+            "勉強して",
+            "べんきょうして"
+          ],
+          "hint": "勉強する → て-form"
+        },
+        {
+          "id": "n5-te-form-irregular-4",
+          "japanese": "友だちが家に来て、一緒に晩ご飯を食べました。",
+          "furigana": "{友|とも}だちが{家|いえ}に{来|き}て、{一緒|いっしょ}に{晩|ばん}ご{飯|はん}を{食|た}べました。",
+          "english": "A friend came over and we had dinner together.",
+          "cloze_target": "来て",
+          "accepted_answers": [
+            "来て",
+            "きて"
+          ],
+          "hint": "来る → て-form"
+        },
+        {
+          "id": "n5-te-form-irregular-5",
+          "japanese": "朝早く来て、教室を掃除しました。",
+          "furigana": "{朝|あさ}{早|はや}く{来|き}て、{教室|きょうしつ}を{掃除|そうじ}しました。",
+          "english": "I came early in the morning and cleaned the classroom.",
+          "cloze_target": "来て",
+          "accepted_answers": [
+            "来て",
+            "きて"
+          ],
+          "hint": "来る → て-form"
+        },
+        {
+          "id": "n5-te-form-irregular-6",
+          "japanese": "銀行へ行って、お金を下ろしました。",
+          "furigana": "{銀行|ぎんこう}へ{行|い}って、お{金|かね}を{下|お}ろしました。",
+          "english": "I went to the bank and took out money.",
+          "cloze_target": "行って",
+          "accepted_answers": [
+            "行って",
+            "いって"
+          ],
+          "hint": "行く → て-form"
+        }
+      ]
+    },
+    {
+      "id": "n5-ni-suru",
+      "level": "N5",
+      "title": "〜にする",
+      "meaning": "decide on, choose, go with",
+      "structure": [
+        "Noun + にする / にします"
+      ],
+      "formality": "neutral",
+      "explanation": "Noun にします means \"I'll have / I'll go with…\" — you're making a choice: コーヒーにします, \"I'll have coffee.\" It's the standard way to order or pick among options.\n\nAs a question: 何にしますか, \"What will you have?\"",
+      "nuances": [
+        "The past にしました reports a decision: 会議は月曜日にしました, \"We set the meeting for Monday.\"",
+        "なる is a change that happens; する is a choice someone makes."
+      ],
+      "common_mistakes": [
+        "Using を: コーヒーをします ✗ → コーヒーにします.",
+        "Confusing にする (choose) with になる (become)."
+      ],
+      "related_ids": [
+        "n5-naru",
+        "n5-o-kudasai"
+      ],
+      "examples": [
+        {
+          "id": "n5-ni-suru-1",
+          "japanese": "私はコーヒーにします。",
+          "furigana": "{私|わたし}はコーヒーにします。",
+          "english": "I'll have coffee.",
+          "cloze_target": "に",
+          "accepted_answers": [
+            "に"
+          ],
+          "hint": "choose (Noun + に + する)"
+        },
+        {
+          "id": "n5-ni-suru-2",
+          "japanese": "何にしますか。",
+          "furigana": "{何|なに}にしますか。",
+          "english": "What will you have?",
+          "cloze_target": "に",
+          "accepted_answers": [
+            "に"
+          ],
+          "hint": "choose (Noun + に + する)"
+        },
+        {
+          "id": "n5-ni-suru-3",
+          "japanese": "会議は月曜日にしました。",
+          "furigana": "{会議|かいぎ}は{月曜日|げつようび}にしました。",
+          "english": "We set the meeting for Monday.",
+          "cloze_target": "に",
+          "accepted_answers": [
+            "に"
+          ],
+          "hint": "decide on"
+        },
+        {
+          "id": "n5-ni-suru-4",
+          "japanese": "この赤いかばんにします。",
+          "furigana": "この{赤|あか}いかばんにします。",
+          "english": "I'll go with this red bag.",
+          "cloze_target": "に",
+          "accepted_answers": [
+            "に"
+          ],
+          "hint": "choose"
+        },
+        {
+          "id": "n5-ni-suru-5",
+          "japanese": "昼ご飯はラーメンにしましょう。",
+          "furigana": "{昼|ひる}ご{飯|はん}はラーメンにしましょう。",
+          "english": "Let's have ramen for lunch.",
+          "cloze_target": "に",
+          "accepted_answers": [
+            "に"
+          ],
+          "hint": "choose"
         }
       ]
     },
