@@ -10,6 +10,7 @@ import { dayKey } from '../stats/dates';
 import { getGoalDays, markGoalDays, timeGoalDays } from '../stats/goalDays';
 import { computeStreak } from '../stats/streak';
 import { useApp, useNow } from '../state/AppProvider';
+import { dailyPracticeMinutes, daysLeftInWeek, goalActiveOn, goalDoneMs } from '../time/goals';
 import { startOfDay, totalsByActivity } from '../time/model';
 import { useTime } from '../time/TimeProvider';
 import { dailyPlan, type DayPlan, type StepId } from './plan';
@@ -51,7 +52,7 @@ export interface Today {
 export function useToday(): Today {
   const db = useSQLiteContext();
   const { cards, settings } = useApp();
-  const { entries, running } = useTime();
+  const { entries, running, activityById } = useTime();
   const now = useNow(running ? 1000 : 30_000);
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const { ankiNewPerDay, ankiMaxReviewsPerDay } = settings;
@@ -96,14 +97,20 @@ export function useToday(): Today {
     decks: l.decks,
     cardsDue: l.cardsDue,
     cardsReviewedToday: l.cardsReviewedToday,
-    timeGoalMs: settings.dailyTimeGoalMin * 60 * 1000,
-    timeTodayMs,
+    // Goals for a hidden or deleted activity are left out until it's back, and so are
+    // goals for other days of the week.
+    timeGoals: settings.timeGoals.flatMap((g) => {
+      const activity = g.activityId === null ? null : activityById.get(g.activityId);
+      if (activity === undefined || activity?.archived || !goalActiveOn(g, now)) return [];
+      return [{ id: g.id, activity: activity?.name ?? null, period: g.period, goalMs: g.minutes * 60 * 1000, doneMs: goalDoneMs(g, entries, now), daysLeft: daysLeftInWeek(now) }];
+    }),
   });
 
-  // Save goal days as they happen: today's once the plan shows a goal reached, plus recent
-  // days whose time goal was met by time logged afterwards.
-  const timeGoalMs = settings.dailyTimeGoalMin * 60 * 1000;
-  const reached = [...timeGoalDays(entries, timeGoalMs, now), ...(loaded && plan.goalMet ? [dayKey(now)] : [])];
+  // Save goal days as they happen: today's once the plan shows the goal reached. Without a lesson
+  // to do, recent days whose time goal was met by time logged afterwards count too.
+  const timeGoalMs = dailyPracticeMinutes(settings.timeGoals, now) * 60 * 1000;
+  const lessonDay = plan.steps.some((s) => s.id === 'learn');
+  const reached = [...(lessonDay ? [] : timeGoalDays(entries, timeGoalMs, now)), ...(loaded && plan.goalMet ? [dayKey(now)] : [])];
   const missing = reached.filter((d) => !l.goalDays.includes(d));
   const missingKey = missing.join(',');
   useEffect(() => {

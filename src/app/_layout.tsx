@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
+import { GoalCelebration } from '@/components/GoalCelebration';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { migrate } from '@/db/migrations';
 import { AppProvider, useApp } from '@/state/AppProvider';
@@ -82,6 +83,8 @@ function ThemedStack({ onReady }: { onReady: () => void }) {
           <Stack.Screen name="track/entry" options={{ title: 'Entry', presentation: 'modal' }} />
           <Stack.Screen name="track/shortcuts" options={{ title: 'Shortcuts' }} />
           <Stack.Screen name="track/activities" options={{ title: 'Activities' }} />
+          <Stack.Screen name="track/goals" options={{ title: 'Time goals' }} />
+          <Stack.Screen name="track/goal" options={{ title: 'Goal', presentation: 'modal' }} />
         </Stack.Protected>
         <Stack.Protected guard={!onboarded}>
           <Stack.Screen name="welcome" options={{ headerShown: false }} />
@@ -94,6 +97,7 @@ function ThemedStack({ onReady }: { onReady: () => void }) {
         <Stack.Screen name="legal/privacy" options={{ title: 'Privacy Policy' }} />
         <Stack.Screen name="legal/terms" options={{ title: 'Terms of Use' }} />
       </Stack>
+      {onboarded && <GoalCelebration />}
     </ThemeProvider>
   );
 }

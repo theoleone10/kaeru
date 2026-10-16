@@ -8,6 +8,7 @@ import { getGoalDays } from '../stats/goalDays';
 import { lessonsLearnedToday } from '../srs/lessons';
 import type { StoredCard } from '../srs/scheduler';
 import type { Settings } from '../state/settings';
+import { dailyPracticeMinutes } from '../time/goals';
 import { startOfDay, totalsByActivity } from '../time/model';
 import { getRunning, listActivities, listEntriesSince } from '../time/repo';
 import { planNotifications, type NotifyKind } from './planner';
@@ -113,7 +114,7 @@ async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonl
         quietEnd: settings.quietEnd,
         minGapHours: settings.minReminderGapHours,
         dailyNewGrammar: settings.dailyNewGrammar,
-        timeGoalMs: settings.dailyTimeGoalMin * 60 * 1000,
+        timeGoalMs: dailyPracticeMinutes(settings.timeGoals, now) * 60 * 1000,
       },
       grammarDue: cards.filter((c) => !c.suspended).map((c) => c.due),
       cardDue: cardRows.map((r) => r.due),

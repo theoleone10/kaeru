@@ -14,6 +14,7 @@ import { getReviewTimes } from '@/db/repo';
 import { addForecasts, applyDailyLimit, forecast } from '@/srs/forecast';
 import { levelProgress } from '@/stats/levelProgress';
 import { useApp, useNow } from '@/state/AppProvider';
+import { dailyPracticeMinutes } from '@/time/goals';
 import { dailyTotals, entryDuration, formatClock, formatDuration, formatTimeOfDay, startOfDay, type TimeEntry } from '@/time/model';
 import { useTime } from '@/time/TimeProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
@@ -302,7 +303,7 @@ function TimeTab() {
           }))}
           now={now}
           format={(ms) => (ms >= MIN_ENTRY_MS ? formatDuration(ms).replace(' ', '') : '')}
-          goal={(settings.dailyTimeGoalMin || 30) * 60 * 1000}
+          goal={(dailyPracticeMinutes(settings.timeGoals, now) || 30) * 60 * 1000}
         />
       </Section>
 

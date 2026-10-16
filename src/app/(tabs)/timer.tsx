@@ -7,9 +7,10 @@ import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
-import { Button, IconButton, Stat, T } from '@/components/ui';
+import { Button, IconButton, ProgressBar, Section, Stat, T } from '@/components/ui';
 import { useApp, useNow } from '@/state/AppProvider';
 import { dailyTotals, entryDuration, formatClock, formatDuration, formatTimeOfDay, parseTogglCsv } from '@/time/model';
+import { daysLeftInWeek, goalActiveOn, goalDoneMs, repeatLabel } from '@/time/goals';
 import { importEntries } from '@/time/repo';
 import { useTime } from '@/time/TimeProvider';
 import { spacing } from '@/theme/colors';
@@ -49,7 +50,7 @@ function TimerRing({ fraction, color, children }: { fraction: number; color: str
 export default function Timer() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const { colors } = useApp();
+  const { colors, settings } = useApp();
   const { activities, entries, running, activityById, start, stop, refresh } = useTime();
   const now = useNow(running ? 1000 : 30_000);
   const [picked, setPicked] = useState<number | null>(null);
@@ -94,8 +95,17 @@ export default function Timer() {
     }
   };
 
+  // Every goal except those for hidden activities; daily goals that are off today show as a rest day.
+  const goals = settings.timeGoals.flatMap((g) => {
+    const activity = g.activityId === null ? null : activityById.get(g.activityId);
+    if (activity === undefined || activity?.archived) return [];
+    const goalMs = g.minutes * 60 * 1000;
+    return [{ ...g, name: activity?.name ?? 'All activities', color: activity?.color ?? colors.gold, goalMs, doneMs: goalDoneMs(g, entries, now), today: goalActiveOn(g, now) }];
+  });
+
   const more = () =>
     Alert.alert('Time tracking', undefined, [
+      { text: 'Time goals', onPress: () => router.push('/track/goals') },
       { text: 'Add a past entry', onPress: () => router.push('/track/entry') },
       { text: 'Set up iPhone Shortcuts', onPress: () => router.push('/track/shortcuts') },
       { text: 'Manage activities', onPress: () => router.push('/track/activities') },
@@ -166,6 +176,54 @@ export default function Timer() {
         <Stat value={formatDuration(todayTotal)} label="Today" />
         <Stat value={formatDuration(weekTotal)} label="Past 7 days" />
       </View>
+
+      <Section
+        label="Goals"
+        right={
+          <Pressable onPress={() => router.push('/track/goals')} accessibilityRole="button" accessibilityLabel="Edit time goals" hitSlop={8}>
+            <T variant="small" color={colors.accent} style={{ fontWeight: '900' }}>
+              {goals.length ? 'EDIT' : 'ADD'}
+            </T>
+          </Pressable>
+        }
+      >
+        {goals.length === 0 ? (
+          <Pressable onPress={() => router.push('/track/goals')} accessibilityRole="button">
+            <T variant="muted">Set a daily or weekly goal for immersion, study, or everything together.</T>
+          </Pressable>
+        ) : (
+          goals.map((g) => {
+            const done = g.doneMs >= g.goalMs;
+            const days = daysLeftInWeek(now);
+            if (!g.today) {
+              return (
+                <View key={g.id} style={styles.goalHead}>
+                  <T variant="body" color={colors.textMuted} style={{ fontWeight: '800', flex: 1 }} numberOfLines={1}>
+                    {`${g.name} · ${formatDuration(g.goalMs)}`}
+                  </T>
+                  <T variant="small">{`${repeatLabel(g)} · not today`}</T>
+                </View>
+              );
+            }
+            return (
+              <View key={g.id} style={{ gap: 6 }} accessible accessibilityLabel={`${g.name}, ${formatDuration(g.doneMs)} of ${formatDuration(g.goalMs)} ${g.period === 'day' ? 'today' : 'this week'}`}>
+                <View style={styles.goalHead}>
+                  <T variant="body" style={{ fontWeight: '800', flex: 1 }} numberOfLines={1}>
+                    {`${g.name} · ${g.period === 'day' ? 'today' : 'this week'}`}
+                  </T>
+                  <T variant="small" color={done ? colors.correct : colors.textMuted} style={{ fontWeight: '800', fontVariant: ['tabular-nums'] }}>
+                    {done ? `${formatDuration(g.doneMs)} ✓` : `${formatDuration(g.doneMs)} / ${formatDuration(g.goalMs)}`}
+                  </T>
+                </View>
+                <ProgressBar value={Math.min(1, g.doneMs / g.goalMs)} color={g.color} />
+                {g.period === 'week' && !done && (
+                  <T variant="small">{`${formatDuration(g.goalMs - g.doneMs)} to go · ${days === 1 ? 'last day' : `${days} days left`}`}</T>
+                )}
+              </View>
+            );
+          })
+        )}
+      </Section>
     </ScrollView>
   );
 }
@@ -177,4 +235,5 @@ const styles = StyleSheet.create({
   chip: { minHeight: 44, paddingHorizontal: spacing.lg, borderRadius: 999, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   addChip: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', gap: spacing.md },
+  goalHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });
