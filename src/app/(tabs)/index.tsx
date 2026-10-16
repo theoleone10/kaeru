@@ -37,7 +37,7 @@ export default function Today() {
   const station = next ? stationOf(next.id) : undefined;
   const line = next ? lines[next.level] : lines.N1;
 
-  const said = frogLines({ now, done: plan.doneCount, total: plan.steps.length, streak: streak.days, timerRunning: !!running });
+  const said = frogLines({ now, done: plan.allDone ? plan.steps.length : plan.doneCount, total: plan.steps.length, streak: streak.days, timerRunning: !!running });
   const say = said[seed % said.length];
   const date = new Date(now);
 
@@ -119,7 +119,7 @@ export default function Today() {
           </T>
           {plan.steps.map((s) => (
             <Pressable
-              key={s.id}
+              key={s.key}
               onPress={() => today.goTo(s.id)}
               accessibilityRole="button"
               accessibilityLabel={`${s.title}. ${s.detail}. ${s.done ? 'Done' : 'To do'}`}

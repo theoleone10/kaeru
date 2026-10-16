@@ -244,15 +244,7 @@ export default function SettingsScreen() {
             onChange={(v) => updateSettings({ grammarMaxReviewsPerDay: v })}
           />
         </Row>
-        <Row label="Daily time goal">
-          <Stepper
-            value={settings.dailyTimeGoalMin}
-            display={settings.dailyTimeGoalMin === 0 ? 'Off' : `${settings.dailyTimeGoalMin}m`}
-            {...LIMITS.dailyTimeGoalMin}
-            step={15}
-            onChange={(v) => updateSettings({ dailyTimeGoalMin: v })}
-          />
-        </Row>
+        <Button label="Edit time goals" kind="ghost" onPress={() => router.push('/track/goals')} />
       </Section>
 
       <Section label="Display & input">
@@ -318,7 +310,7 @@ export default function SettingsScreen() {
             <Row label="Reviews ready" detail="When grammar or flashcards come due">
               <Switch value={settings.notifyReviews} onValueChange={(v) => updateSettings({ notifyReviews: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
             </Row>
-            <Row label="Streak saver" detail="An evening nudge if no daily goal is done yet">
+            <Row label="Streak saver" detail="An evening nudge if today’s lesson isn’t done yet">
               <Switch value={settings.notifyStreak} onValueChange={(v) => updateSettings({ notifyStreak: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
             </Row>
             <Row label="Daily plan" detail="What's on today, before you usually start">

@@ -64,7 +64,7 @@ export function StepList({ steps, next, onOpen }: { steps: Step[]; next: Step | 
         const isNext = next?.id === s.id;
         return (
           <Pressable
-            key={s.id}
+            key={s.key}
             onPress={() => onOpen(s.id)}
             accessibilityRole="button"
             accessibilityLabel={`${s.title}. ${s.detail}. ${s.done ? 'Done' : isNext ? 'Up next' : 'To do'}`}
@@ -98,25 +98,38 @@ export function StepList({ steps, next, onOpen }: { steps: Step[]; next: Step | 
  */
 export function NextUp({ from }: { from: StepId }) {
   const { colors } = useApp();
-  const { plan, goTo, loaded, streak } = useToday();
+  const { plan, goTo, loaded, streak, cardsDue } = useToday();
   useDayMilestones({ loaded, allDone: plan.allDone, streak: streak.days, goalMetToday: streak.goalMetToday });
   if (!loaded) return null;
-  const next = plan.steps.find((s) => !s.done && s.id !== from) ?? null;
-  const left = plan.steps.filter((s) => !s.done && s.id !== from).length;
+  // Finishing one deck while another still has cards: carry on with flashcards first.
+  const moreCards = from === 'cards' && plan.steps.some((s) => s.id === 'cards' && !s.done);
+  const todo = plan.steps.filter((s) => !s.done && (s.id !== from || moreCards));
+  // Today's steps first; a weekly goal comes up once they're done, as an optional extra.
+  const next = (moreCards ? todo.find((s) => s.id === 'cards') : (todo.find((s) => !s.weekly) ?? todo[0])) ?? null;
+  const left = todo.filter((s) => !s.weekly).length;
+  const label = next?.id === 'cards' && moreCards ? `Next deck: ${cardsDue} ${cardsDue === 1 ? 'card' : 'cards'} left` : `Next: ${next?.title}`;
   return (
     <View style={{ gap: spacing.md }}>
       <View style={styles.dots} accessibilityLabel={`${plan.doneCount} of ${plan.steps.length} parts of today done`}>
         {plan.steps.map((s) => (
-          <StepBadge key={s.id} step={s} size={36} />
+          <StepBadge key={s.key} step={s} size={36} />
         ))}
       </View>
-      {next ? (
+      {next?.weekly && plan.allDone ? (
+        <>
+          <T variant="small" style={{ textAlign: 'center' }}>
+            Done for today! Your weekly goal can wait, or keep going.
+          </T>
+          <Button label="Back to Today" onPress={() => router.dismissTo('/')} />
+          <Button label={`Keep going: ${next.title}`} kind="ghost" onPress={() => goTo(next.id, 'replace')} />
+        </>
+      ) : next ? (
         <>
           <T variant="small" style={{ textAlign: 'center' }}>
             {left === 1 ? 'One more thing today' : `${left} more things today`}
           </T>
           <Button
-            label={`Next: ${next.title}`}
+            label={label}
             icon={<Ionicons name={stepMeta(colors, next.id).icon} size={20} color="#FFFFFF" />}
             onPress={() => goTo(next.id, 'replace')}
           />

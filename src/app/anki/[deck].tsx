@@ -6,7 +6,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deleteNote } from '@/anki/notes';
 import { cardContent, renderCard } from '@/anki/render';
-import { answerCard, buildStudyQueue, getStudyCard, LEARN_AHEAD_MS, nextDue, setCardSuspended, undoAnswer, type StudyCard } from '@/anki/repo';
+import { answerCard, buildStudyQueue, getStudyCard, LEARN_AHEAD_MS, nextDue, replacementCards, setCardSuspended, undoAnswer, type StudyCard } from '@/anki/repo';
 import { formatInterval, GRADES, previewGrades, schedulerFor, State, type AnkiSched } from '@/anki/schedule';
 import { AnkiCardView } from '@/components/AnkiCardView';
 import { Celebration } from '@/components/Celebration';
@@ -227,8 +227,15 @@ export default function AnkiStudy() {
       {
         text: 'Suspend card',
         onPress: async () => {
-          await setCardSuspended(db, showing.card.card.id, true);
-          await show(session);
+          const { id, state } = showing.card.card;
+          await setCardSuspended(db, id, true);
+          // A suspended new card (or review) frees a slot in today's limit: the next card in line takes its place now.
+          const extra = await replacementCards(db, path, clock(), { newPerDay: ankiNewPerDay, reviewsPerDay: ankiMaxReviewsPerDay }, state, (c) => c === id || c in session.states);
+          await show({
+            ...session,
+            queue: [...extra, ...session.queue],
+            states: { ...session.states, ...Object.fromEntries(extra.map((c) => [c, state])) },
+          });
         },
       },
       { text: 'Cancel', style: 'cancel' as const },

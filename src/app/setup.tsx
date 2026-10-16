@@ -14,6 +14,7 @@ import { LegalNote, NoAccountLink, SignInOptions } from '@/components/SignInOpti
 import { Button, IconButton, ProgressBar, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing } from '@/theme/colors';
+import { everyDayPracticeMinutes, withDailyPractice } from '@/time/goals';
 
 const STEPS = ['grammar', 'time', 'anki', 'account'] as const;
 type Step = (typeof STEPS)[number];
@@ -165,8 +166,8 @@ export default function Setup() {
                   key={c.value}
                   title={c.value === 0 ? 'No goal' : `${minutes(c.value)} a day`}
                   detail={c.value === 0 ? 'Just track your time' : `${c.title} · ${minutes(c.value * 7)} a week`}
-                  selected={settings.dailyTimeGoalMin === c.value}
-                  onPress={() => pick({ dailyTimeGoalMin: c.value })}
+                  selected={everyDayPracticeMinutes(settings.timeGoals) === c.value}
+                  onPress={() => pick({ timeGoals: withDailyPractice(settings.timeGoals, c.value) })}
                 />
               ))}
             </View>

@@ -8,9 +8,11 @@ import { LessonContent } from '@/components/LessonContent';
 import { ReviewSession } from '@/components/ReviewSession';
 import { Celebration } from '@/components/Celebration';
 import { NextUp } from '@/components/DayPlan';
+import { StreakExtended } from '@/components/StreakExtended';
 import { Button, ProgressBar, T } from '@/components/ui';
 import { curriculum, getPoint } from '@/content/loader';
 import type { GrammarPoint } from '@/content/types';
+import { useToday } from '@/daily/useToday';
 import { saveQuizResults } from '@/db/repo';
 import { lessonsLearnedToday, nextLessonBatch } from '@/srs/lessons';
 import { buildQuiz, cardsFromQuiz, type QuizAnswer, type QuizItem } from '@/srs/quiz';
@@ -28,6 +30,7 @@ export default function Lessons() {
   const insets = useSafeAreaInsets();
   const { id, extra } = useLocalSearchParams<{ id?: string; extra?: string }>();
   const { colors, cards, settings, refresh } = useApp();
+  const { streak } = useToday();
 
   // Freeze the batch when the screen opens so it doesn't shift as cards are created.
   const [batch] = useState<GrammarPoint[]>(() => {
@@ -44,6 +47,8 @@ export default function Lessons() {
   const [step, setStep] = useState<'learn' | 'quiz'>('learn');
   const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
   const [passed, setPassed] = useState<Map<string, boolean> | null>(null);
+  /** Whether today already counted for the streak when the quiz ended. */
+  const [metBefore, setMetBefore] = useState<boolean | null>(null);
   const scroll = useRef<ScrollView>(null);
 
   const close = () => {
@@ -68,6 +73,7 @@ export default function Lessons() {
   };
 
   const finishQuiz = async (answers: QuizAnswer[]) => {
+    setMetBefore(streak.goalMetToday);
     const seeds = cardsFromQuiz(batch, answers, Date.now());
     await saveQuizResults(db, seeds, answers);
     setPassed(new Map(seeds.map((s) => [s.card.grammar_id, s.passed])));
@@ -136,6 +142,7 @@ export default function Lessons() {
                   { label: 'Quiz', value: summary.reviewed ? `${summary.correct}/${summary.reviewed}` : '—', tone: 'green' },
                 ]}
               >
+                {metBefore === false && streak.goalMetToday && <StreakExtended days={streak.days} />}
                 <NextUp from="learn" />
               </Celebration>
             );

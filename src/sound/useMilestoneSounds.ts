@@ -4,12 +4,8 @@ import { curriculum } from '../content/loader';
 import { getKv, setKv } from '../db/repo';
 import { STREAK_MILESTONES } from '../notifications/planner';
 import { dayKey } from '../stats/dates';
-import { useApp, useNow } from '../state/AppProvider';
-import { startOfDay, totalsByActivity } from '../time/model';
-import { useTime } from '../time/TimeProvider';
+import { useApp } from '../state/AppProvider';
 import { playSound, type SoundName } from './sounds';
-
-const DAY = 24 * 60 * 60 * 1000;
 
 /**
  * Play `sound` the first time `when` is true on a given day, remembered across restarts
@@ -42,23 +38,11 @@ export function useDayMilestones({ loaded, allDone, streak, goalMetToday }: { lo
 }
 
 /**
- * App-wide milestones that can happen anywhere: today's practice goal reached while
- * a timer runs, and the last grammar point of a JLPT level learned.
+ * App-wide milestone that can happen anywhere: the last grammar point of a JLPT level learned.
+ * (Time goals reached get their own popup, GoalCelebration.)
  */
 export function useMilestoneSounds(): void {
-  const { settings, cards } = useApp();
-  const { entries, running } = useTime();
-  const now = useNow(running ? 5000 : 60_000);
-
-  const goalMs = settings.dailyTimeGoalMin * 60 * 1000;
-  const todayMs = [...totalsByActivity(entries, startOfDay(now), startOfDay(now) + 2 * DAY, now).values()].reduce((a, b) => a + b, 0);
-  const lastTime = useRef<{ day: number; ms: number } | null>(null);
-  useEffect(() => {
-    const day = startOfDay(now);
-    const prev = lastTime.current;
-    lastTime.current = { day, ms: todayMs };
-    if (goalMs > 0 && running && prev && prev.day === day && prev.ms < goalMs && todayMs >= goalMs) playSound('goal');
-  }, [now, todayMs, goalMs, running]);
+  const { cards } = useApp();
 
   const complete = useMemo(() => {
     const learned = new Set(cards.map((c) => c.grammar_id));

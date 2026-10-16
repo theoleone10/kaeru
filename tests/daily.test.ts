@@ -14,6 +14,9 @@ const MIN = 60 * 1000;
 const DAY = 24 * 60 * MIN;
 const NOW = Date.UTC(2026, 8, 29, 12);
 
+/** The all-activities daily goal of 30 minutes, with `doneMs` done today. */
+const practice = (doneMs: number) => [{ id: 'daily', activity: null, period: 'day' as const, goalMs: 30 * MIN, doneMs }];
+
 const base: DayState = {
   newGoal: 2,
   learnedToday: 0,
@@ -25,8 +28,7 @@ const base: DayState = {
   decks: 1,
   cardsDue: 30,
   cardsReviewedToday: 0,
-  timeGoalMs: 30 * MIN,
-  timeTodayMs: 0,
+  timeGoals: practice(0),
 };
 
 describe('dailyPlan', () => {
@@ -42,30 +44,33 @@ describe('dailyPlan', () => {
     const halfway = dailyPlan({ ...base, learnedToday: 2, grammarDue: 0, grammarReviewedToday: 12 });
     expect(halfway.next?.id).toBe('cards');
     expect(halfway.doneCount).toBe(2);
-    const done = dailyPlan({ ...base, learnedToday: 2, grammarDue: 0, cardsDue: 0, cardsReviewedToday: 30, timeTodayMs: 45 * MIN });
+    const done = dailyPlan({ ...base, learnedToday: 2, grammarDue: 0, cardsDue: 0, cardsReviewedToday: 30, timeGoals: practice(45 * MIN) });
     expect(done.allDone).toBe(true);
     expect(done.next).toBeNull();
   });
 
   it('leaves out steps that do not apply', () => {
-    const fresh = dailyPlan({ ...base, grammarCards: 0, grammarDue: 0, decks: 0, cardsDue: 0, timeGoalMs: 0 });
+    const fresh = dailyPlan({ ...base, grammarCards: 0, grammarDue: 0, decks: 0, cardsDue: 0, timeGoals: [] });
     expect(fresh.steps.map((s) => s.id)).toEqual(['learn']);
     const finished = dailyPlan({ ...base, unlearned: 0 });
     expect(finished.steps.map((s) => s.id)).toEqual(['review', 'cards', 'time']);
   });
 
-  it('counts a goal for the streak only when it was actually done today', () => {
+  it('extends the streak only once today\'s grammar lessons are done', () => {
     expect(dailyPlan(base).goalMet).toBe(false);
-    // Nothing due and nothing reviewed: no review steps today, so nothing to earn there.
-    const idle = dailyPlan({ ...base, grammarDue: 0, cardsDue: 0 });
-    expect(idle.steps.map((x) => x.id)).toEqual(['learn', 'time']);
-    expect(idle.goalMet).toBe(false);
-    expect(dailyPlan({ ...base, grammarDue: 0, grammarReviewedToday: 3 }).goalMet).toBe(true);
-    expect(dailyPlan({ ...base, cardsDue: 0, cardsReviewedToday: 5 }).goalMet).toBe(true);
+    // Other steps done don't count while lessons are left.
+    expect(dailyPlan({ ...base, grammarDue: 0, grammarReviewedToday: 3 }).goalMet).toBe(false);
+    expect(dailyPlan({ ...base, cardsDue: 0, cardsReviewedToday: 5 }).goalMet).toBe(false);
+    expect(dailyPlan({ ...base, timeGoals: practice(30 * MIN) }).goalMet).toBe(false);
+    expect(dailyPlan({ ...base, learnedToday: 1 }).goalMet).toBe(false);
     expect(dailyPlan({ ...base, learnedToday: 2 }).goalMet).toBe(true);
-    expect(dailyPlan({ ...base, timeTodayMs: 30 * MIN }).goalMet).toBe(true);
-    // Some reviews done but some still due: not yet.
-    expect(dailyPlan({ ...base, grammarReviewedToday: 5, cardsReviewedToday: 5, timeTodayMs: 29 * MIN, learnedToday: 1 }).goalMet).toBe(false);
+  });
+
+  it('counts any finished step when there is no lesson to do', () => {
+    const finished = { ...base, unlearned: 0 };
+    expect(dailyPlan(finished).goalMet).toBe(false);
+    expect(dailyPlan({ ...finished, grammarDue: 0, grammarReviewedToday: 3 }).goalMet).toBe(true);
+    expect(dailyPlan({ ...finished, timeGoals: practice(30 * MIN) }).goalMet).toBe(true);
   });
 
   it('does not tick reviews off after a lesson: its quiz is not a review', () => {

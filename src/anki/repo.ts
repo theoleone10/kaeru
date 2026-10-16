@@ -237,6 +237,18 @@ export async function buildStudyQueue(db: Db, path: string, now: number, default
   ];
 }
 
+/**
+ * After a new or review card is suspended mid-session: the cards of the same kind that today's
+ * limits now let in, which the session (`known` ids) hasn't seen. Usually just the next one in line.
+ */
+export async function replacementCards(db: Db, path: string, now: number, defaults: Limits, state: number, known: (id: number) => boolean): Promise<number[]> {
+  if (state !== State.New && state !== State.Review) return [];
+  const ids = (await buildStudyQueue(db, path, now, defaults)).filter((id) => !known(id));
+  if (!ids.length) return [];
+  const same = new Set((await db.getAllAsync<{ id: number }>(`SELECT id FROM anki_cards WHERE id IN (${ids.join(',')}) AND state = ?`, state)).map((r) => r.id));
+  return ids.filter((id) => same.has(id));
+}
+
 /** Spread `b` evenly through `a`. */
 export function interleave<T>(a: T[], b: T[]): T[] {
   if (b.length === 0) return a;

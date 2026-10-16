@@ -46,6 +46,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Functional update: two quick changes in a row must not undo each other.
       setSettings((prev) => ({ ...prev, ...patch }));
       for (const [k, v] of Object.entries(patch)) await setKv(db, 'settings', k, v);
+      // The old single daily goal now lives in timeGoals: drop it once goals are saved.
+      if (patch.timeGoals) await setKv(db, 'settings', 'dailyTimeGoalMin', null);
     },
     [db],
   );
@@ -70,12 +72,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     latest.current = { settings, cards };
   }, [settings, cards]);
-  const { notificationsEnabled, quietStart, quietEnd, minReminderGapHours, notifyReviews, notifyStreak, notifyPlan, notifyWins, dailyNewGrammar, dailyTimeGoalMin } =
+  const { notificationsEnabled, quietStart, quietEnd, minReminderGapHours, notifyReviews, notifyStreak, notifyPlan, notifyWins, dailyNewGrammar, timeGoals } =
     settings;
   useEffect(() => {
     if (!loaded) return;
     rescheduleNotifications(db, latest.current.settings, latest.current.cards);
-  }, [db, loaded, notificationsEnabled, quietStart, quietEnd, minReminderGapHours, notifyReviews, notifyStreak, notifyPlan, notifyWins, dailyNewGrammar, dailyTimeGoalMin]);
+  }, [db, loaded, notificationsEnabled, quietStart, quietEnd, minReminderGapHours, notifyReviews, notifyStreak, notifyPlan, notifyWins, dailyNewGrammar, timeGoals]);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'background') rescheduleNotifications(db, latest.current.settings, latest.current.cards);
