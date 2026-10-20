@@ -1,5 +1,5 @@
 import { useSQLiteContext } from 'expo-sqlite';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 import { playSound } from '../sound/sounds';
 import type { Activity, TimeEntry } from './model';
@@ -30,8 +30,17 @@ export function TimeProvider({ children }: { children: ReactNode }) {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [running, setRunning] = useState<TimeEntry | null>(null);
 
-  const refresh = useCallback(async () => {
-    await drainShortcutInbox(db).catch(() => false);
+  // Refreshes run one at a time. Two at once (e.g. on coming back to the app) could let one read
+  // the database while the other was still applying a queued Shortcuts command, then mirror that
+  // stale timer to the Shortcuts actions last: Stop Timer would then think nothing was running.
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const serial = useCallback(<T,>(job: () => Promise<T>): Promise<T> => {
+    const run = queue.current.then(job, job);
+    queue.current = run.catch(() => undefined);
+    return run;
+  }, []);
+
+  const load = useCallback(async () => {
     const [a, e, r] = await Promise.all([listActivities(db), listEntriesSince(db, Date.now() - HISTORY_DAYS * DAY), getRunning(db)]);
     setActivities(a);
     setEntries(e);
@@ -43,6 +52,15 @@ export function TimeProvider({ children }: { children: ReactNode }) {
     }
   }, [db]);
 
+  const refresh = useCallback(
+    () =>
+      serial(async () => {
+        await drainShortcutInbox(db).catch(() => false);
+        await load();
+      }),
+    [db, serial, load],
+  );
+
   useEffect(() => {
     (async () => {
       await refresh();
@@ -50,14 +68,17 @@ export function TimeProvider({ children }: { children: ReactNode }) {
     // Shortcut links and actions can change the timer while the app was in the background.
     const sub = AppState.addEventListener('change', (s) => s === 'active' && refresh());
     // Actions run while the app is open don't change its state, so check for them now and then.
-    const poll = setInterval(async () => {
-      if (AppState.currentState === 'active' && (await drainShortcutInbox(db).catch(() => false))) await refresh();
+    const poll = setInterval(() => {
+      if (AppState.currentState !== 'active') return;
+      serial(async () => {
+        if (await drainShortcutInbox(db).catch(() => false)) await load();
+      });
     }, INBOX_POLL_MS);
     return () => {
       sub.remove();
       clearInterval(poll);
     };
-  }, [db, refresh]);
+  }, [db, refresh, serial, load]);
 
   const start = useCallback(
     async (activity: string | number, source = 'timer') => {

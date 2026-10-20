@@ -131,11 +131,14 @@ struct StopTimerIntent: AppIntent {
   static let openAppWhenRun = false
 
   func perform() async throws -> some IntentResult & ProvidesDialog {
-    guard let running = TimerInbox.running() else {
-      return .result(dialog: "No timer is running.")
-    }
+    // Always queued: what's running here comes from the app's last mirror, which can be behind
+    // (and stopping when nothing runs does nothing).
+    let running = TimerInbox.running()
     try TimerInbox.enqueue("stop")
-    return .result(dialog: "Stopped \(running).")
+    if let running {
+      return .result(dialog: "Stopped \(running).")
+    }
+    return .result(dialog: "Stopped the timer.")
   }
 }
 
