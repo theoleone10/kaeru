@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { Platform } from 'react-native';
+import { ankiToday } from '../anki/repo';
 import { State } from '../anki/schedule';
 import { curriculum } from '../content/loader';
 import { getActivityTimes, getKv, setKv } from '../db/repo';
@@ -11,7 +12,7 @@ import type { Settings } from '../state/settings';
 import { dailyPracticeMinutes } from '../time/goals';
 import { startOfDay, totalsByActivity } from '../time/model';
 import { getRunning, listActivities, listEntriesSince } from '../time/repo';
-import { planNotifications, type NotifyKind } from './planner';
+import { morningPlanTimes, planNotifications, type NotifyKind } from './planner';
 
 // Local notifications only — these work in Expo Go (remote push does not).
 const DAY = 24 * 60 * 60 * 1000;
@@ -102,6 +103,13 @@ async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonl
       getRunning(db),
       listActivities(db),
     ]);
+    // The morning plan's flashcard count is what Today will show then: every deck, new cards
+    // included, within the deck limits (and assuming no studying before it).
+    const limits = { newPerDay: settings.ankiNewPerDay, reviewsPerDay: settings.ankiMaxReviewsPerDay };
+    const cardsTodo = new Map<number, number>();
+    for (const at of morningPlanTimes(now, activity, settings)) {
+      if (at > now) cardsTodo.set(at, (await ankiToday(db, at, limits)).due);
+    }
     const learned = new Set(cards.map((c) => c.grammar_id));
     const celebrated = (meta.celebrated && typeof meta.celebrated === 'object' ? meta.celebrated : {}) as Record<string, number>;
 
@@ -118,6 +126,7 @@ async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonl
       },
       grammarDue: cards.filter((c) => !c.suspended).map((c) => c.due),
       cardDue: cardRows.map((r) => r.due),
+      cardsTodo,
       activity,
       goalDays,
       learnedToday: lessonsLearnedToday(

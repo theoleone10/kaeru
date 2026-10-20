@@ -1,6 +1,6 @@
 import { pick, reviewsMessage, streakMessage } from '@/notifications/messages';
 import { dayKey } from '@/stats/dates';
-import { MAX_PER_DAY, MIN_SPACING, planNotifications, streakMinute, studyHabit, type NotifyInput } from '@/notifications/planner';
+import { MAX_PER_DAY, MIN_SPACING, morningPlanTimes, planNotifications, streakMinute, studyHabit, type NotifyInput } from '@/notifications/planner';
 
 // Tests run with TZ=UTC (see package.json), so local time == UTC here.
 const at = (h: number, m = 0, day = 10) => +new Date(2026, 9, day, h, m);
@@ -96,6 +96,15 @@ describe('planNotifications', () => {
     const morning = plan.find((n) => n.kind === 'plan' && dayOf(n.at) === 10)!;
     expect(new Date(morning.at).getHours() * 60 + new Date(morning.at).getMinutes()).toBe(8 * 60 + 40);
     expect(morning.message.body).toBe('2 new points · 1 review · 30m practice');
+  });
+
+  it('counts flashcards the way Today does when given the count at plan time', () => {
+    const input = base({ now: at(6), activity: studied(9, [7, 8, 9]), cardDue: [at(5)] });
+    const times = morningPlanTimes(input.now, input.activity, input.settings);
+    const plan = planNotifications({ ...input, cardsTodo: new Map([[times[0], 42]]) });
+    const morning = plan.find((n) => n.kind === 'plan' && dayOf(n.at) === 10)!;
+    expect(morning.at).toBe(times[0]);
+    expect(morning.message.body).toContain('42 flashcards');
   });
 
   it('switches to a comeback message after a missed day', () => {

@@ -4,6 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DayDoneCelebration } from '@/components/DayDoneCelebration';
 import { StepBadge } from '@/components/DayPlan';
 import { Flame } from '@/components/Flame';
 import { Mascot } from '@/components/Mascot';
@@ -144,6 +145,7 @@ export default function Today() {
 
       <View style={{ flex: 1 }} />
       <TimerChips showAdd={false} />
+      <DayDoneCelebration loaded={today.loaded} allDone={plan.allDone} streak={streak.days} />
     </ScrollView>
   );
 }
