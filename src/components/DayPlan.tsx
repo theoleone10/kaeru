@@ -6,6 +6,7 @@ import type { Step, StepId } from '../daily/plan';
 import { useToday } from '../daily/useToday';
 import { useDayMilestones } from '../sound/useMilestoneSounds';
 import { useApp } from '../state/AppProvider';
+import { DayDoneCelebration } from './DayDoneCelebration';
 import type { Palette } from '../theme/colors';
 import { spacing } from '../theme/colors';
 import { Button, T } from './ui';
@@ -110,6 +111,7 @@ export function NextUp({ from }: { from: StepId }) {
   const label = next?.id === 'cards' && moreCards ? `Next deck: ${cardsDue} ${cardsDue === 1 ? 'card' : 'cards'} left` : `Next: ${next?.title}`;
   return (
     <View style={{ gap: spacing.md }}>
+      <DayDoneCelebration loaded={loaded} allDone={plan.allDone} streak={streak.days} />
       <View style={styles.dots} accessibilityLabel={`${plan.doneCount} of ${plan.steps.length} parts of today done`}>
         {plan.steps.map((s) => (
           <StepBadge key={s.key} step={s} size={36} />

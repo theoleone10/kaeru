@@ -39,6 +39,12 @@ export interface NotifyInput {
   grammarDue: readonly number[];
   /** Due times of flashcards already in review (new cards aren't "due"). */
   cardDue: readonly number[];
+  /**
+   * Flashcards to study at each morning plan time (see morningPlanTimes): new, learning and
+   * reviews across every deck, within the deck limits, like Today shows. Without an entry
+   * the plan counts reviews in cardDue instead.
+   */
+  cardsTodo?: ReadonlyMap<number, number>;
   /** Every study timestamp from the last couple of months (for when you usually study). */
   activity: readonly number[];
   /** Days (dayKey) a daily goal was reached: the streak. */
@@ -141,6 +147,21 @@ export function streakMinute(h: Habit, s: Pick<NotifySettings, 'quietStart' | 'q
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
+/** Start of today and of each following day in the horizon. */
+function horizonDays(now: number): number[] {
+  return Array.from({ length: HORIZON_DAYS }, (_, i) => {
+    let d = startOfLocalDay(now);
+    for (let k = 0; k < i; k++) d = startOfLocalDay(d + DAY + 2 * HOUR); // DST-safe next day
+    return d;
+  });
+}
+
+/** When the morning plan would go out on each day of the horizon. */
+export function morningPlanTimes(now: number, activity: readonly number[], st: Pick<NotifySettings, 'quietStart' | 'quietEnd'>): number[] {
+  const habit = studyHabit(activity, now);
+  return horizonDays(now).map((day) => moveOutOfQuietHours(atMinute(day, planMinute(habit)), st.quietStart, st.quietEnd));
+}
+
 /**
  * Everything to schedule for the next few days, assuming you don't open the app again
  * (it re-plans every time it closes). Ranked wins > streak > plan > timer > reviews,
@@ -157,11 +178,8 @@ export function planNotifications(input: NotifyInput): PlannedNotification[] {
   const seed = (t: number, salt: number) => Math.floor(startOfLocalDay(t) / DAY) + salt;
   const lastStudy = input.activity.length ? Math.max(...input.activity.filter((t) => t <= now), 0) : 0;
 
-  const days = Array.from({ length: HORIZON_DAYS }, (_, i) => {
-    let d = today;
-    for (let k = 0; k < i; k++) d = startOfLocalDay(d + DAY + 2 * HOUR); // DST-safe next day
-    return d;
-  });
+  const days = horizonDays(now);
+  const planTimes = morningPlanTimes(now, input.activity, st);
 
   // ---- Wins: right after the moment, so they land while it still feels good.
   if (st.kinds.wins) {
@@ -210,11 +228,11 @@ export function planNotifications(input: NotifyInput): PlannedNotification[] {
 
     // ---- Morning plan.
     if (st.kinds.plan && !goalMetBy(day)) {
-      const at = moveOutOfQuietHours(atMinute(day, planMinute(habit)), st.quietStart, st.quietEnd);
+      const at = planTimes[i];
       if (at > now + 15 * MINUTE && startOfLocalDay(at) === day) {
         const newLeft = Math.min(st.dailyNewGrammar, input.unlearned) - (day === today ? input.learnedToday : 0);
         const grammar = input.grammarDue.filter((d) => d <= at).length;
-        const cards = input.cardDue.filter((d) => d <= at).length;
+        const cards = input.cardsTodo?.get(at) ?? input.cardDue.filter((d) => d <= at).length;
         const parts = [
           newLeft > 0 ? plural(newLeft, 'new point') : '',
           grammar > 0 ? plural(grammar, 'review') : '',

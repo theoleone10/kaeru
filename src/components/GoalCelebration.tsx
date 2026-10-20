@@ -10,6 +10,7 @@ import { formatDuration } from '../time/model';
 import { useTime } from '../time/TimeProvider';
 import { Confetti } from './Confetti';
 import { Mascot } from './Mascot';
+import { setGoalPopupOpen } from './popupGate';
 import { Button, T } from './ui';
 
 /**
@@ -51,6 +52,8 @@ export function GoalCelebration() {
         busy.current = false;
       });
   }, [db, active, tick, entries, settings.timeGoals, activityById]);
+
+  useEffect(() => setGoalPopupOpen(shown.length > 0), [shown.length]);
 
   const name = (g: TimeGoal) => (g.activityId === null ? 'practice' : (activityById.get(g.activityId)?.name ?? 'practice'));
   const line = (g: TimeGoal) => `${formatDuration(g.minutes * 60 * 1000)} of ${name(g)} ${g.period === 'week' ? 'this week' : 'today'}`;
