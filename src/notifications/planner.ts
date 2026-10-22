@@ -193,6 +193,7 @@ export function planNotifications(input: NotifyInput): PlannedNotification[] {
       const key = `level-${level}`;
       if (fresh(key)) add(0, { kind: 'wins', at: soon, key, url: '/progress', message: levelMessage(level, seed(now, 13)) });
     }
+    // Timer reminders open /timer: the Stop Timer shortcut cancels them by that url (KaeruIntents.swift).
     if (input.running && st.timeGoalMs > 0 && input.timeTodayMs < st.timeGoalMs) {
       const at = now + (st.timeGoalMs - input.timeTodayMs);
       if (startOfLocalDay(at) === today && !isQuietTime(at, st.quietStart, st.quietEnd)) {

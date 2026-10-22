@@ -1,5 +1,6 @@
 import AppIntents
 import Foundation
+import UserNotifications
 
 // Shortcuts / Siri actions for Kaeru's timer. They run without opening the app: each one
 // queues a small JSON command in Documents/timer-inbox, and the app applies it with the
@@ -68,6 +69,18 @@ enum TimerInbox {
     let name = String(format: "%015.0f-%@.json", at, UUID().uuidString)
     try JSONEncoder().encode(command).write(to: inbox.appendingPathComponent(name), options: .atomic)
   }
+
+  /// The stop only reaches the database once the app is open, but the reminders the app planned
+  /// for the running timer ("Still on Immersion?", time goal reached) would fire before then and
+  /// make it look like the timer never stopped. Those are the ones that open /timer
+  /// (src/notifications/planner.ts); the app plans them again next time it goes to the background.
+  static func cancelTimerNotifications() async {
+    let center = UNUserNotificationCenter.current()
+    let ids = await center.pendingNotificationRequests()
+      .filter { $0.content.userInfo["url"] as? String == "/timer" }
+      .map(\.identifier)
+    center.removePendingNotificationRequests(withIdentifiers: ids)
+  }
 }
 
 @available(iOS 16.0, *)
@@ -135,6 +148,7 @@ struct StopTimerIntent: AppIntent {
     // (and stopping when nothing runs does nothing).
     let running = TimerInbox.running()
     try TimerInbox.enqueue("stop")
+    await TimerInbox.cancelTimerNotifications()
     if let running {
       return .result(dialog: "Stopped \(running).")
     }
@@ -163,6 +177,7 @@ struct ToggleTimerIntent: AppIntent {
   func perform() async throws -> some IntentResult & ProvidesDialog {
     let stopping = TimerInbox.same(TimerInbox.running(), activity.id)
     try TimerInbox.enqueue("toggle", activity: activity.id, note: note)
+    if stopping { await TimerInbox.cancelTimerNotifications() }
     KaeruShortcuts.updateAppShortcutParameters()
     let dialog: IntentDialog = stopping ? "Stopped \(activity.id)." : "Started \(activity.id)."
     return .result(dialog: dialog)
