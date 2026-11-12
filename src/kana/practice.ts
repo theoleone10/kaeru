@@ -32,17 +32,19 @@ type CourseKana = (typeof ALL_KANA)[number];
 const BY_KANA = new Map(ALL_KANA.map((k) => [k.kana, k]));
 
 /**
- * Up to three wrong answers: look-alikes first (so practice trains the differences that matter),
- * then the same lesson, then anything else learned, all in the same script. Never one that
- * would also be right (じ and ぢ are both "ji").
+ * Up to three wrong answers from `pool` (the kana taught so far): look-alikes first, so practice
+ * trains the differences that matter, then the same lesson, then the rest, all in the same
+ * script; anything else only if that's not enough. Never one that would also be right (じ and
+ * ぢ are both "ji").
  */
 export function distractors(target: CourseKana, direction: Direction, pool: readonly CourseKana[], rng: Rng): CourseKana[] {
   const same = (k: CourseKana) => k.script === target.script && k.kana !== target.kana && k.romaji !== target.romaji;
   const looks = new Set(CONFUSABLE.filter((g) => g.includes(target.kana)).flat());
+  const inPool = new Set(pool.map((k) => k.kana));
   const tiers = [
-    // Look-alikes matter when reading the kana and when finding it.
+    // Look-alikes matter when reading the kana and when finding it, but only ones already taught.
     shuffle(
-      [...looks].map((c) => BY_KANA.get(c)).filter((k): k is CourseKana => !!k && same(k)),
+      [...looks].map((c) => BY_KANA.get(c)).filter((k): k is CourseKana => !!k && same(k) && inPool.has(k.kana)),
       rng,
     ),
     shuffle(
@@ -93,9 +95,17 @@ function spread(qs: KanaQuestion[]): KanaQuestion[] {
   return out;
 }
 
-/** A lesson's practice: every kana read once and found once, mixed. */
+/** Kana taught up to and including `lesson`, in its script. */
+export function taughtBy(lesson: KanaLesson): Kana[] {
+  const lessons = ALL_KANA.filter((k) => k.script === lesson.script);
+  const last = lessons.map((k) => k.lesson).lastIndexOf(lesson.id);
+  return lessons.slice(0, last + 1);
+}
+
+/** A lesson's practice: every kana read once and found once, mixed; wrong answers come from kana taught so far. */
 export function lessonPractice(lesson: KanaLesson, rng: Rng = Math.random): KanaQuestion[] {
-  const qs = lesson.kana.flatMap((k) => [question(k, 'read', lesson.kana, rng), question(k, 'find', lesson.kana, rng)]);
+  const pool = taughtBy(lesson);
+  const qs = lesson.kana.flatMap((k) => [question(k, 'read', pool, rng), question(k, 'find', pool, rng)]);
   return spread(shuffle(qs, rng));
 }
 

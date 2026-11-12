@@ -174,6 +174,7 @@ export default function GrammarMap() {
         onPress={() => (isNextLesson ? router.push('/lessons') : router.push(`/grammar/${current.point.id}`))}
         style={{ marginTop: spacing.sm }}
       />
+      <Button label="Placement quiz" kind="ghost" small onPress={() => router.push('/placement')} />
     </View>
   ) : null;
 
@@ -214,11 +215,6 @@ export default function GrammarMap() {
               );
             })}
           </View>
-        )}
-        {!searching && (
-          <IconButton label="Find your station with a placement quiz" onPress={() => router.push('/placement')}>
-            <Ionicons name="locate" size={22} color={colors.textMuted} />
-          </IconButton>
         )}
         <IconButton
           label={searching ? 'Close search' : 'Search grammar'}

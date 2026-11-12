@@ -2,7 +2,7 @@ import { buildBackup, parseBackup, backupCounts, isEmptyProgress } from '@/backu
 import { migrate } from '@/db/migrations';
 import { readAllForBackup, replaceAllFromBackup } from '@/db/repo';
 import { ALL_KANA, CONFUSABLE, HIRAGANA, KANA_LESSONS, KATAKANA, getLesson } from '@/kana/data';
-import { distractors, lessonPractice, question, requeueMissed, reviewPractice, scorePractice, type KanaStat } from '@/kana/practice';
+import { distractors, lessonPractice, taughtBy, question, requeueMissed, reviewPractice, scorePractice, type KanaStat } from '@/kana/practice';
 import { kanaStats, passKanaLessons, passedKanaLessons, recordKanaAnswers } from '@/kana/repo';
 import { openNodeDb } from './helpers/nodeDb';
 
@@ -86,6 +86,13 @@ describe('kana practice', () => {
         const sameSound = ALL_KANA.filter((o) => o.script === k.script && o.romaji === k.romaji).map((o) => (dir === 'read' ? o.romaji : o.kana));
         expect(q.choices.filter((c) => sameSound.includes(c))).toEqual([q.answer]);
       }
+    }
+  });
+
+  it('only offers kana already taught in a lesson', () => {
+    for (const lesson of KANA_LESSONS) {
+      const taught = new Set(taughtBy(lesson).flatMap((k) => [k.kana, k.romaji]));
+      for (const q of lessonPractice(lesson, rng(9))) for (const c of q.choices) expect([lesson.id, c, taught.has(c)]).toEqual([lesson.id, c, true]);
     }
   });
 
