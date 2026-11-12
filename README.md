@@ -189,22 +189,17 @@ Click **Add for Review → Submit**. Review usually takes 1–3 days. If Apple r
 
 ### After launch
 
-**Releasing:** work happens on `dev`; merging `dev` into `master` ships it. Every push to `master` runs `.github/workflows/ios-release.yml` on a GitHub macOS runner: `expo prebuild`, an Xcode archive signed with the App Store distribution certificate, and an upload to App Store Connect, where it appears in TestFlight after processing. You can also run it by hand from the **Actions** tab (*iOS release → Run workflow*). It does not send the version to App Review: pick the build on the version page and click **Add for Review** yourself. The build number is `1000 +` the workflow's run number; the version comes from `app.json`.
+**Releasing:** work happens on `dev`; merging `dev` into `master` ships it, through **Xcode Cloud** (App Store Connect is connected to this GitHub repo). Xcode Cloud clones the repo and runs `ios/ci_scripts/ci_post_clone.sh`, which installs Node and CocoaPods, runs `npm ci`, writes `.env`, and generates the native project with `expo prebuild`. Then it archives `ios/Kaeru.xcworkspace`, signs it with Apple's cloud-managed certificates, and uploads it to TestFlight. It does not send the version to App Review: pick the build on the version page and click **Add for Review** yourself. The build number is `1000 +` Xcode Cloud's build number; the version comes from `app.json`.
 
-One-time setup: add these under GitHub → the repo → **Settings → Secrets and variables → Actions → New repository secret**:
+`ios/` is generated and ignored by git, except `ios/ci_scripts/`. `npx expo prebuild --clean` deletes that folder on your machine too; bring it back with `git checkout ios/ci_scripts`.
 
-| Secret | What it is |
-| --- | --- |
-| `APPLE_TEAM_ID` | Your 10-character Team ID (developer.apple.com → Membership details). |
-| `IOS_DIST_CERT_P12` | The **Apple Distribution** certificate with its private key, as a base64 `.p12` (`base64 -i cert.p12 \| pbcopy`). |
-| `IOS_DIST_CERT_PASSWORD` | The password the `.p12` was exported with. |
-| `IOS_PROVISIONING_PROFILE` | The **App Store** provisioning profile for `com.theoleone.kaeru`, base64 (`base64 -i profile.mobileprovision \| pbcopy`). It must include Sign in with Apple and Push Notifications. |
-| `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` | An App Store Connect API key (App Store Connect → Users and Access → Integrations → App Store Connect API, role *App Manager*): its Key ID, the Issuer ID, and the contents of the downloaded `.p8` file. |
-| `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY`, `EXPO_PUBLIC_SUPPORT_EMAIL` | The production values from `.env`. |
+One-time setup, in App Store Connect → the app → **Xcode Cloud → Manage Workflows** (or Xcode → Report navigator → Cloud):
 
-The certificate and profile EAS already made can be reused: `npx eas-cli@latest credentials --platform ios` → *production* → download the distribution certificate (gives a `.p12` and its password) and the provisioning profile. Or make them in Xcode (Settings → Accounts → Manage Certificates → **+** Apple Distribution, then right-click → Export) and on developer.apple.com (Profiles → **+** → App Store Connect → `com.theoleone.kaeru`).
-
-Signing is switched to manual only during that build, by `plugins/ci-signing/withCiSigning.js` (only when `IOS_SIGNING_PROFILE` is set); local builds and Xcode keep automatic signing.
+1. **Workflow:** product *Kaeru*, workspace `ios/Kaeru.xcworkspace`, scheme *Kaeru*.
+2. **Start condition:** *Branch Changes* on `master`.
+3. **Actions:** *Archive – iOS*, deployment preparation *App Store Connect*.
+4. **Post-actions:** *TestFlight Internal Testing* (or External) so builds appear in TestFlight.
+5. **Environment → Environment Variables:** `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY` (mark it *Secret*) and `EXPO_PUBLIC_SUPPORT_EMAIL`, with the production values from `.env`. Add `APPLE_TEAM_ID` too if a build says no team is selected for signing.
 
 Bump `version` in `app.json` before merging a release whose previous version is already live; Apple won't accept a new build for an approved version.
 
