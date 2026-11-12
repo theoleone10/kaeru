@@ -5,7 +5,6 @@ import { openNodeDb } from './helpers/nodeDb';
 
 // An in-memory Documents/timer-inbox, written the way the Swift actions write it.
 const mockFiles = new Map<string, string>();
-jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 jest.mock('expo-file-system', () => {
   class MockFile {
     name: string;
@@ -33,6 +32,8 @@ jest.mock('expo-file-system', () => {
 // Imported after the mocks.
 // eslint-disable-next-line import/first
 import { drainShortcutInbox, onInboxApplied } from '@/time/shortcutInbox';
+// eslint-disable-next-line import/first
+import { Platform } from 'react-native';
 
 const T = +new Date(2026, 9, 1, 9);
 const MIN = 60 * 1000;
@@ -45,6 +46,11 @@ async function freshDb(): Promise<SQLiteDatabase> {
 
 describe('drainShortcutInbox', () => {
   beforeEach(() => mockFiles.clear());
+
+  it('runs as iOS, where the Shortcuts inbox exists', () => {
+    // jest-expo's default preset is iOS; the inbox is skipped on other platforms.
+    expect(Platform.OS).toBe('ios');
+  });
 
   it('makes a second caller wait until the first has applied the stop', async () => {
     const db = await freshDb();
