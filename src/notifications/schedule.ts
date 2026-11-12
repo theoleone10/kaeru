@@ -12,6 +12,7 @@ import type { Settings } from '../state/settings';
 import { dailyPracticeMinutes } from '../time/goals';
 import { startOfDay, totalsByActivity } from '../time/model';
 import { getRunning, listActivities, listEntriesSince } from '../time/repo';
+import { drainShortcutInbox } from '../time/shortcutInbox';
 import { morningPlanTimes, planNotifications, type NotifyKind } from './planner';
 
 // Local notifications only — these work in Expo Go (remote push does not).
@@ -77,9 +78,12 @@ export function rescheduleNotifications(db: SQLiteDatabase, settings: Settings, 
   return run;
 }
 
-async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonly StoredCard[]): Promise<void> {
+async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonly StoredCard[], retry = true): Promise<void> {
   if (Platform.OS === 'web') return;
   try {
+    // Apply Stop Timer (and other) Shortcuts actions first: planning from a timer that was already
+    // stopped would bring back the "Still on …?" and time-goal reminders the action cancelled.
+    await drainShortcutInbox(db).catch(() => false);
     await Notifications.cancelAllScheduledNotificationsAsync();
     const now = Date.now();
     const meta = await getKv(db, 'meta');
@@ -153,6 +157,9 @@ async function reschedule(db: SQLiteDatabase, settings: Settings, cards: readonl
     // Forget wins older than a couple of weeks so the list doesn't grow forever (level wins stay).
     for (const [k, at] of Object.entries(nextCelebrated)) if (k.startsWith('streak-') && at < now - 14 * DAY) delete nextCelebrated[k];
     await setKv(db, 'meta', 'celebrated', nextCelebrated);
+    // An action run while this was planning (iOS can wake the app to run one) changed the timer
+    // after it was read: plan once more from the new state.
+    if (retry && (await drainShortcutInbox(db).catch(() => false))) await reschedule(db, settings, cards, false);
   } catch (e) {
     console.warn('Could not schedule notifications', e);
   }
