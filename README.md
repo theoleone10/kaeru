@@ -189,11 +189,22 @@ Click **Add for Review → Submit**. Review usually takes 1–3 days. If Apple r
 
 ### After launch
 
-**Releasing:** work happens on `dev`; merging `dev` into `master` ships it. Every push to `master` runs `.eas/workflows/deploy-to-production.yml` on EAS: a production iOS build (build number bumps automatically), then an upload to App Store Connect, where it appears in TestFlight after processing. It does not send the version to App Review: pick the build on the version page and click **Add for Review** yourself (step 7). One-time setup:
+**Releasing:** work happens on `dev`; merging `dev` into `master` ships it. Every push to `master` runs `.github/workflows/ios-release.yml` on a GitHub macOS runner: `expo prebuild`, an Xcode archive signed with the App Store distribution certificate, and an upload to App Store Connect, where it appears in TestFlight after processing. You can also run it by hand from the **Actions** tab (*iOS release → Run workflow*). It does not send the version to App Review: pick the build on the version page and click **Add for Review** yourself. The build number is `1000 +` the workflow's run number; the version comes from `app.json`.
 
-1. On [expo.dev](https://expo.dev) → the kaeru project → **Project settings → GitHub**, install the Expo GitHub app and connect `theoleone10/kaeru`.
-2. Make sure EAS has the iOS credentials and an App Store Connect API key: if you've done steps 4–5 once by hand, it does. Otherwise run `npx eas-cli@latest credentials --platform ios` → *production* → *App Store Connect: Manage your API Key* → *Set up your project to use an API Key for EAS Submit* (this can't be done non-interactively).
-3. The app's **Apple ID** (App Store Connect → App Information) is set in `eas.json` as `submit.production.ios.ascAppId` (6821724249), so submitting never needs a prompt.
+One-time setup: add these under GitHub → the repo → **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret | What it is |
+| --- | --- |
+| `APPLE_TEAM_ID` | Your 10-character Team ID (developer.apple.com → Membership details). |
+| `IOS_DIST_CERT_P12` | The **Apple Distribution** certificate with its private key, as a base64 `.p12` (`base64 -i cert.p12 \| pbcopy`). |
+| `IOS_DIST_CERT_PASSWORD` | The password the `.p12` was exported with. |
+| `IOS_PROVISIONING_PROFILE` | The **App Store** provisioning profile for `com.theoleone.kaeru`, base64 (`base64 -i profile.mobileprovision \| pbcopy`). It must include Sign in with Apple and Push Notifications. |
+| `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` | An App Store Connect API key (App Store Connect → Users and Access → Integrations → App Store Connect API, role *App Manager*): its Key ID, the Issuer ID, and the contents of the downloaded `.p8` file. |
+| `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY`, `EXPO_PUBLIC_SUPPORT_EMAIL` | The production values from `.env`. |
+
+The certificate and profile EAS already made can be reused: `npx eas-cli@latest credentials --platform ios` → *production* → download the distribution certificate (gives a `.p12` and its password) and the provisioning profile. Or make them in Xcode (Settings → Accounts → Manage Certificates → **+** Apple Distribution, then right-click → Export) and on developer.apple.com (Profiles → **+** → App Store Connect → `com.theoleone.kaeru`).
+
+Signing is switched to manual only during that build, by `plugins/ci-signing/withCiSigning.js` (only when `IOS_SIGNING_PROFILE` is set); local builds and Xcode keep automatic signing.
 
 Bump `version` in `app.json` before merging a release whose previous version is already live; Apple won't accept a new build for an approved version.
 
