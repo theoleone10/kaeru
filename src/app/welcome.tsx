@@ -11,7 +11,7 @@ import { spacing } from '@/theme/colors';
 const FEATURES: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
   { icon: 'library-outline', text: 'Over 400 grammar points from JLPT N5 to N1' },
   { icon: 'repeat-outline', text: 'Spaced-repetition reviews with fill-in-the-blank sentences' },
-  { icon: 'albums-outline', text: 'Bring your Anki decks and study them alongside' },
+  { icon: 'albums-outline', text: '600 starter words as flashcards, or bring your Anki decks' },
   { icon: 'time-outline', text: 'Track your study time against a daily goal' },
 ];
 

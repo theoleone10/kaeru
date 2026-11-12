@@ -3,20 +3,23 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { listDecks, type DeckNode } from '@/anki/repo';
+import { addStarterDeck, STARTER_DECK, STARTER_WORDS } from '@/anki/starter';
 import { useAuth } from '@/auth/AuthProvider';
 import { pointsForLevel } from '@/content/loader';
 import { Mascot } from '@/components/Mascot';
+import { PlacementFlow } from '@/components/PlacementFlow';
+import { Choice, Heading } from '@/components/SetupChoice';
 import { LegalNote, NoAccountLink, SignInOptions } from '@/components/SignInOptions';
 import { Button, IconButton, ProgressBar, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing } from '@/theme/colors';
 import { everyDayPracticeMinutes, withDailyPractice } from '@/time/goals';
 
-const STEPS = ['grammar', 'time', 'anki', 'account'] as const;
+const STEPS = ['level', 'grammar', 'time', 'anki', 'account'] as const;
 type Step = (typeof STEPS)[number];
 
 const N5_POINTS = pointsForLevel('N5').length;
@@ -48,51 +51,9 @@ function minutes(m: number): string {
   return m % 60 === 0 ? `${m / 60} hour${m === 60 ? '' : 's'}` : `${Math.floor(m / 60)}h ${m % 60}m`;
 }
 
-/** One choice in a list: a big tappable card, outlined when picked. */
-function Choice({ title, detail, note, selected, onPress }: { title: string; detail?: string; note?: string; selected: boolean; onPress: () => void }) {
-  const { colors } = useApp();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => [
-        styles.choice,
-        {
-          backgroundColor: selected ? colors.accentSoft : colors.surface,
-          borderColor: selected ? colors.accent : colors.border,
-          borderBottomColor: selected ? colors.accentShadow : colors.borderStrong,
-          opacity: pressed ? 0.85 : 1,
-        },
-      ]}
-    >
-      <View style={{ flex: 1, gap: 2 }}>
-        <T variant="heading" color={selected ? colors.accent : colors.text}>
-          {title}
-        </T>
-        {!!detail && <T variant="small">{detail}</T>}
-      </View>
-      {!!note && (
-        <T variant="small" color={selected ? colors.accent : colors.textMuted} style={{ fontWeight: '800' }}>
-          {note}
-        </T>
-      )}
-      <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={26} color={selected ? colors.accent : colors.borderStrong} />
-    </Pressable>
-  );
-}
-
-function Heading({ title, body }: { title: string; body: string }) {
-  return (
-    <View style={{ gap: spacing.sm }}>
-      <T variant="title">{title}</T>
-      <T variant="muted">{body}</T>
-    </View>
-  );
-}
 
 /**
- * Setting up a new account: how much grammar a day, a daily time goal, any Anki decks to bring,
+ * Setting up a new account: where to start on the grammar lines (a placement quiz), how much grammar a day, a daily time goal, any Anki decks to bring,
  * then signing up. Each choice is saved as it's made and can be changed later in Settings.
  */
 export default function Setup() {
@@ -100,7 +61,7 @@ export default function Setup() {
   const insets = useSafeAreaInsets();
   const { colors, settings, updateSettings } = useApp();
   const { finishOnboarding } = useAuth();
-  const [step, setStep] = useState<Step>('grammar');
+  const [step, setStep] = useState<Step>('level');
   const [decks, setDecks] = useState<DeckNode[]>([]);
   const [importing, setImporting] = useState<{ phase: ImportPhase; fraction: number } | null>(null);
 
@@ -113,12 +74,29 @@ export default function Setup() {
     updateSettings(patch).catch(() => undefined);
   };
 
+  const [addingStarter, setAddingStarter] = useState(false);
+  const showDecks = async () => {
+    const all = await listDecks(db, Date.now(), { newPerDay: settings.ankiNewPerDay, reviewsPerDay: settings.ankiMaxReviewsPerDay });
+    setDecks(all.filter((d) => d.depth === 0));
+  };
+  const addStarter = async () => {
+    setAddingStarter(true);
+    try {
+      await addStarterDeck(db);
+      await showDecks();
+    } catch (e) {
+      Alert.alert('Could not add the deck', e instanceof Error ? e.message : String(e));
+    } finally {
+      setAddingStarter(false);
+    }
+  };
+  const hasStarter = decks.some((d) => d.path === STARTER_DECK);
+
   const importDeck = async () => {
     try {
       const result = await pickAndImportAnki(db, (phase, fraction) => setImporting({ phase, fraction }));
       if (!result) return;
-      const all = await listDecks(db, Date.now(), { newPerDay: settings.ankiNewPerDay, reviewsPerDay: settings.ankiMaxReviewsPerDay });
-      setDecks(all.filter((d) => d.depth === 0));
+      await showDecks();
     } catch (e) {
       Alert.alert('Import failed', e instanceof Error ? e.message : String(e));
     } finally {
@@ -139,6 +117,8 @@ export default function Setup() {
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
+        {step === 'level' && <PlacementFlow onFinish={next} />}
+
         {step === 'grammar' && (
           <>
             <Heading title="How much grammar a day?" body="Each day you get one short lesson and quiz on your new points, then reviews of the ones you’ve learned." />
@@ -177,9 +157,19 @@ export default function Setup() {
         {step === 'anki' && (
           <>
             <Heading
-              title="Bring your Anki decks"
-              body="Study your vocab or kanji decks here too, with your progress and review history. You can also do this later from the Cards tab."
+              title="Learn words with flashcards"
+              body="Start with the words beginners need most, or bring your own Anki decks with their progress. You can do either later from the Cards tab."
             />
+            {!hasStarter && (
+              <Choice
+                title={STARTER_DECK}
+                detail={`The ${STARTER_WORDS.length} everyday words to learn first, with readings and example sentences`}
+                note="Beginners"
+                selected={false}
+                onPress={addStarter}
+              />
+            )}
+            {addingStarter && <T variant="small">Adding the words…</T>}
             {decks.length > 0 && (
               <View style={{ gap: spacing.sm }}>
                 {decks.map((d) => (
@@ -200,9 +190,9 @@ export default function Setup() {
               </View>
             ) : (
               <Button
-                label={decks.length > 0 ? 'Import another deck' : 'Import an Anki deck'}
-                kind={decks.length > 0 ? 'secondary' : 'primary'}
-                icon={<Ionicons name="download-outline" size={20} color={decks.length > 0 ? colors.accent : '#FFFFFF'} />}
+                label="Import an Anki deck"
+                kind="secondary"
+                icon={<Ionicons name="download-outline" size={20} color={colors.accent} />}
                 onPress={importDeck}
               />
             )}
@@ -222,7 +212,7 @@ export default function Setup() {
 
         <View style={{ flex: 1 }} />
 
-        {step === 'account' ? (
+        {step === 'level' ? null : step === 'account' ? (
           <View style={{ gap: spacing.md }}>
             <NoAccountLink onPress={finishOnboarding} />
             <LegalNote />
@@ -244,6 +234,5 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.md },
   content: { flexGrow: 1, padding: spacing.xl, gap: spacing.xl },
   choices: { gap: spacing.md },
-  choice: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 64, padding: spacing.lg, borderRadius: radius.lg, borderWidth: 2, borderBottomWidth: 4 },
   deck: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 1 },
 });

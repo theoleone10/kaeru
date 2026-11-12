@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DayDoneCelebration } from '@/components/DayDoneCelebration';
 import { StepBadge } from '@/components/DayPlan';
 import { Flame } from '@/components/Flame';
+import { KanaCourseCard } from '@/components/KanaCourseCard';
 import { Mascot } from '@/components/Mascot';
 import { TimerChips } from '@/components/TimerChips';
 import { IconButton, T } from '@/components/ui';
@@ -142,6 +143,8 @@ export default function Today() {
           ))}
         </View>
       )}
+
+      <KanaCourseCard whileLearning />
 
       <View style={{ flex: 1 }} />
       <TimerChips showAdd={false} />

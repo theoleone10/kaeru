@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { cleanDeckPath, renameDeck } from '@/anki/notes';
 import { exportDeck } from '@/anki/exporter';
-import { deleteDeck, getDeckLimits, setDeckLimits, type DeckLimits } from '@/anki/repo';
+import { deleteDeck, getDeckLimits, getTodayNewLimit, newLearnedToday, setDeckLimits, setTodayNewLimit, type DeckLimits } from '@/anki/repo';
 import { Button, Section, Stepper, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { LIMITS } from '@/state/settings';
@@ -51,6 +51,8 @@ export default function DeckOptionsScreen() {
   const [name, setName] = useState(path);
   const [limits, setLimits] = useState<DeckLimits | null>(null);
   const [total, setTotal] = useState<number | null>(null);
+  /** New cards for today only (null: the usual number), and how many were learned today. */
+  const [today, setToday] = useState<{ newCards: number | null; learned: number } | null>(null);
 
   const [exporting, setExporting] = useState(false);
 
@@ -59,6 +61,8 @@ export default function DeckOptionsScreen() {
     useCallback(() => {
     let alive = true;
     getDeckLimits(db, path).then((l) => alive && setLimits(l));
+    const now = Date.now();
+    Promise.all([getTodayNewLimit(db, path, now), newLearnedToday(db, path, now)]).then(([newCards, learned]) => alive && setToday({ newCards, learned }));
     db.getFirstAsync<{ n: number }>(
       'SELECT COUNT(*) AS n FROM anki_cards WHERE deck_id IN (SELECT id FROM anki_decks WHERE name = ? OR substr(name, 1, ?) = ?)',
       path,
@@ -87,6 +91,12 @@ export default function DeckOptionsScreen() {
     const next = { ...limits, ...patch };
     setLimits(next);
     setDeckLimits(db, path, next).catch(() => undefined);
+  };
+
+  const updateToday = (newCards: number | null) => {
+    if (!today) return;
+    setToday({ ...today, newCards });
+    setTodayNewLimit(db, path, newCards, Date.now()).catch(() => undefined);
   };
 
   const confirmDelete = () =>
@@ -167,6 +177,27 @@ export default function DeckOptionsScreen() {
             max={2000}
             onChange={(v) => update({ reviewsPerDay: v })}
           />
+        </Section>
+      )}
+      {limits && today && (
+        <Section label="Just for today">
+          <View style={styles.row}>
+            <View style={{ flex: 1, gap: 2 }}>
+              <T variant="body">New cards today</T>
+              <T variant="small">{today.newCards == null ? 'As usual' : `${today.learned} learned so far`}</T>
+            </View>
+            <Stepper
+              value={today.newCards ?? limits.newPerDay ?? settings.ankiNewPerDay}
+              min={0}
+              max={LIMITS.ankiNewPerDay.max}
+              step={5}
+              onChange={(v) => updateToday(v)}
+            />
+          </View>
+          {today.newCards != null && (
+            <Button label={`Back to usual (${limits.newPerDay ?? settings.ankiNewPerDay})`} kind="ghost" small onPress={() => updateToday(null)} />
+          )}
+          <T variant="small">Want a lighter or a bigger day? This changes only today; tomorrow the deck goes back to its usual number.</T>
         </Section>
       )}
 

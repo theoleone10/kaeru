@@ -6,7 +6,19 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deleteNote } from '@/anki/notes';
 import { cardContent, renderCard } from '@/anki/render';
-import { answerCard, buildStudyQueue, getStudyCard, LEARN_AHEAD_MS, nextDue, replacementCards, setCardSuspended, undoAnswer, type StudyCard } from '@/anki/repo';
+import {
+  answerCard,
+  buildStudyQueue,
+  getStudyCard,
+  LEARN_AHEAD_MS,
+  learnMoreToday,
+  newCardsLeft,
+  nextDue,
+  replacementCards,
+  setCardSuspended,
+  undoAnswer,
+  type StudyCard,
+} from '@/anki/repo';
 import { formatInterval, GRADES, previewGrades, schedulerFor, State, type AnkiSched } from '@/anki/schedule';
 import { AnkiCardView } from '@/components/AnkiCardView';
 import { Celebration } from '@/components/Celebration';
@@ -15,6 +27,9 @@ import { Button, T } from '@/components/ui';
 import { playSound } from '@/sound/sounds';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
+
+/** New cards one tap on "Learn more today" adds. */
+const MORE_NEW = 10;
 
 const COUNT_COLORS = { new: '#2F7FC1', learn: '#C8562F', review: '#2E8B3E' };
 const GRADE_COLORS: Record<number, { face: string; lip: string }> = {
@@ -72,7 +87,10 @@ export default function AnkiStudy() {
 
   const [session, setSession] = useState<Session | null>(null);
   const [showing, setShowing] = useState<Showing | null>(null);
-  const [finished, setFinished] = useState<{ next: number | null } | null>(null);
+  const [finished, setFinished] = useState<{ next: number | null; newLeft: number } | null>(null);
+  /** Bumped to start a new session, e.g. after "Learn more today" lets more new cards in. */
+  const [round, setRound] = useState(0);
+  const finish = async (now: number) => setFinished({ next: await nextDue(db, path, now), newLeft: await newCardsLeft(db, path) });
 
   const show = async (s: Session) => {
     const now = clock();
@@ -80,7 +98,7 @@ export default function AnkiStudy() {
     setSession(next);
     if (!card) {
       setShowing(null);
-      setFinished({ next: await nextDue(db, path, now) });
+      await finish(now);
     } else {
       setFinished(null);
       setShowing({ card, side: 'question', shownAt: clock(), previews: null });
@@ -98,12 +116,19 @@ export default function AnkiStudy() {
       if (!alive) return;
       setSession(next);
       if (card) setShowing({ card, side: 'question', shownAt: now, previews: null });
-      else setFinished({ next: await nextDue(db, path, now) });
+      else await finish(now);
     })();
     return () => {
       alive = false;
     };
-  }, [db, path, ankiNewPerDay, ankiMaxReviewsPerDay]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- finish only reads db and path
+  }, [db, path, ankiNewPerDay, ankiMaxReviewsPerDay, round]);
+
+  const learnMore = async (extra: number) => {
+    await learnMoreToday(db, path, extra, clock(), { newPerDay: ankiNewPerDay, reviewsPerDay: ankiMaxReviewsPerDay });
+    setFinished(null);
+    setRound((r) => r + 1);
+  };
 
   // Coming back from editing or deleting the card: show its new version, or move on.
   const latest = useRef({ showing, session });
@@ -270,6 +295,14 @@ export default function AnkiStudy() {
           sound="deck"
           stats={answered > 0 ? [{ label: 'Answered', value: String(answered), tone: 'green' }] : []}
         >
+          {finished.newLeft > 0 && (
+            <>
+              <Button label={`Learn ${Math.min(MORE_NEW, finished.newLeft)} more new cards today`} kind="secondary" onPress={() => learnMore(Math.min(MORE_NEW, finished.newLeft))} />
+              <T variant="small" style={{ textAlign: 'center' }}>
+                {`${finished.newLeft.toLocaleString()} new left in this deck. Just for today; tomorrow it's back to the usual number.`}
+              </T>
+            </>
+          )}
           {answered > 0 && <Button label="Undo last answer" kind="ghost" onPress={undo} />}
           <NextUp from="cards" />
         </Celebration>

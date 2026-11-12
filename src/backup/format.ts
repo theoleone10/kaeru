@@ -1,12 +1,16 @@
 import { validateAnki, type AnkiBackup } from '../anki/backup';
+import { validateKana, type KanaBackup } from '../kana/repo';
 import type { ExampleSeen } from '../srs/exampleRotation';
 import type { StoredCard, StoredLog } from '../srs/scheduler';
 import type { Activity, TimeEntry } from '../time/model';
 
 /** Kept from before the app was called Kaeru, so older backup files still load. */
 export const BACKUP_APP_ID = 'jlpt-grammar';
-/** v2 added time tracking (activities, time_entries); v3 added Anki decks (anki); v4 the streak (goal_days). Older files still load. */
-export const BACKUP_FORMAT_VERSION = 4;
+/**
+ * v2 added time tracking (activities, time_entries); v3 added Anki decks (anki); v4 the streak
+ * (goal_days); v5 the kana course (kana). Older files still load.
+ */
+export const BACKUP_FORMAT_VERSION = 5;
 
 export interface ExampleSeenRow extends ExampleSeen {
   grammar_id: string;
@@ -24,6 +28,8 @@ export interface BackupData {
   anki?: AnkiBackup;
   /** Days a daily goal was reached (dayKey). Missing before v4: restoring rebuilds it from the study history. */
   goal_days?: string[];
+  /** Kana course progress. Missing before v5: restoring one of those keeps the phone's own. */
+  kana?: KanaBackup;
 }
 
 export interface BackupFile extends BackupData {
@@ -113,7 +119,8 @@ export function parseBackup(json: string): BackupFile {
   if (goalDays !== undefined && (!Array.isArray(goalDays) || goalDays.some((d) => typeof d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d)))) {
     throw new Error('Backup has malformed goal_days.');
   }
-  return { ...(raw as unknown as BackupFile), activities, time_entries: entries, anki, goal_days: goalDays } as BackupFile;
+  const kana = raw.kana === undefined ? undefined : validateKana(raw.kana);
+  return { ...(raw as unknown as BackupFile), activities, time_entries: entries, anki, goal_days: goalDays, kana } as BackupFile;
 }
 
 export interface BackupCounts {
@@ -122,6 +129,8 @@ export interface BackupCounts {
   flashcards: number;
   /** Time entries you made yourself (timer, Shortcuts, manual, imports), not the automatic time-in-app ones. */
   timeEntries: number;
+  /** Kana course lessons passed. */
+  kanaLessons: number;
 }
 
 export function backupCounts(data: BackupData): BackupCounts {
@@ -130,11 +139,12 @@ export function backupCounts(data: BackupData): BackupCounts {
     reviews: data.review_logs.length,
     flashcards: data.anki?.anki_cards.length ?? 0,
     timeEntries: data.time_entries.filter((e) => e.source !== 'auto').length,
+    kanaLessons: data.kana?.lessons.length ?? 0,
   };
 }
 
 export function isEmptyProgress(c: BackupCounts): boolean {
-  return c.points === 0 && c.reviews === 0 && c.flashcards === 0 && c.timeEntries === 0;
+  return c.points === 0 && c.reviews === 0 && c.flashcards === 0 && c.timeEntries === 0 && c.kanaLessons === 0;
 }
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
@@ -145,6 +155,7 @@ export function describeCounts(c: BackupCounts): string {
     c.points || c.reviews ? plural(c.points, 'grammar point') : '',
     c.flashcards ? plural(c.flashcards, 'flashcard') : '',
     c.timeEntries ? plural(c.timeEntries, 'time entry').replace('entrys', 'entries') : '',
+    c.kanaLessons ? plural(c.kanaLessons, 'kana lesson') : '',
   ].filter(Boolean);
   if (parts.length === 0) return 'no progress';
   return parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
