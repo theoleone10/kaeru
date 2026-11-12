@@ -25,23 +25,23 @@ import { Mascot } from './Mascot';
 import { Choice, Heading } from './SetupChoice';
 import { Button, ProgressBar, T } from './ui';
 
-type Level = 'new' | Experience;
+export type Level = 'new' | Experience;
 
 const LEVEL_CHOICES: { value: Level; title: string; detail: string }[] = [
   { value: 'new', title: 'Brand new', detail: 'Start with kana and the first station of N5' },
-  { value: 'some', title: 'I know some', detail: 'A short quiz finds your station' },
-  { value: 'lots', title: 'I’ve studied a while', detail: 'A short quiz finds your station' },
+  { value: 'some', title: 'I know some', detail: 'An optional quiz can find your station' },
+  { value: 'lots', title: 'I’ve studied a while', detail: 'An optional quiz can find your station' },
 ];
 
 /** How long the right answer shows before the next question. */
 const FEEDBACK_MS = 700;
 
 /**
- * "Find your place on the line": how much Japanese you know, then (unless brand new) a short
+ * "Find your place on the line": how much Japanese you know, then (unless brand new) an optional
  * placement quiz, then where you'll start. Everything before that station is marked as known.
  * Calls onFinish once the learner has a starting point (or keeps the beginning).
  */
-export function PlacementFlow({ onFinish, onNew }: { onFinish: () => void; onNew?: () => void }) {
+export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onLevel?: (level: Level) => void }) {
   const db = useSQLiteContext();
   const { colors, refresh } = useApp();
   const units = useMemo(() => placementUnits(), []);
@@ -56,7 +56,7 @@ export function PlacementFlow({ onFinish, onNew }: { onFinish: () => void; onNew
   const begin = () => {
     if (!level) return;
     if (level === 'new') {
-      (onNew ?? onFinish)();
+      onFinish();
       return;
     }
     const s = startPlacement(units, level);
@@ -196,11 +196,22 @@ export function PlacementFlow({ onFinish, onNew }: { onFinish: () => void; onNew
             onPress={() => {
               Haptics.selectionAsync().catch(() => undefined);
               setLevel(c.value);
+              onLevel?.(c.value);
             }}
           />
         ))}
       </View>
-      <Button label={level === 'new' || level == null ? 'Continue' : 'Start the quiz (about 2 minutes)'} onPress={begin} disabled={level == null} />
+      {level == null || level === 'new' ? (
+        <Button label="Continue" onPress={begin} disabled={level == null} />
+      ) : (
+        <View style={{ gap: spacing.sm }}>
+          <Button label="Take the quiz (2 min)" onPress={begin} />
+          <Button label="Skip the quiz" kind="ghost" onPress={onFinish} />
+          <T variant="small" style={{ textAlign: 'center' }}>
+            You can take it later from your profile, or mark units as known on the Grammar tab.
+          </T>
+        </View>
+      )}
     </View>
   );
 }

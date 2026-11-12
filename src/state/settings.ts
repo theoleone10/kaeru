@@ -1,3 +1,4 @@
+import { isAvatar, isAvatarColor, type AvatarColor } from '../profile/avatars';
 import { DEFAULT_TIME_GOALS, sanitizeTimeGoals, type TimeGoal } from '../time/goals';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
@@ -30,6 +31,11 @@ export interface Settings {
   /** Flashcards' desired retention in percent (FSRS): higher means shorter intervals. */
   ankiRetention: number;
   soundEffects: boolean;
+  /** Show the kana course on Today (chosen at sign-up; it's always on the profile). */
+  studyKana: boolean;
+  /** Profile icon (an emoji from AVATARS) and its background colour. */
+  avatar: string;
+  avatarColor: AvatarColor;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -52,6 +58,9 @@ export const DEFAULT_SETTINGS: Settings = {
   ankiMaxReviewsPerDay: 200,
   ankiRetention: 92,
   soundEffects: true,
+  studyKana: false,
+  avatar: '🐸',
+  avatarColor: 'green',
 };
 
 export const LIMITS = {
@@ -97,11 +106,14 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
     'notifyWins',
     'autoTrackStudy',
     'soundEffects',
+    'studyKana',
   ] as const) {
     const b = bool(k);
     if (b !== undefined) s[k] = b;
   }
   s.timeGoals = sanitizeTimeGoals(raw.timeGoals, raw.dailyTimeGoalMin);
+  if (isAvatar(raw.avatar)) s.avatar = raw.avatar;
+  if (isAvatarColor(raw.avatarColor)) s.avatarColor = raw.avatarColor;
   if (raw.theme === 'system' || raw.theme === 'light' || raw.theme === 'dark') s.theme = raw.theme;
   return s;
 }

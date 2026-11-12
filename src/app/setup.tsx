@@ -11,18 +11,27 @@ import { addStarterDeck, STARTER_DECK, STARTER_WORDS } from '@/anki/starter';
 import { useAuth } from '@/auth/AuthProvider';
 import { pointsForLevel } from '@/content/loader';
 import { Mascot } from '@/components/Mascot';
-import { PlacementFlow } from '@/components/PlacementFlow';
+import { PlacementFlow, type Level } from '@/components/PlacementFlow';
 import { Choice, Heading } from '@/components/SetupChoice';
 import { LegalNote, NoAccountLink, SignInOptions } from '@/components/SignInOptions';
 import { Button, IconButton, ProgressBar, T } from '@/components/ui';
+import { KANA_LESSONS } from '@/kana/data';
+import { passKanaLessons } from '@/kana/repo';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing } from '@/theme/colors';
 import { everyDayPracticeMinutes, withDailyPractice } from '@/time/goals';
 
-const STEPS = ['level', 'grammar', 'time', 'anki', 'account'] as const;
+const STEPS = ['level', 'kana', 'grammar', 'time', 'anki', 'account'] as const;
 type Step = (typeof STEPS)[number];
 
 const N5_POINTS = pointsForLevel('N5').length;
+
+type KanaChoice = 'yes' | 'known' | 'later';
+const KANA_CHOICES: { value: KanaChoice; title: string; detail: string }[] = [
+  { value: 'yes', title: 'Yes, teach me', detail: 'Short lessons, hiragana then katakana, on your Today page' },
+  { value: 'known', title: 'I can already read them', detail: 'The course is marked as done' },
+  { value: 'later', title: 'Not now', detail: 'It stays on your profile for whenever you want it' },
+];
 
 const GRAMMAR_CHOICES = [
   { value: 1, title: 'Easy-going', note: 'A gentle start' },
@@ -53,7 +62,8 @@ function minutes(m: number): string {
 
 
 /**
- * Setting up a new account: where to start on the grammar lines (a placement quiz), how much grammar a day, a daily time goal, any Anki decks to bring,
+ * Setting up a new account: how much Japanese you know (with an optional placement quiz), whether
+ * to learn kana, how much grammar a day, a daily time goal, any Anki decks to bring,
  * then signing up. Each choice is saved as it's made and can be changed later in Settings.
  */
 export default function Setup() {
@@ -62,6 +72,9 @@ export default function Setup() {
   const { colors, settings, updateSettings } = useApp();
   const { finishOnboarding } = useAuth();
   const [step, setStep] = useState<Step>('level');
+  /** From the first question; suggests the kana answer (brand new: learn them). */
+  const [level, setLevel] = useState<Level | null>(null);
+  const [kana, setKana] = useState<KanaChoice | null>(null);
   const [decks, setDecks] = useState<DeckNode[]>([]);
   const [importing, setImporting] = useState<{ phase: ImportPhase; fraction: number } | null>(null);
 
@@ -92,6 +105,20 @@ export default function Setup() {
   };
   const hasStarter = decks.some((d) => d.path === STARTER_DECK);
 
+  /** Kana on Today only if they want lessons; "already read them" marks the course done. */
+  const confirmKana = async () => {
+    if (!kana) return;
+    await updateSettings({ studyKana: kana === 'yes' }).catch(() => undefined);
+    if (kana === 'known') {
+      await passKanaLessons(
+        db,
+        KANA_LESSONS.map((l) => l.id),
+        Date.now(),
+      ).catch(() => undefined);
+    }
+    next();
+  };
+
   const importDeck = async () => {
     try {
       const result = await pickAndImportAnki(db, (phase, fraction) => setImporting({ phase, fraction }));
@@ -117,7 +144,39 @@ export default function Setup() {
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
-        {step === 'level' && <PlacementFlow onFinish={next} />}
+        {step === 'level' && (
+          <PlacementFlow
+            onLevel={(l) => {
+              setLevel(l);
+              if (!kana) setKana(l === 'new' ? 'yes' : null);
+            }}
+            onFinish={next}
+          />
+        )}
+
+        {step === 'kana' && (
+          <>
+            <Heading
+              title="Learn to read kana?"
+              body="Hiragana and katakana are the two Japanese alphabets, 46 sounds each. Everything else builds on them."
+            />
+            <View style={styles.choices} accessibilityRole="radiogroup">
+              {KANA_CHOICES.map((c) => (
+                <Choice
+                  key={c.value}
+                  title={c.title}
+                  detail={c.detail}
+                  note={c.value === 'yes' && level === 'new' ? 'Recommended' : undefined}
+                  selected={kana === c.value}
+                  onPress={() => {
+                    Haptics.selectionAsync().catch(() => undefined);
+                    setKana(c.value);
+                  }}
+                />
+              ))}
+            </View>
+          </>
+        )}
 
         {step === 'grammar' && (
           <>
@@ -157,22 +216,33 @@ export default function Setup() {
         {step === 'anki' && (
           <>
             <Heading
-              title="Learn words with flashcards"
-              body="Start with the words beginners need most, or bring your own Anki decks with their progress. You can do either later from the Cards tab."
+              title="Want a deck of words to start with?"
+              body="Kaeru comes with one, or bring your own Anki decks with their progress. You can do either later from the Cards tab."
             />
-            {!hasStarter && (
+            <View style={styles.choices}>
               <Choice
                 title={STARTER_DECK}
-                detail={`The ${STARTER_WORDS.length} everyday words to learn first, with readings and example sentences`}
-                note="Beginners"
-                selected={false}
-                onPress={addStarter}
+                detail={
+                  addingStarter
+                    ? 'Adding the words…'
+                    : hasStarter
+                      ? 'Added. A few new words a day.'
+                      : `The ${STARTER_WORDS.length} everyday words to learn first, with readings and example sentences`
+                }
+                note={hasStarter ? undefined : 'Beginners'}
+                selected={hasStarter}
+                onPress={() => !hasStarter && !addingStarter && addStarter()}
               />
-            )}
-            {addingStarter && <T variant="small">Adding the words…</T>}
-            {decks.length > 0 && (
+              <Choice
+                title="Import my own Anki deck"
+                detail="An .apkg file: in Anki, File → Export → “Anki Deck Package”, with scheduling and media"
+                selected={decks.some((d) => d.path !== STARTER_DECK)}
+                onPress={() => !importing && importDeck()}
+              />
+            </View>
+            {decks.some((d) => d.path !== STARTER_DECK) && (
               <View style={{ gap: spacing.sm }}>
-                {decks.map((d) => (
+                {decks.filter((d) => d.path !== STARTER_DECK).map((d) => (
                   <View key={d.path} style={[styles.deck, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <Ionicons name="checkmark-circle" size={22} color={colors.correct} />
                     <T variant="body" style={{ flex: 1, fontWeight: '800' }} numberOfLines={1}>
@@ -183,20 +253,12 @@ export default function Setup() {
                 ))}
               </View>
             )}
-            {importing ? (
+            {importing && (
               <View style={{ gap: spacing.sm }}>
                 <T variant="small">{IMPORT_LABEL[importing.phase]}</T>
                 <ProgressBar value={importing.fraction} />
               </View>
-            ) : (
-              <Button
-                label="Import an Anki deck"
-                kind="secondary"
-                icon={<Ionicons name="download-outline" size={20} color={colors.accent} />}
-                onPress={importDeck}
-              />
             )}
-            <T variant="small">In Anki: File → Export → “Anki Deck Package (*.apkg)”, with scheduling information and media included.</T>
           </>
         )}
 
@@ -221,8 +283,8 @@ export default function Setup() {
           <Button
             label={step === 'anki' && decks.length === 0 ? 'Skip for now' : 'Continue'}
             kind={step === 'anki' && decks.length === 0 ? 'ghost' : 'primary'}
-            onPress={next}
-            disabled={!!importing}
+            onPress={step === 'kana' ? confirmKana : next}
+            disabled={!!importing || addingStarter || (step === 'kana' && !kana)}
           />
         )}
       </ScrollView>
