@@ -85,6 +85,7 @@ function ThemedStack({ onReady }: { onReady: () => void }) {
           <Stack.Screen name="track/activities" options={{ title: 'Activities' }} />
           <Stack.Screen name="track/goals" options={{ title: 'Time goals' }} />
           <Stack.Screen name="track/goal" options={{ title: 'Goal', presentation: 'modal' }} />
+          <Stack.Screen name="placement" options={{ title: 'Find your station', presentation: 'modal' }} />
         </Stack.Protected>
         <Stack.Protected guard={!onboarded}>
           <Stack.Screen name="welcome" options={{ headerShown: false }} />

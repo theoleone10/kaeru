@@ -10,13 +10,15 @@ import { listDecks, type DeckNode } from '@/anki/repo';
 import { useAuth } from '@/auth/AuthProvider';
 import { pointsForLevel } from '@/content/loader';
 import { Mascot } from '@/components/Mascot';
+import { PlacementFlow } from '@/components/PlacementFlow';
+import { Choice, Heading } from '@/components/SetupChoice';
 import { LegalNote, NoAccountLink, SignInOptions } from '@/components/SignInOptions';
 import { Button, IconButton, ProgressBar, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing } from '@/theme/colors';
 import { everyDayPracticeMinutes, withDailyPractice } from '@/time/goals';
 
-const STEPS = ['grammar', 'time', 'anki', 'account'] as const;
+const STEPS = ['level', 'grammar', 'time', 'anki', 'account'] as const;
 type Step = (typeof STEPS)[number];
 
 const N5_POINTS = pointsForLevel('N5').length;
@@ -48,51 +50,9 @@ function minutes(m: number): string {
   return m % 60 === 0 ? `${m / 60} hour${m === 60 ? '' : 's'}` : `${Math.floor(m / 60)}h ${m % 60}m`;
 }
 
-/** One choice in a list: a big tappable card, outlined when picked. */
-function Choice({ title, detail, note, selected, onPress }: { title: string; detail?: string; note?: string; selected: boolean; onPress: () => void }) {
-  const { colors } = useApp();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => [
-        styles.choice,
-        {
-          backgroundColor: selected ? colors.accentSoft : colors.surface,
-          borderColor: selected ? colors.accent : colors.border,
-          borderBottomColor: selected ? colors.accentShadow : colors.borderStrong,
-          opacity: pressed ? 0.85 : 1,
-        },
-      ]}
-    >
-      <View style={{ flex: 1, gap: 2 }}>
-        <T variant="heading" color={selected ? colors.accent : colors.text}>
-          {title}
-        </T>
-        {!!detail && <T variant="small">{detail}</T>}
-      </View>
-      {!!note && (
-        <T variant="small" color={selected ? colors.accent : colors.textMuted} style={{ fontWeight: '800' }}>
-          {note}
-        </T>
-      )}
-      <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={26} color={selected ? colors.accent : colors.borderStrong} />
-    </Pressable>
-  );
-}
-
-function Heading({ title, body }: { title: string; body: string }) {
-  return (
-    <View style={{ gap: spacing.sm }}>
-      <T variant="title">{title}</T>
-      <T variant="muted">{body}</T>
-    </View>
-  );
-}
 
 /**
- * Setting up a new account: how much grammar a day, a daily time goal, any Anki decks to bring,
+ * Setting up a new account: where to start on the grammar lines (a placement quiz), how much grammar a day, a daily time goal, any Anki decks to bring,
  * then signing up. Each choice is saved as it's made and can be changed later in Settings.
  */
 export default function Setup() {
@@ -100,7 +60,7 @@ export default function Setup() {
   const insets = useSafeAreaInsets();
   const { colors, settings, updateSettings } = useApp();
   const { finishOnboarding } = useAuth();
-  const [step, setStep] = useState<Step>('grammar');
+  const [step, setStep] = useState<Step>('level');
   const [decks, setDecks] = useState<DeckNode[]>([]);
   const [importing, setImporting] = useState<{ phase: ImportPhase; fraction: number } | null>(null);
 
@@ -139,6 +99,8 @@ export default function Setup() {
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
+        {step === 'level' && <PlacementFlow onFinish={next} />}
+
         {step === 'grammar' && (
           <>
             <Heading title="How much grammar a day?" body="Each day you get one short lesson and quiz on your new points, then reviews of the ones you’ve learned." />
@@ -222,7 +184,7 @@ export default function Setup() {
 
         <View style={{ flex: 1 }} />
 
-        {step === 'account' ? (
+        {step === 'level' ? null : step === 'account' ? (
           <View style={{ gap: spacing.md }}>
             <NoAccountLink onPress={finishOnboarding} />
             <LegalNote />
@@ -244,6 +206,5 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.md },
   content: { flexGrow: 1, padding: spacing.xl, gap: spacing.xl },
   choices: { gap: spacing.md },
-  choice: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 64, padding: spacing.lg, borderRadius: radius.lg, borderWidth: 2, borderBottomWidth: 4 },
   deck: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 1 },
 });

@@ -215,6 +215,11 @@ export default function GrammarMap() {
             })}
           </View>
         )}
+        {!searching && (
+          <IconButton label="Find your station with a placement quiz" onPress={() => router.push('/placement')}>
+            <Ionicons name="locate" size={22} color={colors.textMuted} />
+          </IconButton>
+        )}
         <IconButton
           label={searching ? 'Close search' : 'Search grammar'}
           onPress={() => {
