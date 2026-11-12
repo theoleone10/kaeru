@@ -28,7 +28,7 @@ import { Button, ProgressBar, T } from './ui';
 type Level = 'new' | Experience;
 
 const LEVEL_CHOICES: { value: Level; title: string; detail: string }[] = [
-  { value: 'new', title: 'Brand new', detail: 'Start at the first station of N5' },
+  { value: 'new', title: 'Brand new', detail: 'Start with kana and the first station of N5' },
   { value: 'some', title: 'I know some', detail: 'A short quiz finds your station' },
   { value: 'lots', title: 'I’ve studied a while', detail: 'A short quiz finds your station' },
 ];

@@ -2,6 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { Platform } from 'react-native';
 import { readAnkiForBackup, replaceAnki } from '../anki/backup';
 import type { BackupData, ExampleSeenRow } from '../backup/format';
+import { readKanaForBackup, replaceKana } from '../kana/repo';
 import type { ExampleSeen } from '../srs/exampleRotation';
 import { QUIZ_ANSWER } from '../srs/quiz';
 import { cardBeforeLog, knownCard, type StoredCard, type StoredLog } from '../srs/scheduler';
@@ -262,7 +263,7 @@ export async function setKv(db: Executor, table: 'settings' | 'meta', key: strin
 // ---------- backup ----------
 
 export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> {
-  const [cards, logs, seen, settings, activities, timeEntries, anki, goalDays] = await Promise.all([
+  const [cards, logs, seen, settings, activities, timeEntries, anki, goalDays, kana] = await Promise.all([
     getAllCards(db),
     db.getAllAsync<StoredLog & { id?: number }>('SELECT * FROM review_logs ORDER BY id'),
     db.getAllAsync<ExampleSeenRow>('SELECT * FROM example_seen'),
@@ -271,6 +272,7 @@ export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> 
     db.getAllAsync<TimeEntry>('SELECT * FROM time_entries ORDER BY id'),
     readAnkiForBackup(db),
     db.getAllAsync<{ day: string }>('SELECT day FROM goal_days ORDER BY day'),
+    readKanaForBackup(db),
   ]);
   return {
     cards,
@@ -281,6 +283,7 @@ export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> 
     time_entries: timeEntries,
     anki,
     goal_days: goalDays.map((g) => g.day),
+    kana,
   };
 }
 
@@ -334,5 +337,7 @@ export async function replaceAllFromBackup(db: SQLiteDatabase, data: BackupData,
     } else {
       await txn.execAsync(SEED_GOAL_DAYS_SQL);
     }
+    // Backups made before the kana course: keep the phone's own kana progress.
+    if (data.kana) await replaceKana(txn, data.kana);
   });
 }

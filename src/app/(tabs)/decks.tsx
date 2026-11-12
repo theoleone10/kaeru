@@ -8,6 +8,7 @@ import { exportDeck } from '@/anki/exporter';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { deleteDeck, listDecks, type DeckNode } from '@/anki/repo';
 import { addStarterDeck, STARTER_DECK, STARTER_WORDS, starterWordsAdded } from '@/anki/starter';
+import { KanaCourseCard } from '@/components/KanaCourseCard';
 import { Mascot } from '@/components/Mascot';
 import { Button, IconButton, ProgressBar, Section, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
@@ -139,6 +140,8 @@ export default function Decks() {
           <Ionicons name="add" size={26} color={colors.textMuted} />
         </IconButton>
       </View>
+
+      <KanaCourseCard />
 
       {progress && (
         <Section label={PHASE_LABEL[progress.phase]}>

@@ -207,6 +207,21 @@ const MIGRATIONS: string[] = [
   ALTER TABLE anki_deck_limits ADD COLUMN today_new INTEGER;
   ALTER TABLE anki_deck_limits ADD COLUMN today_day TEXT;
   `,
+  `
+  -- The kana course: lessons passed, and how each kana has gone in practice.
+  CREATE TABLE kana_lessons (
+    lesson    TEXT PRIMARY KEY NOT NULL,
+    passed_at INTEGER NOT NULL
+  );
+  CREATE TABLE kana_progress (
+    kana    TEXT PRIMARY KEY NOT NULL,
+    correct INTEGER NOT NULL DEFAULT 0,
+    wrong   INTEGER NOT NULL DEFAULT 0,
+    streak  INTEGER NOT NULL DEFAULT 0,
+    last_at INTEGER NOT NULL DEFAULT 0
+  );
+  ${bumpTriggers(['kana_lessons', 'kana_progress'])}
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
