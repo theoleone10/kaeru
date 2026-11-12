@@ -201,6 +201,12 @@ const MIGRATIONS: string[] = [
   ${SEED_GOAL_DAYS_SQL}
   ${bumpTriggers(['goal_days'])}
   `,
+  `
+  -- A deck's number of new cards just for one day (today_day, local YYYY-MM-DD), like Anki's
+  -- "today only" limit. Covered by anki_deck_limits' existing sync triggers.
+  ALTER TABLE anki_deck_limits ADD COLUMN today_new INTEGER;
+  ALTER TABLE anki_deck_limits ADD COLUMN today_day TEXT;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

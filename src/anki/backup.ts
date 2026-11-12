@@ -29,7 +29,7 @@ export const ANKI_TABLES = {
     'suspended',
   ],
   anki_revlog: ['id', 'card_id', 'reviewed_at', 'rating', 'prev_state', 'duration_ms', 'imported', 'prev_card'],
-  anki_deck_limits: ['path', 'new_per_day', 'reviews_per_day'],
+  anki_deck_limits: ['path', 'new_per_day', 'reviews_per_day', 'today_new', 'today_day'],
 } as const;
 
 export type AnkiTable = keyof typeof ANKI_TABLES;
@@ -39,13 +39,13 @@ export type AnkiBackup = Record<AnkiTable, Record<string, unknown>[]>;
 const ORDER: AnkiTable[] = ['anki_imports', 'anki_decks', 'anki_notetypes', 'anki_notes', 'anki_cards', 'anki_revlog', 'anki_deck_limits'];
 
 /** Text columns; every other column holds a number. */
-const TEXT = new Set(['file_name', 'name', 'css', 'fields', 'templates', 'guid', 'tags', 'path', 'prev_card']);
+const TEXT = new Set(['file_name', 'name', 'css', 'fields', 'templates', 'guid', 'tags', 'path', 'prev_card', 'today_day']);
 
 /** Columns that may be NULL; every other column must be present in each row. */
 const NULLABLE: Partial<Record<AnkiTable, readonly string[]>> = {
   anki_cards: ['last_review'],
   anki_revlog: ['duration_ms', 'prev_card'],
-  anki_deck_limits: ['new_per_day', 'reviews_per_day'],
+  anki_deck_limits: ['new_per_day', 'reviews_per_day', 'today_new', 'today_day'],
 };
 
 export async function readAnkiForBackup(db: Pick<SQLiteDatabase, 'getAllAsync'>): Promise<AnkiBackup> {
@@ -82,7 +82,8 @@ export function validateAnki(raw: unknown): AnkiBackup {
     rows.forEach((row, i) => {
       if (typeof row !== 'object' || row === null) throw new Error(`anki.${table}[${i}]: not an object`);
       for (const c of ANKI_TABLES[table]) {
-        const v = (row as Record<string, unknown>)[c];
+        // A nullable column a backup lacks (made before the column existed) reads as null.
+        const v = (row as Record<string, unknown>)[c] ?? (nullable.includes(c) ? null : undefined);
         const ok = v === null ? nullable.includes(c) : TEXT.has(c) ? typeof v === 'string' : typeof v === 'number' && Number.isFinite(v);
         if (!ok) throw new Error(`anki.${table}[${i}]: "${c}" is missing or invalid`);
       }
