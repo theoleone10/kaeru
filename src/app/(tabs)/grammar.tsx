@@ -174,7 +174,6 @@ export default function GrammarMap() {
         onPress={() => (isNextLesson ? router.push('/lessons') : router.push(`/grammar/${current.point.id}`))}
         style={{ marginTop: spacing.sm }}
       />
-      <Button label="Placement quiz" kind="ghost" small onPress={() => router.push('/placement')} />
     </View>
   ) : null;
 

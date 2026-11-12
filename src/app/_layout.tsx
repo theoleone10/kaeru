@@ -86,6 +86,7 @@ function ThemedStack({ onReady }: { onReady: () => void }) {
           <Stack.Screen name="track/goals" options={{ title: 'Time goals' }} />
           <Stack.Screen name="track/goal" options={{ title: 'Goal', presentation: 'modal' }} />
           <Stack.Screen name="placement" options={{ title: 'Find your station', presentation: 'modal' }} />
+          <Stack.Screen name="profile" options={{ title: 'Profile' }} />
           <Stack.Screen name="kana/index" options={{ title: 'Kana' }} />
           <Stack.Screen name="kana/[lesson]" options={{ title: '' }} />
           <Stack.Screen name="kana/review" options={{ title: 'Kana practice' }} />
