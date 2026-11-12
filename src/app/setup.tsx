@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { listDecks, type DeckNode } from '@/anki/repo';
