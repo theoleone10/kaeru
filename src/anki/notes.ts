@@ -67,7 +67,7 @@ export const BUILTIN_NOTETYPES: Record<BuiltinKind, AnkiNotetype & { label: stri
 const BUILTIN_IDS = new Set(Object.values(BUILTIN_NOTETYPES).map((n) => n.ankiId));
 
 /** Make sure a built-in note type is in the database; returns its row id. */
-async function ensureNotetype(db: Pick<Db, 'runAsync' | 'getFirstAsync'>, nt: AnkiNotetype): Promise<number> {
+export async function ensureNotetype(db: Pick<Db, 'runAsync' | 'getFirstAsync'>, nt: AnkiNotetype): Promise<number> {
   await db.runAsync(
     `INSERT INTO anki_notetypes (anki_id, name, is_cloze, css, fields, templates) VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT(anki_id) DO NOTHING`,
@@ -197,7 +197,7 @@ function newGuid(): string {
 type Txn = Pick<Db, 'runAsync' | 'getFirstAsync' | 'getAllAsync'>;
 
 /** Add new cards (in "new" state, after every other new card) for the given ordinals. */
-async function insertNewCards(txn: Txn, noteId: number, deckId: number, ords: number[], now: number): Promise<void> {
+export async function insertNewCards(txn: Txn, noteId: number, deckId: number, ords: number[], now: number): Promise<void> {
   const pos = await txn.getFirstAsync<{ m: number | null }>('SELECT MAX(new_position) AS m FROM anki_cards');
   let next = (pos?.m ?? 0) + 1;
   for (const ord of ords) {

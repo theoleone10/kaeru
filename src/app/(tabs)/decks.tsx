@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { exportDeck } from '@/anki/exporter';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { deleteDeck, listDecks, type DeckNode } from '@/anki/repo';
+import { addStarterDeck, STARTER_DECK, STARTER_WORDS, starterWordsAdded } from '@/anki/starter';
 import { Mascot } from '@/components/Mascot';
 import { Button, IconButton, ProgressBar, Section, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
@@ -31,10 +32,14 @@ export default function Decks() {
   const { colors, settings } = useApp();
   const [decks, setDecks] = useState<DeckNode[] | null>(null);
   const [progress, setProgress] = useState<{ phase: ImportPhase; fraction: number } | null>(null);
+  /** Starter words not in the collection (all of them until it's added). */
+  const [starterMissing, setStarterMissing] = useState(0);
+  const [addingStarter, setAddingStarter] = useState(false);
   const { ankiNewPerDay, ankiMaxReviewsPerDay } = settings;
 
   const load = useCallback(async () => {
     setDecks(await listDecks(db, Date.now(), { newPerDay: ankiNewPerDay, reviewsPerDay: ankiMaxReviewsPerDay }));
+    setStarterMissing(STARTER_WORDS.length - (await starterWordsAdded(db)));
   }, [db, ankiNewPerDay, ankiMaxReviewsPerDay]);
 
   useFocusEffect(
@@ -62,6 +67,19 @@ export default function Decks() {
     }
   };
 
+  const addStarter = async () => {
+    setAddingStarter(true);
+    try {
+      const n = await addStarterDeck(db);
+      Alert.alert(STARTER_DECK, `${n} words added. They come in a few at a time: your new-cards-per-day limit sets the pace.`);
+    } catch (e) {
+      Alert.alert('Could not add the deck', e instanceof Error ? e.message : String(e));
+    } finally {
+      setAddingStarter(false);
+      await load();
+    }
+  };
+
   const openLimits = (d: DeckNode) => router.push({ pathname: '/anki/limits', params: { deck: encodeURIComponent(d.path) } });
   const addCards = (path?: string) => router.push({ pathname: '/anki/note', params: path ? { deck: encodeURIComponent(path) } : {} });
 
@@ -78,6 +96,7 @@ export default function Decks() {
       ...((decks?.length ?? 0) > 0 ? [{ text: 'Add cards', onPress: () => addCards() }] : []),
       { text: 'New deck', onPress: () => router.push('/anki/new-deck') },
       { text: 'Import an Anki deck', onPress: importDeck },
+      ...(starterMissing > 0 ? [{ text: `Add ${STARTER_DECK} (beginner words)`, onPress: addStarter }] : []),
       { text: 'Cancel', style: 'cancel' as const },
     ]);
 
@@ -136,6 +155,10 @@ export default function Decks() {
               Make cards, or bring your Anki decks
             </T>
           </View>
+          <Section label="New to Japanese?">
+            <T variant="body">{`${STARTER_DECK}: the ${STARTER_WORDS.length} everyday words to learn first, each with its reading, meaning and an example sentence.`}</T>
+            <Button label="Add the starter deck" kind="success" onPress={addStarter} loading={addingStarter} />
+          </Section>
           <Section label="How">
             {[
               'In Anki on your computer: File → Export → “Anki Deck Package”, with scheduling and media included.',

@@ -7,6 +7,7 @@ import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { listDecks, type DeckNode } from '@/anki/repo';
+import { addStarterDeck, STARTER_DECK, STARTER_WORDS } from '@/anki/starter';
 import { useAuth } from '@/auth/AuthProvider';
 import { pointsForLevel } from '@/content/loader';
 import { Mascot } from '@/components/Mascot';
@@ -73,12 +74,29 @@ export default function Setup() {
     updateSettings(patch).catch(() => undefined);
   };
 
+  const [addingStarter, setAddingStarter] = useState(false);
+  const showDecks = async () => {
+    const all = await listDecks(db, Date.now(), { newPerDay: settings.ankiNewPerDay, reviewsPerDay: settings.ankiMaxReviewsPerDay });
+    setDecks(all.filter((d) => d.depth === 0));
+  };
+  const addStarter = async () => {
+    setAddingStarter(true);
+    try {
+      await addStarterDeck(db);
+      await showDecks();
+    } catch (e) {
+      Alert.alert('Could not add the deck', e instanceof Error ? e.message : String(e));
+    } finally {
+      setAddingStarter(false);
+    }
+  };
+  const hasStarter = decks.some((d) => d.path === STARTER_DECK);
+
   const importDeck = async () => {
     try {
       const result = await pickAndImportAnki(db, (phase, fraction) => setImporting({ phase, fraction }));
       if (!result) return;
-      const all = await listDecks(db, Date.now(), { newPerDay: settings.ankiNewPerDay, reviewsPerDay: settings.ankiMaxReviewsPerDay });
-      setDecks(all.filter((d) => d.depth === 0));
+      await showDecks();
     } catch (e) {
       Alert.alert('Import failed', e instanceof Error ? e.message : String(e));
     } finally {
@@ -139,9 +157,19 @@ export default function Setup() {
         {step === 'anki' && (
           <>
             <Heading
-              title="Bring your Anki decks"
-              body="Study your vocab or kanji decks here too, with your progress and review history. You can also do this later from the Cards tab."
+              title="Learn words with flashcards"
+              body="Start with the words beginners need most, or bring your own Anki decks with their progress. You can do either later from the Cards tab."
             />
+            {!hasStarter && (
+              <Choice
+                title={STARTER_DECK}
+                detail={`The ${STARTER_WORDS.length} everyday words to learn first, with readings and example sentences`}
+                note="Beginners"
+                selected={false}
+                onPress={addStarter}
+              />
+            )}
+            {addingStarter && <T variant="small">Adding the words…</T>}
             {decks.length > 0 && (
               <View style={{ gap: spacing.sm }}>
                 {decks.map((d) => (
@@ -162,9 +190,9 @@ export default function Setup() {
               </View>
             ) : (
               <Button
-                label={decks.length > 0 ? 'Import another deck' : 'Import an Anki deck'}
-                kind={decks.length > 0 ? 'secondary' : 'primary'}
-                icon={<Ionicons name="download-outline" size={20} color={decks.length > 0 ? colors.accent : '#FFFFFF'} />}
+                label="Import an Anki deck"
+                kind="secondary"
+                icon={<Ionicons name="download-outline" size={20} color={colors.accent} />}
                 onPress={importDeck}
               />
             )}
