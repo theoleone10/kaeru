@@ -1,11 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { playSound } from '@/sound/sounds';
 import { useApp } from '@/state/AppProvider';
 import { parseTimerCommand } from '@/time/model';
-import { startTimer, stopTimer, toggleTimer } from '@/time/repo';
 import { useTime } from '@/time/TimeProvider';
 
 /**
@@ -16,9 +13,8 @@ import { useTime } from '@/time/TimeProvider';
  * Runs the command, then shows the Timer tab.
  */
 export default function TimerLink() {
-  const db = useSQLiteContext();
   const { colors } = useApp();
-  const { refresh } = useTime();
+  const { command, refresh } = useTime();
   const params = useLocalSearchParams<{ action: string; activity?: string; note?: string }>();
   const done = useRef(false);
 
@@ -26,16 +22,13 @@ export default function TimerLink() {
     if (done.current) return;
     done.current = true;
     (async () => {
+      // Through the timer's queue, after any queued Shortcuts actions, so neither undoes the other.
       const cmd = parseTimerCommand(params.action, params);
-      const now = Date.now();
-      if (cmd?.kind === 'start') await startTimer(db, cmd.activity, now, 'shortcut', cmd.note);
-      else if (cmd?.kind === 'stop') await stopTimer(db, now);
-      else if (cmd?.kind === 'toggle') await toggleTimer(db, cmd.activity, now, 'shortcut', cmd.note);
-      if (cmd) playSound(cmd.kind === 'stop' ? 'stop' : 'start');
-      await refresh();
+      if (cmd) await command(cmd).catch(() => undefined);
+      else await refresh();
       router.replace('/timer');
     })();
-  }, [db, params, refresh]);
+  }, [params, command, refresh]);
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>

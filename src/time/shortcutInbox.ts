@@ -46,29 +46,49 @@ export async function applyInboxCommand(db: SQLiteDatabase, { command, at }: Inb
   else await toggleTimer(db, command.activity, t, 'shortcut', command.note);
 }
 
-let draining = false;
+/** The drain in progress; each call waits behind it, so a caller never reads a half-applied inbox. */
+let drainQueue: Promise<unknown> = Promise.resolve();
+const appliedListeners = new Set<() => void>();
 
-/** Apply and remove every queued command, oldest first. Returns whether anything was applied. */
-export async function drainShortcutInbox(db: SQLiteDatabase): Promise<boolean> {
-  if (Platform.OS !== 'ios' || draining) return false;
-  draining = true;
-  try {
-    const dir = new Directory(Paths.document, INBOX_DIR);
-    if (!dir.exists) return false;
-    const files = dir.list().filter((f): f is File => f instanceof File && f.name.endsWith('.json'));
-    const commands: InboxCommand[] = [];
-    for (const file of files) {
-      const parsed = parseInboxCommand(await file.text());
-      // Removed before applying: a crash mid-way loses one tap rather than applying it twice.
-      file.delete();
-      if (parsed) commands.push(parsed);
-    }
-    commands.sort((a, b) => a.at - b.at);
-    for (const c of commands) await applyInboxCommand(db, c);
-    return commands.length > 0;
-  } finally {
-    draining = false;
+/**
+ * Called after queued commands change the database, whoever drained them (e.g. the notification
+ * planner), so the timer screen can reload.
+ */
+export function onInboxApplied(listener: () => void): () => void {
+  appliedListeners.add(listener);
+  return () => appliedListeners.delete(listener);
+}
+
+/**
+ * Apply and remove every queued command, oldest first. Returns whether anything was applied.
+ * Calls run one after another: a second caller (say, the notification planner while the timer
+ * screen drains) waits until the first has finished applying, then finds the inbox empty.
+ */
+export function drainShortcutInbox(db: SQLiteDatabase): Promise<boolean> {
+  if (Platform.OS !== 'ios') return Promise.resolve(false);
+  const run = drainQueue.then(
+    () => drainOnce(db),
+    () => drainOnce(db),
+  );
+  drainQueue = run.catch(() => undefined);
+  return run;
+}
+
+async function drainOnce(db: SQLiteDatabase): Promise<boolean> {
+  const dir = new Directory(Paths.document, INBOX_DIR);
+  if (!dir.exists) return false;
+  const files = dir.list().filter((f): f is File => f instanceof File && f.name.endsWith('.json'));
+  const commands: InboxCommand[] = [];
+  for (const file of files) {
+    const parsed = parseInboxCommand(await file.text());
+    // Removed before applying: a crash mid-way loses one tap rather than applying it twice.
+    file.delete();
+    if (parsed) commands.push(parsed);
   }
+  commands.sort((a, b) => a.at - b.at);
+  for (const c of commands) await applyInboxCommand(db, c);
+  if (commands.length > 0) for (const l of appliedListeners) l();
+  return commands.length > 0;
 }
 
 /** What the Shortcuts actions read: activity names to offer, and what's running. */

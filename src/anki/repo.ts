@@ -1,5 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { transaction } from '../db/repo';
+import { dayKey } from '../stats/dates';
 import type { AnkiNotetype } from './collection';
 import { State, type AnkiSched } from './schedule';
 
@@ -58,6 +59,20 @@ export interface DeckLimits {
   reviewsPerDay: number | null;
 }
 
+interface LimitRow {
+  path: string;
+  new_per_day: number | null;
+  reviews_per_day: number | null;
+  today_new: number | null;
+  today_day: string | null;
+}
+
+/** New cards a deck allows on `now`'s day: today's own number if one was set, else its limit, else the default. */
+function newLimit(row: LimitRow | undefined, now: number, fallback: number): number {
+  if (row?.today_new != null && row.today_day === dayKey(now)) return row.today_new;
+  return row?.new_per_day ?? fallback;
+}
+
 export async function getDeckLimits(db: Db, path: string): Promise<DeckLimits> {
   const row = await db.getFirstAsync<{ new_per_day: number | null; reviews_per_day: number | null }>(
     'SELECT new_per_day, reviews_per_day FROM anki_deck_limits WHERE path = ?',
@@ -66,24 +81,81 @@ export async function getDeckLimits(db: Db, path: string): Promise<DeckLimits> {
   return { newPerDay: row?.new_per_day ?? null, reviewsPerDay: row?.reviews_per_day ?? null };
 }
 
-export async function setDeckLimits(db: Db, path: string, limits: DeckLimits): Promise<void> {
-  if (limits.newPerDay == null && limits.reviewsPerDay == null) {
-    await db.runAsync('DELETE FROM anki_deck_limits WHERE path = ?', path);
-    return;
-  }
+/** Rows that hold nothing any more (no limits, no number for today) go, so the table stays small. */
+async function dropEmptyLimits(db: Db, now: number): Promise<void> {
+  await db.runAsync(
+    'DELETE FROM anki_deck_limits WHERE new_per_day IS NULL AND reviews_per_day IS NULL AND (today_new IS NULL OR today_day IS NULL OR today_day != ?)',
+    dayKey(now),
+  );
+}
+
+export async function setDeckLimits(db: Db, path: string, limits: DeckLimits, now = Date.now()): Promise<void> {
   await db.runAsync(
     'INSERT INTO anki_deck_limits (path, new_per_day, reviews_per_day) VALUES (?, ?, ?) ON CONFLICT(path) DO UPDATE SET new_per_day = excluded.new_per_day, reviews_per_day = excluded.reviews_per_day',
     path,
     limits.newPerDay,
     limits.reviewsPerDay,
   );
+  await dropEmptyLimits(db, now);
+}
+
+/** The number of new cards set for this deck just for `now`'s day, or null if none. */
+export async function getTodayNewLimit(db: Db, path: string, now: number): Promise<number | null> {
+  const row = await db.getFirstAsync<{ today_new: number | null; today_day: string | null }>('SELECT today_new, today_day FROM anki_deck_limits WHERE path = ?', path);
+  return row?.today_new != null && row.today_day === dayKey(now) ? row.today_new : null;
+}
+
+/**
+ * More or fewer new cards than usual, just for today (like Anki's "today only" limit). It's the
+ * whole day's number, cards already learned today included; tomorrow the deck's usual limit is
+ * back. null clears it.
+ */
+export async function setTodayNewLimit(db: Db, path: string, newCards: number | null, now: number): Promise<void> {
+  const day = newCards == null ? null : dayKey(now);
+  const n = newCards == null ? null : Math.max(0, Math.round(newCards));
+  await db.runAsync(
+    'INSERT INTO anki_deck_limits (path, new_per_day, reviews_per_day, today_new, today_day) VALUES (?, NULL, NULL, ?, ?) ON CONFLICT(path) DO UPDATE SET today_new = excluded.today_new, today_day = excluded.today_day',
+    path,
+    n,
+    day,
+  );
+  await dropEmptyLimits(db, now);
+}
+
+/** New cards (not suspended) left to learn in a deck and its subdecks. */
+export async function newCardsLeft(db: Db, path: string): Promise<number> {
+  const t = subtree(path);
+  const row = await db.getFirstAsync<{ n: number }>(`SELECT COUNT(*) AS n FROM anki_cards WHERE suspended = 0 AND state = ${State.New} AND ${t.sql}`, ...t.params);
+  return row?.n ?? 0;
+}
+
+/**
+ * "Learn more today": raise the deck's new cards for today so `extra` more come up now,
+ * on top of what was already learned today and what's still allowed.
+ */
+export async function learnMoreToday(db: Db, path: string, extra: number, now: number, defaults: Limits): Promise<void> {
+  const { newLeft } = await remainingToday(db, now, defaults);
+  const learned = await newLearnedToday(db, path, now);
+  await setTodayNewLimit(db, path, learned + newLeft(path) + extra, now);
+}
+
+/** New cards already learned today in a deck and its subdecks (answers made in this app). */
+export async function newLearnedToday(db: Db, path: string, now: number): Promise<number> {
+  const t = subtree(path);
+  const row = await db.getFirstAsync<{ n: number }>(
+    `SELECT COUNT(DISTINCT r.card_id) AS n FROM anki_revlog r JOIN anki_cards c ON c.id = r.card_id
+     WHERE r.imported = 0 AND r.prev_state = ${State.New} AND r.reviewed_at >= ? AND c.${t.sql}`,
+    startOfDay(now),
+    ...t.params,
+  );
+  return row?.n ?? 0;
 }
 
 const inSubtree = (name: string, path: string) => name === path || name.startsWith(`${path}::`);
 
 /**
- * How many more new cards and reviews each deck allows today: its own limit (or the default)
- * minus what was done today in it and its subdecks (answers made in this app).
+ * How many more new cards and reviews each deck allows today: its own limit (or the default;
+ * for new cards, a number set just for today wins) minus what was done today in it and its subdecks (answers made in this app).
  */
 async function remainingToday(db: Db, now: number, defaults: Limits): Promise<{ newLeft: (path: string) => number; reviewsLeft: (path: string) => number }> {
   const done = await db.getAllAsync<{ name: string; newDone: number; reviewsDone: number }>(
@@ -95,12 +167,10 @@ async function remainingToday(db: Db, now: number, defaults: Limits): Promise<{ 
      GROUP BY d.name`,
     startOfDay(now),
   );
-  const own = new Map(
-    (await db.getAllAsync<{ path: string; new_per_day: number | null; reviews_per_day: number | null }>('SELECT * FROM anki_deck_limits')).map((r) => [r.path, r]),
-  );
+  const own = new Map((await db.getAllAsync<LimitRow>('SELECT * FROM anki_deck_limits')).map((r) => [r.path, r]));
   const sum = (path: string, key: 'newDone' | 'reviewsDone') => done.filter((d) => inSubtree(d.name, path)).reduce((n, d) => n + d[key], 0);
   return {
-    newLeft: (path) => Math.max(0, (own.get(path)?.new_per_day ?? defaults.newPerDay) - sum(path, 'newDone')),
+    newLeft: (path) => Math.max(0, newLimit(own.get(path), now, defaults.newPerDay) - sum(path, 'newDone')),
     reviewsLeft: (path) => Math.max(0, (own.get(path)?.reviews_per_day ?? defaults.reviewsPerDay) - sum(path, 'reviewsDone')),
   };
 }
