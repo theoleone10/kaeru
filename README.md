@@ -189,11 +189,17 @@ Click **Add for Review → Submit**. Review usually takes 1–3 days. If Apple r
 
 ### After launch
 
-**Releasing:** work happens on `dev`; merging `dev` into `master` ships it. Every push to `master` runs `.eas/workflows/deploy-to-production.yml` on EAS: a production iOS build (build number bumps automatically), then an upload to App Store Connect, where it appears in TestFlight after processing. It does not send the version to App Review: pick the build on the version page and click **Add for Review** yourself (step 7). One-time setup:
+**Releasing:** work happens on `dev`; merging `dev` into `master` ships it, through **Xcode Cloud** (App Store Connect is connected to this GitHub repo). Xcode Cloud clones the repo and runs `ios/ci_scripts/ci_post_clone.sh`, which installs Node and CocoaPods, runs `npm ci`, writes `.env`, and generates the native project with `expo prebuild`. Then it archives `ios/Kaeru.xcworkspace`, signs it with Apple's cloud-managed certificates, and uploads it to TestFlight. It does not send the version to App Review: pick the build on the version page and click **Add for Review** yourself. The build number is `1000 +` Xcode Cloud's build number; the version comes from `app.json`.
 
-1. On [expo.dev](https://expo.dev) → the kaeru project → **Project settings → GitHub**, install the Expo GitHub app and connect `theoleone10/kaeru`.
-2. Make sure EAS has the iOS credentials and an App Store Connect API key: if you've done steps 4–5 once by hand, it does. Otherwise run `npx eas-cli@latest credentials --platform ios` → *production* → *App Store Connect: Manage your API Key* → *Set up your project to use an API Key for EAS Submit* (this can't be done non-interactively).
-3. The app's **Apple ID** (App Store Connect → App Information) is set in `eas.json` as `submit.production.ios.ascAppId` (6821724249), so submitting never needs a prompt.
+`ios/` is generated and ignored by git, except `ios/ci_scripts/`. `npx expo prebuild --clean` deletes that folder on your machine too; bring it back with `git checkout ios/ci_scripts`.
+
+One-time setup, in App Store Connect → the app → **Xcode Cloud → Manage Workflows** (or Xcode → Report navigator → Cloud):
+
+1. **Workflow:** product *Kaeru*, workspace `ios/Kaeru.xcworkspace`, scheme *Kaeru*.
+2. **Start condition:** *Branch Changes* on `master`.
+3. **Actions:** *Archive – iOS*, deployment preparation *App Store Connect*.
+4. **Post-actions:** *TestFlight Internal Testing* (or External) so builds appear in TestFlight.
+5. **Environment → Environment Variables:** `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY` (mark it *Secret*) and `EXPO_PUBLIC_SUPPORT_EMAIL`, with the production values from `.env`. Add `APPLE_TEAM_ID` too if a build says no team is selected for signing.
 
 Bump `version` in `app.json` before merging a release whose previous version is already live; Apple won't accept a new build for an approved version.
 

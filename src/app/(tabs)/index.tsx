@@ -4,13 +4,14 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Avatar } from '@/components/Avatar';
 import { DayDoneCelebration } from '@/components/DayDoneCelebration';
 import { StepBadge } from '@/components/DayPlan';
 import { Flame } from '@/components/Flame';
 import { KanaCourseCard } from '@/components/KanaCourseCard';
 import { Mascot } from '@/components/Mascot';
 import { TimerChips } from '@/components/TimerChips';
-import { IconButton, T } from '@/components/ui';
+import { T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { stationOf } from '@/content/units';
 import { frogLines } from '@/daily/frogLines';
@@ -24,7 +25,7 @@ const pick = () => Math.floor(Math.random() * 1000);
 
 export default function Today() {
   const insets = useSafeAreaInsets();
-  const { colors, lines, cards } = useApp();
+  const { colors, lines, cards, settings } = useApp();
   const { running } = useTime();
   const today = useToday();
   const { plan, now, streak } = today;
@@ -79,9 +80,9 @@ export default function Today() {
               {streak.days}
             </T>
           </Pressable>
-          <IconButton label="Settings" onPress={() => router.push('/settings')}>
-            <Ionicons name="settings-outline" size={22} color={colors.textMuted} />
-          </IconButton>
+          <Pressable onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel="Your profile" hitSlop={6}>
+            <Avatar size={40} />
+          </Pressable>
         </View>
       </View>
 
@@ -144,7 +145,7 @@ export default function Today() {
         </View>
       )}
 
-      <KanaCourseCard whileLearning />
+      {settings.studyKana && <KanaCourseCard whileLearning />}
 
       <View style={{ flex: 1 }} />
       <TimerChips showAdd={false} />
