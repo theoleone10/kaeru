@@ -1,4 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -8,8 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { accountLabel, useAuth } from '@/auth/AuthProvider';
 import { exportBackup, pickBackup, restoreBackup } from '@/backup/exportImport';
 import { backupCounts, describeCounts } from '@/backup/format';
+import type { IconName } from '@/components/Icon';
+import { Icon } from '@/components/Icon';
 import { Logo } from '@/components/Mascot';
-import { Button, Section, Stepper, T } from '@/components/ui';
+import { Button, IconTile, Section, Stepper, T } from '@/components/ui';
 import { getKv, setKv } from '@/db/repo';
 import { supportEmail } from '@/legal/text';
 import { formatMinuteOfDay } from '@/notifications/plan';
@@ -18,17 +19,47 @@ import { useApp } from '@/state/AppProvider';
 import { LIMITS, sanitizeSettings, type ThemePreference } from '@/state/settings';
 import { ANKI_MEDIA_NOTE, uploadProgress } from '@/sync/cloud';
 import { useTime } from '@/time/TimeProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+import { spacing } from '@/theme/colors';
 
+/** A settings row: a rule above, the label (and a quiet detail) on the left, a control on the right. */
 function Row({ label, detail, children }: { label: string; detail?: string; children: React.ReactNode }) {
+  const { colors } = useApp();
   return (
-    <View style={styles.row}>
-      <View style={{ flex: 1, gap: 2 }}>
-        <T variant="body">{label}</T>
+    <View style={[styles.row, { borderTopColor: colors.border }]}>
+      <View style={{ flex: 1, gap: 1 }}>
+        <T variant="body" style={{ fontWeight: '700' }}>
+          {label}
+        </T>
         {detail && <T variant="small">{detail}</T>}
       </View>
       {children}
     </View>
+  );
+}
+
+/** A labelled group of rows, closed off with a rule under the last one. */
+function Group({ label, children }: { label: string; children: React.ReactNode }) {
+  const { colors } = useApp();
+  return (
+    <Section label={label} style={{ gap: 6 }}>
+      <View style={{ borderBottomWidth: StyleSheet.hairlineWidth * 2, borderBottomColor: colors.border }}>{children}</View>
+    </Section>
+  );
+}
+
+/** A switch in the app's colours. */
+function Toggle({ value, onValueChange, label }: { value: boolean; onValueChange: (v: boolean) => void; label: string }) {
+  const { colors } = useApp();
+  return (
+    <Switch
+      value={value}
+      onValueChange={onValueChange}
+      accessibilityLabel={label}
+      trackColor={{ true: colors.correct, false: colors.borderStrong }}
+      thumbColor="#FFFFFF"
+      {...WEB_THUMB}
+      ios_backgroundColor={colors.borderStrong}
+    />
   );
 }
 
@@ -54,14 +85,14 @@ function AccountCard({ fileRows }: { fileRows: React.ReactNode }) {
 
   if (!configured || !user) {
     return (
-      <Section label="Account & backup">
+      <Section label="Account & backup" style={{ gap: 6 }}>
         {configured && (
-          <>
-            <T variant="small">Progress is only on this phone. Sign in to back it up.</T>
+          <View style={{ gap: spacing.md, paddingBottom: spacing.md }}>
+            <T variant="muted">Progress is only on this phone. Sign in to back it up.</T>
             <Button label="Sign in" onPress={() => router.push('/sign-in')} />
-          </>
+          </View>
         )}
-        {fileRows}
+        <View style={{ borderBottomWidth: StyleSheet.hairlineWidth * 2, borderBottomColor: colors.border }}>{fileRows}</View>
       </Section>
     );
   }
@@ -116,23 +147,21 @@ function AccountCard({ fileRows }: { fileRows: React.ReactNode }) {
     );
 
   return (
-    <Section label="Account & backup">
-      <View style={styles.row}>
-        <Ionicons name="person-circle-outline" size={36} color={colors.accent} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <T variant="body" style={{ fontWeight: '800' }} numberOfLines={1}>
+    <Group label="Account & backup">
+      <View style={[styles.row, { borderTopColor: colors.border }]}>
+        <IconTile icon="person" color={colors.accentInk} soft={colors.accentSoft} size={34} />
+        <View style={{ flex: 1, gap: 1 }}>
+          <T variant="body" style={{ fontWeight: '700' }} numberOfLines={1}>
             {accountLabel(user)}
           </T>
           <T variant="small">{lastSync ? `Backed up ${new Date(lastSync).toLocaleString()}` : 'Not backed up yet'}</T>
         </View>
       </View>
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
-      <LinkRow label="Back up now" icon="cloud-upload-outline" onPress={syncNow} busy={busy === 'sync'} />
+      <LinkRow label="Back up now" icon="cloudUp" onPress={syncNow} busy={busy === 'sync'} />
       {fileRows}
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
-      <LinkRow label="Sign out" icon="log-out-outline" onPress={confirmSignOut} busy={busy === 'signout'} />
-      <LinkRow label="Delete account" icon="trash-outline" onPress={confirmDelete} busy={busy === 'delete'} danger />
-    </Section>
+      <LinkRow label="Sign out" icon="logout" onPress={confirmSignOut} busy={busy === 'signout'} />
+      <LinkRow label="Delete account" icon="trash" onPress={confirmDelete} busy={busy === 'delete'} danger />
+    </Group>
   );
 }
 
@@ -143,29 +172,40 @@ function LinkRow({
   href,
   busy,
   danger,
+  chevron,
 }: {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  /** A small soft icon tile on the left (account rows). */
+  icon?: IconName;
   onPress?: () => void;
   href?: '/legal/privacy' | '/legal/terms';
   busy?: boolean;
   danger?: boolean;
+  chevron?: boolean;
 }) {
   const { colors } = useApp();
-  const tint = danger ? colors.wrong : colors.textMuted;
+  const tile =
+    icon === 'cloudUp'
+      ? { color: colors.accentInk, soft: colors.accentSoft }
+      : icon === 'upload' || icon === 'download'
+        ? { color: colors.blueText, soft: colors.blueSoft }
+        : danger
+          ? { color: colors.wrongText, soft: colors.wrongSoft }
+          : { color: colors.textMuted, soft: colors.surfaceAlt };
   // A plain Pressable rather than <Link asChild>: on web the Link slot drops the function style, so the row lost its layout.
   return (
     <Pressable
       onPress={href ? () => router.push(href) : onPress}
       disabled={busy}
       accessibilityRole={href ? 'link' : 'button'}
-      style={({ pressed }) => [styles.row, { opacity: pressed || busy ? 0.6 : 1 }]}
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.row, { borderTopColor: colors.border, opacity: pressed || busy ? 0.6 : 1 }]}
     >
-      <Ionicons name={icon} size={20} color={tint} />
-      <T variant="body" color={danger ? colors.wrong : colors.text} style={{ flex: 1 }}>
+      {icon && <IconTile icon={icon} color={tile.color} soft={tile.soft} size={34} filled={false} />}
+      <T variant="body" color={danger ? colors.wrongText : colors.text} style={{ flex: 1, fontWeight: '700' }}>
         {label}
       </T>
-      {busy ? <ActivityIndicator color={colors.textMuted} /> : href && <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />}
+      {busy ? <ActivityIndicator color={colors.textMuted} /> : (href || chevron) && <Icon name="chevronRight" size={18} color={colors.textFaint} strokeWidth={2.4} />}
     </Pressable>
   );
 }
@@ -176,7 +216,6 @@ export default function SettingsScreen() {
   const { settings, updateSettings, colors, refresh } = useApp();
   const { refresh: refreshTime } = useTime();
   const [busy, setBusy] = useState<'export' | 'import' | null>(null);
-  const switchColors = { true: colors.accent, false: colors.border };
 
   const toggleNotifications = async (on: boolean) => {
     if (on && !(await requestNotificationPermission())) {
@@ -231,8 +270,8 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: insets.bottom + spacing.xxl }}>
-      <Section label="Daily plan">
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: spacing.md, gap: 22, paddingBottom: insets.bottom + spacing.xxl }}>
+      <Group label="Daily plan">
         <Row label="New grammar per day">
           <Stepper value={settings.dailyNewGrammar} {...LIMITS.dailyNewGrammar} onChange={(v) => updateSettings({ dailyNewGrammar: v })} />
         </Row>
@@ -244,41 +283,43 @@ export default function SettingsScreen() {
             onChange={(v) => updateSettings({ grammarMaxReviewsPerDay: v })}
           />
         </Row>
-        <Button label="Edit time goals" kind="ghost" onPress={() => router.push('/track/goals')} />
-      </Section>
+        <LinkRow label="Edit time goals" onPress={() => router.push('/track/goals')} chevron />
+      </Group>
 
-      <Section label="Display & input">
+      <Group label="Display & input">
         <Row label="Furigana">
-          <Switch value={settings.furigana} onValueChange={(v) => updateSettings({ furigana: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+          <Toggle value={settings.furigana} onValueChange={(v) => updateSettings({ furigana: v })} label="Furigana" />
         </Row>
         <Row label="Sound effects">
-          <Switch value={settings.soundEffects} onValueChange={(v) => updateSettings({ soundEffects: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+          <Toggle value={settings.soundEffects} onValueChange={(v) => updateSettings({ soundEffects: v })} label="Sound effects" />
         </Row>
         <Row label="Type romaji as kana">
-          <Switch value={settings.romajiInput} onValueChange={(v) => updateSettings({ romajiInput: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+          <Toggle value={settings.romajiInput} onValueChange={(v) => updateSettings({ romajiInput: v })} label="Type romaji as kana" />
         </Row>
-        <View style={[styles.segmented, { backgroundColor: colors.surfaceAlt }]}>
-          {(['system', 'light', 'dark'] as ThemePreference[]).map((t) => {
-            const active = settings.theme === t;
-            return (
-              <Pressable
-                key={t}
-                onPress={() => updateSettings({ theme: t })}
-                accessibilityRole="button"
-                accessibilityLabel={`${t} appearance`}
-                accessibilityState={{ selected: active }}
-                style={[styles.segment, active && { backgroundColor: colors.surface }]}
-              >
-                <T variant="body" color={active ? colors.accent : colors.textMuted} style={{ fontWeight: '600' }}>
-                  {t === 'system' ? 'Auto' : t === 'light' ? 'Light' : 'Dark'}
-                </T>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Section>
+        <Row label="Theme">
+          <View style={[styles.segmented, { backgroundColor: colors.surfaceAlt }]} accessibilityRole="radiogroup">
+            {(['system', 'light', 'dark'] as ThemePreference[]).map((t) => {
+              const active = settings.theme === t;
+              return (
+                <Pressable
+                  key={t}
+                  onPress={() => updateSettings({ theme: t })}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${t} appearance`}
+                  accessibilityState={{ selected: active, checked: active }}
+                  style={[styles.segment, active && [styles.segmentOn, { backgroundColor: colors.surface }]]}
+                >
+                  <T variant="small" color={active ? colors.accentInk : colors.textMuted} style={{ fontSize: 14, lineHeight: 20, fontWeight: active ? '800' : '700' }}>
+                    {t === 'system' ? 'Auto' : t === 'light' ? 'Light' : 'Dark'}
+                  </T>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Row>
+      </Group>
 
-      <Section label="Flashcards">
+      <Group label="Flashcards">
         <Row label="New cards per day" detail="Each deck can change this">
           <Stepper value={settings.ankiNewPerDay} {...LIMITS.ankiNewPerDay} onChange={(v) => updateSettings({ ankiNewPerDay: v })} />
         </Row>
@@ -293,31 +334,31 @@ export default function SettingsScreen() {
             onChange={(v) => updateSettings({ ankiRetention: v })}
           />
         </Row>
-      </Section>
+      </Group>
 
-      <Section label="Time tracking">
+      <Group label="Time tracking">
         <Row label="Track time in Kaeru" detail="Counted as Study on Progress">
-          <Switch value={settings.autoTrackStudy} onValueChange={(v) => updateSettings({ autoTrackStudy: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+          <Toggle value={settings.autoTrackStudy} onValueChange={(v) => updateSettings({ autoTrackStudy: v })} label="Track time in Kaeru" />
         </Row>
-      </Section>
+      </Group>
 
-      <Section label="Notifications">
+      <Group label="Notifications">
         <Row label="Notifications" detail="Timed around when you usually study">
-          <Switch value={settings.notificationsEnabled} onValueChange={toggleNotifications} trackColor={switchColors} thumbColor="#FFFFFF" />
+          <Toggle value={settings.notificationsEnabled} onValueChange={toggleNotifications} label="Notifications" />
         </Row>
         {settings.notificationsEnabled && (
           <>
             <Row label="Reviews ready" detail="When grammar or flashcards come due">
-              <Switch value={settings.notifyReviews} onValueChange={(v) => updateSettings({ notifyReviews: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+              <Toggle value={settings.notifyReviews} onValueChange={(v) => updateSettings({ notifyReviews: v })} label="Reviews ready" />
             </Row>
             <Row label="Streak saver" detail="An evening nudge if today’s lesson isn’t done yet">
-              <Switch value={settings.notifyStreak} onValueChange={(v) => updateSettings({ notifyStreak: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+              <Toggle value={settings.notifyStreak} onValueChange={(v) => updateSettings({ notifyStreak: v })} label="Streak saver" />
             </Row>
             <Row label="Daily plan" detail="What's on today, before you usually start">
-              <Switch value={settings.notifyPlan} onValueChange={(v) => updateSettings({ notifyPlan: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+              <Toggle value={settings.notifyPlan} onValueChange={(v) => updateSettings({ notifyPlan: v })} label="Daily plan" />
             </Row>
             <Row label="Wins & milestones" detail="Goals reached, streaks, finished levels, long timers">
-              <Switch value={settings.notifyWins} onValueChange={(v) => updateSettings({ notifyWins: v })} trackColor={switchColors} thumbColor="#FFFFFF" />
+              <Toggle value={settings.notifyWins} onValueChange={(v) => updateSettings({ notifyWins: v })} label="Wins & milestones" />
             </Row>
             <Row label="Quiet from">
               <TimeStepper value={settings.quietStart} onChange={(v) => updateSettings({ quietStart: v })} />
@@ -337,41 +378,44 @@ export default function SettingsScreen() {
             )}
           </>
         )}
-      </Section>
+      </Group>
 
-      <Section label="About">
-        <LinkRow label="Privacy Policy" icon="shield-checkmark-outline" href="/legal/privacy" />
-        <LinkRow label="Terms of Use" icon="document-text-outline" href="/legal/terms" />
+      <Group label="About">
+        <LinkRow label="Privacy Policy" href="/legal/privacy" />
+        <LinkRow label="Terms of Use" href="/legal/terms" />
         {supportEmail !== '' && (
-          <LinkRow label="Contact support" icon="mail-outline" onPress={() => Linking.openURL(`mailto:${supportEmail}?subject=Kaeru%20support`)} />
+          <LinkRow label="Contact support" chevron onPress={() => Linking.openURL(`mailto:${supportEmail}?subject=Kaeru%20support`)} />
         )}
-      </Section>
+      </Group>
 
       <AccountCard
         fileRows={
           <>
-            <LinkRow label="Export progress to a file" icon="share-outline" onPress={doExport} busy={busy === 'export'} />
-            <LinkRow label="Restore from a file" icon="download-outline" onPress={doImport} busy={busy === 'import'} />
+            <LinkRow label="Export progress to a file" icon="upload" onPress={doExport} busy={busy === 'export'} />
+            <LinkRow label="Restore from a file" icon="download" onPress={doImport} busy={busy === 'import'} />
           </>
         }
       />
 
       <View style={{ alignItems: 'center', gap: spacing.xs, marginTop: spacing.md }}>
         <Logo size={56} />
-        <T variant="heading" style={{ fontWeight: '900' }}>
+        <T variant="heading" jp>
           Kaeru かえる
         </T>
       </View>
-      <T variant="small" style={{ textAlign: 'center' }}>
+      <T variant="small" color={colors.textFaint} style={{ textAlign: 'center', marginTop: -spacing.md }}>
         Version {Constants.expoConfig?.version ?? '—'}
       </T>
     </ScrollView>
   );
 }
 
+/** react-native-web's Switch takes the on-state thumb colour separately. */
+const WEB_THUMB = { activeThumbColor: '#FFFFFF' } as object;
+
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: TAP },
-  divider: { height: 1 },
-  segmented: { flexDirection: 'row', borderRadius: radius.md, padding: 3 },
-  segment: { flex: 1, minHeight: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 54, paddingVertical: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth * 2 },
+  segmented: { flexDirection: 'row', borderRadius: 12, padding: 3 },
+  segment: { minHeight: 36, paddingHorizontal: 14, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  segmentOn: { shadowColor: '#1B1F33', shadowOpacity: 0.12, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
 });

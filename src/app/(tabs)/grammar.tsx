@@ -23,15 +23,7 @@ const CURRENT_H = 70;
 const fold = (s: string) => katakanaToHiragana(s.toLowerCase());
 // Japanese side (title + structure) and English side (meaning) are searched separately
 // so a romaji query like "mo" matches も without matching every English word containing "mo".
-const INDEX = new Map(
-  curriculum.map((p) => [
-    p.id,
-    {
-      jp: fold([p.title, ...p.structure].join(' ')),
-      en: fold(`${p.meaning} ${p.id}`),
-    },
-  ]),
-);
+const INDEX = new Map(curriculum.map((p) => [p.id, { jp: fold([p.title, ...p.structure].join(' ')), en: fold(`${p.meaning} ${p.id}`) }]));
 
 function matches(p: GrammarPoint, q: string): boolean {
   const idx = INDEX.get(p.id)!;
@@ -47,21 +39,8 @@ function matches(p: GrammarPoint, q: string): boolean {
 
 type Status = 'mastered' | 'learned' | 'current' | 'ahead';
 type Row =
-  | {
-      kind: 'unit';
-      unit: number;
-      first: boolean;
-      count: number;
-      done: number;
-      points: GrammarPoint[];
-    }
-  | {
-      kind: 'station';
-      station: Station;
-      status: Status;
-      last: boolean;
-      nextTravelled: boolean;
-    };
+  | { kind: 'unit'; unit: number; first: boolean; count: number; done: number; points: GrammarPoint[] }
+  | { kind: 'station'; station: Station; status: Status; last: boolean; nextTravelled: boolean };
 
 const MARKER = 32;
 const CURRENT_MARKER = 46;
@@ -71,24 +50,8 @@ function StationMarker({ station, status, line }: { station: Station; status: St
   const { colors } = useApp();
   if (status === 'current') {
     return (
-      <View
-        style={[
-          styles.ring,
-          {
-            borderColor: colors.background,
-            borderRadius: CURRENT_MARKER / 2 + 3,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.currentMarker,
-            {
-              backgroundColor: colors.accentSoft,
-              borderColor: colors.accentInk,
-            },
-          ]}
-        >
+      <View style={[styles.ring, { borderColor: colors.background, borderRadius: CURRENT_MARKER / 2 + 3 }]}>
+        <View style={[styles.currentMarker, { backgroundColor: colors.accentSoft, borderColor: colors.accentInk }]}>
           <Mascot size={32} mood="happy" />
         </View>
       </View>
@@ -106,16 +69,7 @@ function StationMarker({ station, status, line }: { station: Station; status: St
   }
   return (
     <View style={[styles.ring, { borderColor: colors.background }]}>
-      <View
-        style={[
-          styles.marker,
-          {
-            backgroundColor: colors.surface,
-            borderWidth: 2,
-            borderColor: colors === dark ? colors.border : colors.borderStrong,
-          },
-        ]}
-      >
+      <View style={[styles.marker, { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors === dark ? colors.border : colors.borderStrong }]}>
         <T variant="small" color={colors.textMuted} style={{ fontSize: 12, lineHeight: 14, fontWeight: '800' }} jp={false}>
           {station.number}
         </T>
@@ -130,15 +84,7 @@ function Track({ solid, color, dots, style }: { solid: boolean; color: string; d
   return (
     <View style={[styles.dotTrack, style]}>
       {Array.from({ length: 6 }, (_, i) => (
-        <View
-          key={i}
-          style={{
-            width: 4,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: dots,
-          }}
-        />
+        <View key={i} style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: dots }} />
       ))}
     </View>
   );
@@ -164,25 +110,12 @@ export default function GrammarMap() {
     const out: Row[] = [];
     units.forEach((u, ui) => {
       const done = u.stations.filter((s) => cardsById.has(s.point.id)).length;
-      out.push({
-        kind: 'unit',
-        unit: u.number,
-        first: ui === 0,
-        count: u.stations.length,
-        done,
-        points: u.stations.map((s) => s.point),
-      });
+      out.push({ kind: 'unit', unit: u.number, first: ui === 0, count: u.stations.length, done, points: u.stations.map((s) => s.point) });
       u.stations.forEach((s, si) => {
         const card = cardsById.get(s.point.id);
         const status: Status = card ? (isMastered(card) ? 'mastered' : 'learned') : s === currentStation ? 'current' : 'ahead';
         const next = u.stations[si + 1] ?? units[ui + 1]?.stations[0];
-        out.push({
-          kind: 'station',
-          station: s,
-          status,
-          last: ui === units.length - 1 && si === u.stations.length - 1,
-          nextTravelled: !!next && cardsById.has(next.point.id),
-        });
+        out.push({ kind: 'station', station: s, status, last: ui === units.length - 1 && si === u.stations.length - 1, nextTravelled: !!next && cardsById.has(next.point.id) });
       });
     });
     // The unit you're on opens at the top of the map.
@@ -224,22 +157,8 @@ export default function GrammarMap() {
         { text: 'Mark as known', onPress: () => skip(list) },
       ]);
     const actions = [
-      ...(before.length > 0
-        ? [
-            {
-              text: 'Start from here',
-              onPress: () => confirm(`Skip to ${level} Unit ${unit}?`, before),
-            },
-          ]
-        : []),
-      ...(inUnit.length > 0
-        ? [
-            {
-              text: 'I know this unit',
-              onPress: () => confirm(`Mark ${level} Unit ${unit} as known?`, inUnit),
-            },
-          ]
-        : []),
+      ...(before.length > 0 ? [{ text: 'Start from here', onPress: () => confirm(`Skip to ${level} Unit ${unit}?`, before) }] : []),
+      ...(inUnit.length > 0 ? [{ text: 'I know this unit', onPress: () => confirm(`Mark ${level} Unit ${unit} as known?`, inUnit) }] : []),
     ];
     if (actions.length === 0) Alert.alert(`${level} Unit ${unit}`, 'Everything up to here is already learned.');
     else Alert.alert(`${level} Unit ${unit}`, undefined, [...actions, { text: 'Cancel', style: 'cancel' }]);
@@ -273,13 +192,7 @@ export default function GrammarMap() {
   ) : null;
 
   return (
-    <View
-      style={{
-        flex: 1,
-        paddingTop: insets.top + spacing.sm,
-        backgroundColor: colors.background,
-      }}
-    >
+    <View style={{ flex: 1, paddingTop: insets.top + spacing.sm, backgroundColor: colors.background }}>
       <View style={styles.topRow}>
         {searching ? (
           <TextInput
@@ -291,15 +204,7 @@ export default function GrammarMap() {
             autoCapitalize="none"
             autoCorrect={false}
             clearButtonMode="while-editing"
-            style={[
-              styles.search,
-              fontStyle({ fontWeight: '500' }, false),
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
+            style={[styles.search, fontStyle({ fontWeight: '500' }, false), { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             accessibilityLabel="Search grammar"
           />
         ) : (
@@ -317,25 +222,11 @@ export default function GrammarMap() {
                   hitSlop={{ top: 5, bottom: 5 }}
                   style={({ pressed }) => [
                     styles.linePill,
-                    active
-                      ? {
-                          backgroundColor: c.line,
-                          borderColor: c.line,
-                          paddingHorizontal: 14,
-                        }
-                      : { borderColor: c.line, width: 40 },
+                    active ? { backgroundColor: c.line, borderColor: c.line, paddingHorizontal: 14 } : { borderColor: c.line, width: 40 },
                     { opacity: pressed ? 0.7 : 1 },
                   ]}
                 >
-                  <T
-                    variant="small"
-                    color={active ? '#FFFFFF' : c.ink}
-                    style={{
-                      fontWeight: active ? '800' : '700',
-                      fontSize: active ? 14 : 13,
-                    }}
-                    jp={false}
-                  >
+                  <T variant="small" color={active ? '#FFFFFF' : c.ink} style={{ fontWeight: active ? '800' : '700', fontSize: active ? 14 : 13 }} jp={false}>
                     {active ? `${l} Line` : l}
                   </T>
                 </Pressable>
@@ -363,18 +254,9 @@ export default function GrammarMap() {
           keyExtractor={(p) => p.id}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            paddingBottom: spacing.xxl,
-          }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: spacing.xxl }}
           ListEmptyComponent={
-            <View
-              style={{
-                alignItems: 'center',
-                gap: spacing.md,
-                marginTop: spacing.xl,
-              }}
-            >
+            <View style={{ alignItems: 'center', gap: spacing.md, marginTop: spacing.xl }}>
               <Mascot size={80} mood={query.trim() ? 'sad' : 'think'} />
               <T variant="muted" style={{ textAlign: 'center' }}>
                 {query.trim() ? 'No matches.' : 'Japanese, romaji or English'}
@@ -384,16 +266,7 @@ export default function GrammarMap() {
           renderItem={({ item }) => {
             const card = cardsById.get(item.id);
             return (
-              <Pressable
-                onPress={() => router.push(`/grammar/${item.id}`)}
-                style={({ pressed }) => [
-                  styles.result,
-                  {
-                    borderBottomColor: colors.border,
-                    opacity: pressed ? 0.6 : 1,
-                  },
-                ]}
-              >
+              <Pressable onPress={() => router.push(`/grammar/${item.id}`)} style={({ pressed }) => [styles.result, { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 }]}>
                 <View style={[styles.lineDot, { borderColor: lines[item.level].line }]} />
                 <View style={{ flex: 1 }}>
                   <T variant="body" style={{ fontSize: 17, fontWeight: '700' }}>
@@ -424,10 +297,7 @@ export default function GrammarMap() {
             keyExtractor={(r) => (r.kind === 'unit' ? `u${r.unit}` : r.station.point.id)}
             initialScrollIndex={startIndex}
             getItemLayout={(_data, index) => layout[index]}
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              paddingBottom: spacing.xxl,
-            }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: spacing.xxl }}
             renderItem={({ item, index }) => {
               if (item.kind === 'unit') {
                 return (
@@ -440,15 +310,7 @@ export default function GrammarMap() {
                   >
                     <View style={styles.trackCol}>
                       <Track solid={travelledAt(index + 1)} color={line.line} dots={dots} style={item.first ? { top: '50%', bottom: 0 } : undefined} />
-                      <View
-                        style={[
-                          styles.transfer,
-                          {
-                            borderColor: line.line,
-                            backgroundColor: colors.background,
-                          },
-                        ]}
-                      />
+                      <View style={[styles.transfer, { borderColor: line.line, backgroundColor: colors.background }]} />
                     </View>
                     <T variant="small" color={line.ink} style={{ flex: 1, fontWeight: '800' }} jp={false}>
                       {`Unit ${item.unit}`}
@@ -472,15 +334,7 @@ export default function GrammarMap() {
                   <View style={styles.trackCol}>
                     {travelled ? (
                       <>
-                        <Track
-                          solid
-                          color={line.line}
-                          dots={dots}
-                          style={{
-                            top: 0,
-                            bottom: item.last ? '50%' : item.nextTravelled ? 0 : '50%',
-                          }}
-                        />
+                        <Track solid color={line.line} dots={dots} style={{ top: 0, bottom: item.last ? '50%' : item.nextTravelled ? 0 : '50%' }} />
                         {!item.last && !item.nextTravelled && <Track solid={false} color={line.line} dots={dots} style={{ top: '50%', bottom: 0 }} />}
                       </>
                     ) : (
@@ -492,11 +346,7 @@ export default function GrammarMap() {
                     <T
                       variant="body"
                       color={isCurrent ? colors.accentInk : status === 'ahead' ? colors.textMuted : colors.text}
-                      style={{
-                        fontSize: isCurrent ? 18 : 17,
-                        lineHeight: 24,
-                        fontWeight: isCurrent ? '800' : '700',
-                      }}
+                      style={{ fontSize: isCurrent ? 18 : 17, lineHeight: 24, fontWeight: isCurrent ? '800' : '700' }}
                       numberOfLines={1}
                     >
                       {station.point.title}
@@ -516,86 +366,20 @@ export default function GrammarMap() {
 }
 
 const styles = StyleSheet.create({
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: 20, paddingBottom: 20 },
   lines: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center' },
-  linePill: {
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  search: {
-    flex: 1,
-    minHeight: 46,
-    borderRadius: radius.md,
-    borderWidth: 2,
-    paddingHorizontal: spacing.lg,
-    fontSize: 17,
-  },
-  unitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    height: UNIT_H,
-  },
+  linePill: { height: 34, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  searchButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  search: { flex: 1, minHeight: 46, borderRadius: radius.md, borderWidth: 2, paddingHorizontal: spacing.lg, fontSize: 17 },
+  unitRow: { flexDirection: 'row', alignItems: 'center', gap: 14, height: UNIT_H },
   transfer: { width: 14, height: 14, borderRadius: 7, borderWidth: 3 },
-  stationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    height: STATION_H,
-  },
-  trackCol: {
-    width: 36,
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  stationRow: { flexDirection: 'row', alignItems: 'center', gap: 14, height: STATION_H },
+  trackCol: { width: 36, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
   track: { position: 'absolute', top: 0, bottom: 0, width: 4 },
-  dotTrack: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-  },
+  dotTrack: { position: 'absolute', top: 0, bottom: 0, justifyContent: 'space-evenly', alignItems: 'center' },
   ring: { borderWidth: 3, borderRadius: MARKER / 2 + 3 },
-  marker: {
-    width: MARKER,
-    height: MARKER,
-    borderRadius: MARKER / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  currentMarker: {
-    width: CURRENT_MARKER,
-    height: CURRENT_MARKER,
-    borderRadius: CURRENT_MARKER / 2,
-    borderWidth: 2.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  result: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
-    minHeight: TAP + 8,
-    borderBottomWidth: StyleSheet.hairlineWidth * 2,
-  },
+  marker: { width: MARKER, height: MARKER, borderRadius: MARKER / 2, alignItems: 'center', justifyContent: 'center' },
+  currentMarker: { width: CURRENT_MARKER, height: CURRENT_MARKER, borderRadius: CURRENT_MARKER / 2, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  result: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, minHeight: TAP + 8, borderBottomWidth: StyleSheet.hairlineWidth * 2 },
   lineDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 3 },
 });

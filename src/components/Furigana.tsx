@@ -14,28 +14,11 @@ function RubyUnits({ tokens, showFurigana, size, color, mutedColor }: { tokens: 
   const unit = (u: RubyToken, key: number) => (
     <View key={key} style={styles.unit}>
       {showFurigana && (
-        <Text
-          style={{
-            fontSize: rubySize,
-            lineHeight: rubySize + 3,
-            color: mutedColor,
-            fontFamily: FONTS.jpBold,
-          }}
-          numberOfLines={1}
-        >
+        <Text style={{ fontSize: rubySize, lineHeight: rubySize + 3, color: mutedColor, fontFamily: FONTS.jpBold }} numberOfLines={1}>
           {u.reading ?? ' '}
         </Text>
       )}
-      <Text
-        style={{
-          fontSize: size,
-          lineHeight: size * 1.35,
-          color,
-          fontFamily: FONTS.jpBold,
-        }}
-      >
-        {u.text}
-      </Text>
+      <Text style={{ fontSize: size, lineHeight: size * 1.35, color, fontFamily: FONTS.jpBold }}>{u.text}</Text>
     </View>
   );
   return (
@@ -59,14 +42,7 @@ export const FuriganaText = memo(function FuriganaText({ markup, size = 22, show
   const show = showFurigana ?? settings.furigana;
   if (!show) {
     return (
-      <Text
-        style={{
-          fontSize: size,
-          lineHeight: size * 1.45,
-          color: colors.text,
-          fontFamily: FONTS.jpBold,
-        }}
-      >
+      <Text style={{ fontSize: size, lineHeight: size * 1.45, color: colors.text, fontFamily: FONTS.jpBold }}>
         {parseFurigana(markup)
           .map((t) => t.text)
           .join('')}
@@ -94,24 +70,9 @@ export const ExampleSentence = memo(function ExampleSentence({ example, size = 2
   if (!show) {
     const text = (list: RubyToken[]) => list.map((t) => t.text).join('');
     return (
-      <Text
-        style={{
-          fontSize: size,
-          lineHeight: size * 1.5,
-          color: colors.text,
-          fontFamily: FONTS.jpBold,
-        }}
-      >
+      <Text style={{ fontSize: size, lineHeight: size * 1.5, color: colors.text, fontFamily: FONTS.jpBold }}>
         {text(split.before)}
-        <Text
-          style={{
-            color: colors.accentInk,
-            textDecorationLine: 'underline',
-            textDecorationColor: underline,
-          }}
-        >
-          {text(split.blank)}
-        </Text>
+        <Text style={{ color: colors.accentInk, textDecorationLine: 'underline', textDecorationColor: underline }}>{text(split.blank)}</Text>
         {text(split.after)}
       </Text>
     );

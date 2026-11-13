@@ -137,6 +137,7 @@ export default function Profile() {
             accessibilityLabel="Show the kana course on Today"
             trackColor={{ true: colors.accent, false: colors.borderStrong }}
             thumbColor="#FFFFFF"
+            {...WEB_THUMB}
             ios_backgroundColor={colors.borderStrong}
           />
         </View>
@@ -151,6 +152,9 @@ export default function Profile() {
     </ScrollView>
   );
 }
+
+/** react-native-web's Switch takes the on-state thumb colour separately. */
+const WEB_THUMB = { activeThumbColor: '#FFFFFF' } as object;
 
 const styles = StyleSheet.create({
   headerButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },

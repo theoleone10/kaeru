@@ -12,12 +12,7 @@ import { isMastered, retrievability, State } from '@/srs/scheduler';
 import { useApp, useNow } from '@/state/AppProvider';
 import { spacing } from '@/theme/colors';
 
-const STATE_LABEL: Record<State, string> = {
-  [State.New]: 'New',
-  [State.Learning]: 'Learning',
-  [State.Review]: 'Review',
-  [State.Relearning]: 'Relearning',
-};
+const STATE_LABEL: Record<State, string> = { [State.New]: 'New', [State.Learning]: 'Learning', [State.Review]: 'Review', [State.Relearning]: 'Relearning' };
 
 function formatDue(ts: number): string {
   const diff = ts - Date.now();
@@ -90,14 +85,7 @@ export default function GrammarDetail() {
   return (
     <>
       <Stack.Screen options={{ title: point.title }} />
-      <ScrollView
-        style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingTop: spacing.md,
-          paddingBottom: insets.bottom + spacing.xxl,
-        }}
-      >
+      <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: spacing.md, paddingBottom: insets.bottom + spacing.xxl }}>
         <LessonContent
           point={point}
           afterHeader={
@@ -117,31 +105,14 @@ export default function GrammarDetail() {
                     <Stat label="Stability" value={card.stability ? `${card.stability.toFixed(1)} days` : '—'} />
                   </View>
                   {card.suspended ? <Button label="Add to reviews" kind="secondary" onPress={addToReviews} /> : null}
-                  <Pressable
-                    onPress={reset}
-                    accessibilityRole="button"
-                    hitSlop={8}
-                    style={{
-                      alignSelf: 'flex-start',
-                      minHeight: 44,
-                      justifyContent: 'center',
-                    }}
-                  >
+                  <Pressable onPress={reset} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}>
                     <T variant="body" color={colors.wrongText} style={{ fontSize: 15, fontWeight: '700' }}>
                       Reset progress
                     </T>
                   </Pressable>
                 </>
               ) : (
-                <Button
-                  label="Learn this now"
-                  onPress={() =>
-                    router.push({
-                      pathname: '/lessons',
-                      params: { id: point.id },
-                    })
-                  }
-                />
+                <Button label="Learn this now" onPress={() => router.push({ pathname: '/lessons', params: { id: point.id } })} />
               )}
             </Section>
           }
@@ -152,13 +123,6 @@ export default function GrammarDetail() {
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    rowGap: 14,
-    paddingVertical: 14,
-    borderTopWidth: StyleSheet.hairlineWidth * 2,
-    borderBottomWidth: StyleSheet.hairlineWidth * 2,
-  },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 14, paddingVertical: 14, borderTopWidth: StyleSheet.hairlineWidth * 2, borderBottomWidth: StyleSheet.hairlineWidth * 2 },
   stat: { width: '33.33%', paddingRight: spacing.sm },
 });

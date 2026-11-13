@@ -68,23 +68,8 @@ function Structure({ point }: { point: GrammarPoint }) {
                     </T>
                   )}
                   {part.trim() === '' ? null : (
-                    <View
-                      style={[
-                        styles.chip,
-                        {
-                          backgroundColor: isGrammar ? colors.accent : colors.accentSoft,
-                        },
-                      ]}
-                    >
-                      <T
-                        variant="body"
-                        color={isGrammar ? colors.accentText : colors.accentInk}
-                        style={{
-                          fontSize: isGrammar ? 17 : 15,
-                          lineHeight: 22,
-                          fontWeight: isGrammar ? '800' : '700',
-                        }}
-                      >
+                    <View style={[styles.chip, { backgroundColor: isGrammar ? colors.accent : colors.accentSoft }]}>
+                      <T variant="body" color={isGrammar ? colors.accentText : colors.accentInk} style={{ fontSize: isGrammar ? 17 : 15, lineHeight: 22, fontWeight: isGrammar ? '800' : '700' }}>
                         {part.trim()}
                       </T>
                     </View>
@@ -198,38 +183,9 @@ export function LessonContent({ point, kicker = 'station', afterHeader }: { poin
 }
 
 const styles = StyleSheet.create({
-  structureRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: spacing.sm,
-    flexShrink: 1,
-  },
-  chip: {
-    minHeight: 34,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    flexShrink: 1,
-  },
-  example: {
-    borderTopWidth: StyleSheet.hairlineWidth * 2,
-    paddingVertical: 10,
-    gap: 2,
-  },
-  link: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    minHeight: 52,
-    borderTopWidth: StyleSheet.hairlineWidth * 2,
-  },
-  toggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: spacing.sm,
-  },
+  structureRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
+  chip: { minHeight: 34, paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.sm, justifyContent: 'center', flexShrink: 1 },
+  example: { borderTopWidth: StyleSheet.hairlineWidth * 2, paddingVertical: 10, gap: 2 },
+  link: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, minHeight: 52, borderTopWidth: StyleSheet.hairlineWidth * 2 },
+  toggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing.sm },
 });
