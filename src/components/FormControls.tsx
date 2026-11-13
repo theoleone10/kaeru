@@ -110,6 +110,6 @@ export function BottomBar({ children, style }: { children: ReactNode; style?: St
 
 const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: 16, borderRadius: 999, borderWidth: 2 },
-  input: { minHeight: 50, borderRadius: 14, borderWidth: 2, paddingHorizontal: 14, fontSize: 16 },
+  input: { minHeight: 50, borderRadius: 14, borderWidth: 2, paddingHorizontal: 14, fontSize: 16, outlineWidth: 0 },
   bar: { paddingHorizontal: 20, paddingTop: 14, gap: spacing.md },
 });

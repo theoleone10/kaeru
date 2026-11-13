@@ -1,60 +1,42 @@
-import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
-import { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LessonContent } from "@/components/LessonContent";
-import { Mascot } from "@/components/Mascot";
-import { Button, Section, T } from "@/components/ui";
-import { getPoint } from "@/content/loader";
-import {
-  getPointStats,
-  resetPoint,
-  setSuspended,
-  type PointStats,
-} from "@/db/repo";
-import { isMastered, retrievability, State } from "@/srs/scheduler";
-import { useApp, useNow } from "@/state/AppProvider";
-import { spacing } from "@/theme/colors";
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useEffect, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LessonContent } from '@/components/LessonContent';
+import { Mascot } from '@/components/Mascot';
+import { Button, Section, T } from '@/components/ui';
+import { getPoint } from '@/content/loader';
+import { getPointStats, resetPoint, setSuspended, type PointStats } from '@/db/repo';
+import { isMastered, retrievability, State } from '@/srs/scheduler';
+import { useApp, useNow } from '@/state/AppProvider';
+import { spacing } from '@/theme/colors';
 
 const STATE_LABEL: Record<State, string> = {
-  [State.New]: "New",
-  [State.Learning]: "Learning",
-  [State.Review]: "Review",
-  [State.Relearning]: "Relearning",
+  [State.New]: 'New',
+  [State.Learning]: 'Learning',
+  [State.Review]: 'Review',
+  [State.Relearning]: 'Relearning',
 };
 
 function formatDue(ts: number): string {
   const diff = ts - Date.now();
-  if (diff <= 0) return "Due now";
+  if (diff <= 0) return 'Due now';
   const mins = Math.round(diff / 60000);
   if (mins < 60) return `In ${mins} min`;
   const hours = Math.round(mins / 60);
   if (hours < 48) return `In ${hours} h`;
   return new Date(ts).toLocaleDateString([], {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   });
 }
 
-function Stat({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string;
-  color?: string;
-}) {
+function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <View style={styles.stat}>
-      <T
-        variant="heading"
-        color={color}
-        style={{ fontSize: 20, lineHeight: 26 }}
-        numberOfLines={1}
-      >
+      <T variant="heading" color={color} style={{ fontSize: 20, lineHeight: 26 }} numberOfLines={1}>
         {value}
       </T>
       <T variant="small" style={{ fontSize: 12, lineHeight: 16 }}>
@@ -82,9 +64,7 @@ export default function GrammarDetail() {
 
   if (!point) {
     return (
-      <View
-        style={{ padding: spacing.lg, gap: spacing.md, alignItems: "center" }}
-      >
+      <View style={{ padding: spacing.lg, gap: spacing.md, alignItems: 'center' }}>
         <Mascot size={96} mood="sad" />
         <T variant="body">Grammar point “{id}” was not found.</T>
       </View>
@@ -97,21 +77,17 @@ export default function GrammarDetail() {
   };
 
   const reset = () =>
-    Alert.alert(
-      "Reset this grammar point?",
-      "Its review history is deleted and it becomes a new lesson again.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset",
-          style: "destructive",
-          onPress: async () => {
-            await resetPoint(db, point.id);
-            await refresh();
-          },
+    Alert.alert('Reset this grammar point?', 'Its review history is deleted and it becomes a new lesson again.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Reset',
+        style: 'destructive',
+        onPress: async () => {
+          await resetPoint(db, point.id);
+          await refresh();
         },
-      ],
-    );
+      },
+    ]);
 
   return (
     <>
@@ -127,86 +103,33 @@ export default function GrammarDetail() {
         <LessonContent
           point={point}
           afterHeader={
-            <Section
-              label={card ? "Your progress" : undefined}
-              style={{ gap: spacing.md }}
-            >
+            <Section label={card ? 'Your progress' : undefined} style={{ gap: spacing.md }}>
               {card ? (
                 <>
                   <View style={[styles.grid, { borderColor: colors.border }]}>
                     <Stat
                       label="Status"
-                      value={
-                        isMastered(card)
-                          ? "Mastered"
-                          : STATE_LABEL[card.state as State]
-                      }
-                      color={
-                        isMastered(card)
-                          ? colors.notice
-                          : card.state === State.Review
-                            ? colors.correctText
-                            : undefined
-                      }
+                      value={isMastered(card) ? 'Mastered' : STATE_LABEL[card.state as State]}
+                      color={isMastered(card) ? colors.notice : card.state === State.Review ? colors.correctText : undefined}
                     />
-                    <Stat
-                      label="Next review"
-                      value={
-                        card.suspended
-                          ? card.learned_at === 0
-                            ? "Skipped"
-                            : "Suspended"
-                          : formatDue(card.due)
-                      }
-                    />
+                    <Stat label="Next review" value={card.suspended ? (card.learned_at === 0 ? 'Skipped' : 'Suspended') : formatDue(card.due)} />
                     <Stat label="Reviews" value={String(stats?.reviews ?? 0)} />
-                    <Stat
-                      label="Accuracy"
-                      value={
-                        stats && stats.reviews > 0
-                          ? `${Math.round((stats.correct / stats.reviews) * 100)}%`
-                          : "—"
-                      }
-                    />
-                    <Stat
-                      label="Recall now"
-                      value={
-                        card.last_review
-                          ? `${Math.round(retrievability(card, now) * 100)}%`
-                          : "—"
-                      }
-                    />
-                    <Stat
-                      label="Stability"
-                      value={
-                        card.stability
-                          ? `${card.stability.toFixed(1)} days`
-                          : "—"
-                      }
-                    />
+                    <Stat label="Accuracy" value={stats && stats.reviews > 0 ? `${Math.round((stats.correct / stats.reviews) * 100)}%` : '—'} />
+                    <Stat label="Recall now" value={card.last_review ? `${Math.round(retrievability(card, now) * 100)}%` : '—'} />
+                    <Stat label="Stability" value={card.stability ? `${card.stability.toFixed(1)} days` : '—'} />
                   </View>
-                  {card.suspended ? (
-                    <Button
-                      label="Add to reviews"
-                      kind="secondary"
-                      onPress={addToReviews}
-                    />
-                  ) : null}
+                  {card.suspended ? <Button label="Add to reviews" kind="secondary" onPress={addToReviews} /> : null}
                   <Pressable
                     onPress={reset}
                     accessibilityRole="button"
                     hitSlop={8}
                     style={{
-                      alignSelf: "flex-start",
+                      alignSelf: 'flex-start',
                       minHeight: 44,
-                      justifyContent: "center",
+                      justifyContent: 'center',
                     }}
                   >
-                    <T
-                      variant="body"
-                      color={colors.wrongText}
-                      style={{ fontSize: 15, fontWeight: "700" }}
-                    >
+                    <T variant="body" color={colors.wrongText} style={{ fontSize: 15, fontWeight: '700' }}>
                       Reset progress
                     </T>
                   </Pressable>
@@ -216,7 +139,7 @@ export default function GrammarDetail() {
                   label="Learn this now"
                   onPress={() =>
                     router.push({
-                      pathname: "/lessons",
+                      pathname: '/lessons',
                       params: { id: point.id },
                     })
                   }
@@ -232,12 +155,12 @@ export default function GrammarDetail() {
 
 const styles = StyleSheet.create({
   grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     rowGap: 14,
     paddingVertical: 14,
     borderTopWidth: StyleSheet.hairlineWidth * 2,
     borderBottomWidth: StyleSheet.hairlineWidth * 2,
   },
-  stat: { width: "33.33%", paddingRight: spacing.sm },
+  stat: { width: '33.33%', paddingRight: spacing.sm },
 });

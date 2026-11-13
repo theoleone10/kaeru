@@ -1,21 +1,21 @@
-import { router } from "expo-router";
-import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Switch, View } from "react-native";
-import { getPoint } from "../content/loader";
-import type { GrammarPoint } from "../content/types";
-import { useApp } from "../state/AppProvider";
-import { stationOf } from "../content/units";
-import { radius, spacing } from "../theme/colors";
-import { ExampleSentence } from "./Furigana";
-import { Icon } from "./Icon";
-import { RichText, Section, T } from "./ui";
+import { router } from 'expo-router';
+import type { ReactNode } from 'react';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { getPoint } from '../content/loader';
+import type { GrammarPoint } from '../content/types';
+import { useApp } from '../state/AppProvider';
+import { stationOf } from '../content/units';
+import { radius, spacing } from '../theme/colors';
+import { ExampleSentence } from './Furigana';
+import { Icon } from './Icon';
+import { RichText, Section, T } from './ui';
 
 function Bullets({ items }: { items: string[] }) {
   const { colors } = useApp();
   return (
     <View style={{ gap: spacing.sm }}>
       {items.map((item, i) => (
-        <View key={i} style={{ flexDirection: "row", gap: spacing.sm }}>
+        <View key={i} style={{ flexDirection: 'row', gap: spacing.sm }}>
           <T variant="body" color={colors.textFaint} jp={false}>
             •
           </T>
@@ -33,30 +33,14 @@ function PointLink({ id, note }: { id: string; note?: string }) {
   const p = getPoint(id);
   if (!p) return null;
   return (
-    <Pressable
-      onPress={() => router.push(`/grammar/${id}`)}
-      accessibilityRole="link"
-      style={({ pressed }) => [
-        styles.link,
-        { borderTopColor: colors.border, opacity: pressed ? 0.6 : 1 },
-      ]}
-    >
+    <Pressable onPress={() => router.push(`/grammar/${id}`)} accessibilityRole="link" style={({ pressed }) => [styles.link, { borderTopColor: colors.border, opacity: pressed ? 0.6 : 1 }]}>
       <View style={{ flex: 1, gap: 2 }}>
-        <T
-          variant="body"
-          color={colors.accentInk}
-          style={{ fontSize: 17, fontWeight: "700" }}
-        >
+        <T variant="body" color={colors.accentInk} style={{ fontSize: 17, fontWeight: '700' }}>
           {p.title}
         </T>
         <T variant="small">{note ?? p.meaning}</T>
       </View>
-      <Icon
-        name="chevronRight"
-        size={18}
-        color={colors.textFaint}
-        strokeWidth={2.6}
-      />
+      <Icon name="chevronRight" size={18} color={colors.textFaint} strokeWidth={2.6} />
     </Pressable>
   );
 }
@@ -66,7 +50,7 @@ const KANA_ONLY = /^[〜～ぁ-ゟ゠-ヿ一-鿿・ー…]+$/;
 /** The structure lines as chips: slots on soft chips, the grammar itself on a filled indigo chip. */
 function Structure({ point }: { point: GrammarPoint }) {
   const { colors } = useApp();
-  const title = point.title.replace(/[〜～]/g, "");
+  const title = point.title.replace(/[〜～]/g, '');
   return (
     <View style={{ gap: spacing.sm }}>
       {point.structure.map((line, i) => {
@@ -74,31 +58,21 @@ function Structure({ point }: { point: GrammarPoint }) {
         return (
           <View key={i} style={styles.structureRow}>
             {parts.map((part, j) => {
-              const bare = part.trim().replace(/[〜～]/g, "");
-              const isGrammar =
-                KANA_ONLY.test(part.trim()) &&
-                bare.length > 0 &&
-                title.includes(bare);
+              const bare = part.trim().replace(/[〜～]/g, '');
+              const isGrammar = KANA_ONLY.test(part.trim()) && bare.length > 0 && title.includes(bare);
               return (
                 <View key={j} style={styles.structureRow}>
                   {j > 0 && (
-                    <T
-                      variant="body"
-                      color={colors.textFaint}
-                      style={{ fontSize: 18, fontWeight: "700" }}
-                      jp={false}
-                    >
+                    <T variant="body" color={colors.textFaint} style={{ fontSize: 18, fontWeight: '700' }} jp={false}>
                       +
                     </T>
                   )}
-                  {part.trim() === "" ? null : (
+                  {part.trim() === '' ? null : (
                     <View
                       style={[
                         styles.chip,
                         {
-                          backgroundColor: isGrammar
-                            ? colors.accent
-                            : colors.accentSoft,
+                          backgroundColor: isGrammar ? colors.accent : colors.accentSoft,
                         },
                       ]}
                     >
@@ -108,7 +82,7 @@ function Structure({ point }: { point: GrammarPoint }) {
                         style={{
                           fontSize: isGrammar ? 17 : 15,
                           lineHeight: 22,
-                          fontWeight: isGrammar ? "800" : "700",
+                          fontWeight: isGrammar ? '800' : '700',
                         }}
                       >
                         {part.trim()}
@@ -129,7 +103,7 @@ export function FuriganaToggle() {
   const { settings, updateSettings, colors } = useApp();
   return (
     <View style={styles.toggle}>
-      <T variant="small" style={{ fontWeight: "700" }}>
+      <T variant="small" style={{ fontWeight: '700' }}>
         Furigana
       </T>
       <Switch
@@ -147,41 +121,22 @@ export function FuriganaToggle() {
  * Full lesson content for a grammar point (used by lessons and the grammar detail screen).
  * `kicker` picks the small line over the title; `afterHeader` goes between the title and the lesson (the grammar page's progress).
  */
-export function LessonContent({
-  point,
-  kicker = "station",
-  afterHeader,
-}: {
-  point: GrammarPoint;
-  kicker?: "station" | "new";
-  afterHeader?: ReactNode;
-}) {
+export function LessonContent({ point, kicker = 'station', afterHeader }: { point: GrammarPoint; kicker?: 'station' | 'new'; afterHeader?: ReactNode }) {
   const { colors, lines } = useApp();
   const station = stationOf(point.id);
   const line = lines[point.level] ?? lines.N5;
   const label = [
     point.level,
     station ? `Unit ${station.unit}` : null,
-    kicker === "new"
-      ? "New grammar"
-      : station
-        ? `Station ${station.number}`
-        : null,
-    point.formality && point.formality !== "neutral"
-      ? point.formality[0].toUpperCase() + point.formality.slice(1)
-      : null,
+    kicker === 'new' ? 'New grammar' : station ? `Station ${station.number}` : null,
+    point.formality && point.formality !== 'neutral' ? point.formality[0].toUpperCase() + point.formality.slice(1) : null,
   ]
     .filter(Boolean)
-    .join(" · ");
+    .join(' · ');
   return (
     <View style={{ gap: 22 }}>
       <View style={{ gap: spacing.xs }}>
-        <T
-          variant="small"
-          color={line.ink}
-          style={{ fontWeight: "700" }}
-          jp={false}
-        >
+        <T variant="small" color={line.ink} style={{ fontWeight: '700' }} jp={false}>
           {label}
         </T>
         <T variant="title" style={{ fontSize: 40, lineHeight: 50 }}>
@@ -222,10 +177,7 @@ export function LessonContent({
 
       <Section label="Examples" right={<FuriganaToggle />} style={{ gap: 4 }}>
         {point.examples.map((ex) => (
-          <View
-            key={ex.id}
-            style={[styles.example, { borderTopColor: colors.border }]}
-          >
+          <View key={ex.id} style={[styles.example, { borderTopColor: colors.border }]}>
             <ExampleSentence example={ex} size={20} />
             <T variant="small" style={{ fontSize: 14, lineHeight: 20 }}>
               {ex.english}
@@ -247,9 +199,9 @@ export function LessonContent({
 
 const styles = StyleSheet.create({
   structureRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: spacing.sm,
     flexShrink: 1,
   },
@@ -258,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: radius.sm,
-    justifyContent: "center",
+    justifyContent: 'center',
     flexShrink: 1,
   },
   example: {
@@ -267,17 +219,17 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   link: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.sm,
     minHeight: 52,
     borderTopWidth: StyleSheet.hairlineWidth * 2,
   },
   toggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: spacing.sm,
   },
 });

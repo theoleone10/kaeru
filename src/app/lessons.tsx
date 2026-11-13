@@ -1,9 +1,9 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Icon } from '@/components/Icon';
 import { LessonContent } from '@/components/LessonContent';
 import { ReviewSession } from '@/components/ReviewSession';
 import { Celebration } from '@/components/Celebration';
@@ -17,7 +17,7 @@ import { saveQuizResults } from '@/db/repo';
 import { lessonsLearnedToday, nextLessonBatch } from '@/srs/lessons';
 import { buildQuiz, cardsFromQuiz, type QuizAnswer, type QuizItem } from '@/srs/quiz';
 import { useApp } from '@/state/AppProvider';
-import { spacing, TAP } from '@/theme/colors';
+import { spacing } from '@/theme/colors';
 
 /**
  * Today's lesson: read each new point (1–2 a day by default), then a short quiz of a
@@ -81,21 +81,23 @@ export default function Lessons() {
   };
 
   const header = (
-    <View style={[styles.header, { paddingTop: insets.top + spacing.sm, borderBottomColor: colors.border }]}>
+    <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
       <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="Close lessons" hitSlop={8} style={styles.close}>
-        <Ionicons name="close" size={30} color={colors.textMuted} />
+        <Icon name="close" size={22} color={colors.textFaint} strokeWidth={2.4} />
       </Pressable>
       {/* The quiz shows its own progress bar, so only the lessons get this one. */}
       {step === 'learn' && batch.length > 0 ? (
-        <View style={{ flex: 1, gap: 4 }}>
-          <ProgressBar value={(index + 1) / batch.length} height={16} color={colors.accent} />
-          <T variant="small" style={{ fontWeight: '900' }}>
-            {`LESSON ${index + 1} OF ${batch.length}`}
+        <>
+          <View style={{ flex: 1 }} accessibilityLabel={`Lesson ${index + 1} of ${batch.length}`}>
+            <ProgressBar value={(index + 1) / batch.length} height={14} color={colors.accent} />
+          </View>
+          <T variant="small" style={{ fontWeight: '700' }} jp={false}>
+            {`${index + 1} of ${batch.length}`}
           </T>
-        </View>
+        </>
       ) : (
-        <T variant="small" style={{ flex: 1, fontWeight: '900', letterSpacing: 0.8 }}>
-          {step === 'quiz' ? 'QUIZ' : 'LESSONS'}
+        <T variant="small" style={{ flex: 1, fontWeight: '700' }} jp={false}>
+          {step === 'quiz' ? 'Quiz' : 'Lessons'}
         </T>
       )}
     </View>
@@ -120,9 +122,10 @@ export default function Lessons() {
 
   if (step === 'quiz') {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        {header}
+      <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.background }}>
         <ReviewSession
+          onClose={close}
+          closeLabel="Close lessons"
           quiz={{ items: quizItems, onComplete: finishQuiz }}
           bottomInset={insets.bottom}
           emptyState={(_next, summary) => {
@@ -157,10 +160,10 @@ export default function Lessons() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {header}
-      <ScrollView ref={scroll} contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}>
-        <LessonContent point={point} />
+      <ScrollView ref={scroll} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: spacing.lg, paddingBottom: spacing.xxl }}>
+        <LessonContent point={point} kicker="new" />
       </ScrollView>
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, borderTopColor: colors.border }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, borderTopColor: colors.border, backgroundColor: colors.background }]}>
         <Button label="Back" kind="ghost" onPress={() => go(index - 1)} disabled={index === 0} style={{ flex: 1 }} />
         <Button label={last ? 'Take the quiz' : 'Next'} onPress={last ? startQuiz : () => go(index + 1)} style={{ flex: 2 }} />
       </View>
@@ -172,12 +175,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    paddingRight: spacing.lg,
+    gap: spacing.md,
+    paddingLeft: spacing.sm,
+    paddingRight: 20,
     paddingBottom: spacing.sm,
   },
-  close: { width: TAP, height: TAP, alignItems: 'center', justifyContent: 'center' },
-  footer: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.md, borderTopWidth: 2 },
+  close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  footer: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth * 2 },
 });

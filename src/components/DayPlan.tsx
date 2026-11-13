@@ -72,7 +72,7 @@ export function StepRow({ step, isNext, onPress }: { step: Step; isNext: boolean
       </View>
       {isNext ? (
         <View style={[styles.nextPill, { backgroundColor: m.color }]}>
-          <T variant="small" color={isDark ? colors.background : '#FFFFFF'} style={{ fontSize: 12, lineHeight: 16, fontWeight: '800' }}>
+          <T variant="small" color={step.id === 'time' || (isDark && step.id !== 'learn') ? '#10131F' : '#FFFFFF'} style={{ fontSize: 12, lineHeight: 16, fontWeight: '800' }}>
             Next
           </T>
         </View>

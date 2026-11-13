@@ -76,7 +76,7 @@ export default function KanaLessonScreen() {
 
   if (phase === 'practice') {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg }}>
+      <View style={{ flex: 1, backgroundColor: colors.background, paddingHorizontal: 20, paddingTop: spacing.lg, paddingBottom: insets.bottom + spacing.xl }}>
         <Stack.Screen options={{ title }} />
         <KanaQuiz key={round} questions={questions} onDone={finish} />
       </View>
@@ -85,13 +85,13 @@ export default function KanaLessonScreen() {
 
   const shown = lesson.kana[focus];
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: insets.bottom + spacing.xl }}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: spacing.lg, gap: spacing.xl, paddingBottom: insets.bottom + spacing.xl }}>
       <Stack.Screen options={{ title }} />
-      <View style={[styles.big, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={styles.big}>
         <T jp style={{ fontSize: 110, lineHeight: 136, fontWeight: '800' }}>
           {shown.kana}
         </T>
-        <T variant="title" color={colors.accent}>
+        <T variant="title" color={colors.accentInk}>
           {shown.romaji}
         </T>
       </View>
@@ -103,9 +103,9 @@ export default function KanaLessonScreen() {
             accessibilityRole="tab"
             accessibilityState={{ selected: i === focus }}
             accessibilityLabel={`${k.kana}, ${k.romaji}`}
-            style={[styles.cell, { backgroundColor: i === focus ? colors.accentSoft : colors.surface, borderColor: i === focus ? colors.accent : colors.border }]}
+            style={[styles.cell, { backgroundColor: i === focus ? colors.accentSoft : colors.surface, borderColor: i === focus ? colors.accent : colors.border, borderBottomColor: i === focus ? colors.accentShadow : colors.borderStrong }]}
           >
-            <T jp style={{ fontSize: 26, lineHeight: 34, fontWeight: '800' }}>
+            <T jp color={i === focus ? colors.accentInk : colors.text} style={{ fontSize: 26, lineHeight: 34, fontWeight: '800' }}>
               {k.kana}
             </T>
             <T variant="small">{k.romaji}</T>
@@ -116,13 +116,15 @@ export default function KanaLessonScreen() {
         <T variant="body">{lesson.tip}</T>
       </Section>
       <Section label="Words to read">
-        {lesson.words.map((w) => (
-          <View key={w.word} style={styles.word}>
+        {lesson.words.map((w, i) => (
+          <View key={w.word} style={[styles.word, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth * 2, borderTopColor: colors.border }]}>
             <T jp style={{ fontSize: 24, lineHeight: 32, fontWeight: '800' }}>
               {w.word}
             </T>
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
-              <T variant="body">{w.romaji}</T>
+              <T variant="body" style={{ fontWeight: '700' }}>
+                {w.romaji}
+              </T>
               <T variant="small">{w.meaning}</T>
             </View>
           </View>
@@ -134,8 +136,8 @@ export default function KanaLessonScreen() {
 }
 
 const styles = StyleSheet.create({
-  big: { alignItems: 'center', paddingVertical: spacing.lg, borderRadius: radius.lg, borderWidth: 1 },
+  big: { alignItems: 'center', paddingVertical: spacing.md },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'center' },
-  cell: { width: 64, minHeight: 64, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md, borderWidth: 2, paddingVertical: 4 },
-  word: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 4 },
+  cell: { width: 64, minHeight: 68, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md, borderWidth: 2, borderBottomWidth: 4, paddingVertical: 4 },
+  word: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
 });
