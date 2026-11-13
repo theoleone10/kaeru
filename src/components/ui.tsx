@@ -375,6 +375,6 @@ const styles = StyleSheet.create({
   pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   iconButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  stepInput: { minWidth: 56, textAlign: 'center', paddingVertical: 4, borderBottomWidth: 2 },
+  stepInput: { width: 56, textAlign: 'center', paddingVertical: 4, borderBottomWidth: 2 },
   stepBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
 });

@@ -152,7 +152,7 @@ export default function Timer() {
             </Pressable>
           );
         })}
-        <Pressable onPress={() => router.push('/track/activities')} accessibilityRole="button" accessibilityLabel="Add an activity" hitSlop={2} style={[styles.addChip, { borderColor: colors.borderStrong }]}>
+        <Pressable onPress={() => router.push('/track/activities')} accessibilityRole="button" accessibilityLabel="Add an activity" hitSlop={2} style={[styles.addChip, { borderColor: isDark ? colors.border : colors.borderStrong }]}>
           <Icon name="plus" size={18} color={colors.textFaint} strokeWidth={2.4} />
         </Pressable>
       </View>

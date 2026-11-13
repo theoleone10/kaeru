@@ -26,11 +26,9 @@ function formatDue(ts: number): string {
   if (mins < 60) return `In ${mins} min`;
   const hours = Math.round(mins / 60);
   if (hours < 48) return `In ${hours} h`;
-  return new Date(ts).toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  const d = new Date(ts);
+  // The year only when it isn't this one, so the date fits its column.
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric', ...(d.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' as const } : null) });
 }
 
 function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
