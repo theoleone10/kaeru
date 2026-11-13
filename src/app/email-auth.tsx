@@ -4,7 +4,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import { useAuth } from '@/auth/AuthProvider';
 import { MIN_PASSWORD, validEmail } from '@/auth/validation';
 import { LegalNote } from '@/components/SignInOptions';
-import { Button, T } from '@/components/ui';
+import { Button, fontStyle, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
 
@@ -66,7 +66,7 @@ export default function EmailAuth() {
       <Stack.Screen options={{ title: mode === 'signin' ? 'Sign in' : 'Create account' }} />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
         <View style={{ gap: spacing.sm }}>
-          <T variant="small">Email</T>
+          <T variant="body" style={{ fontSize: 15, fontWeight: '700' }}>Email</T>
           <TextInput
             value={email}
             onChangeText={setEmail}
@@ -76,12 +76,12 @@ export default function EmailAuth() {
             keyboardType="email-address"
             textContentType="emailAddress"
             placeholder="you@example.com"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.textFaint}
             style={input}
           />
         </View>
         <View style={{ gap: spacing.sm }}>
-          <T variant="small">Password</T>
+          <T variant="body" style={{ fontSize: 15, fontWeight: '700' }}>Password</T>
           <TextInput
             value={password}
             onChangeText={setPassword}
@@ -90,23 +90,23 @@ export default function EmailAuth() {
             autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
             textContentType={mode === 'signin' ? 'password' : 'newPassword'}
             placeholder={mode === 'signup' ? `At least ${MIN_PASSWORD} characters` : ''}
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.textFaint}
             style={input}
             onSubmitEditing={submit}
           />
         </View>
         <Button label={mode === 'signin' ? 'Sign in' : 'Create account'} onPress={submit} loading={busy} />
         {mode === 'signin' && (
-          <Pressable onPress={forgot} accessibilityRole="button" hitSlop={8}>
-            <T variant="body" color={colors.accent} style={{ textAlign: 'center' }}>
+          <Pressable onPress={forgot} accessibilityRole="button" hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }}>
+            <T variant="body" color={colors.accentInk} style={{ textAlign: 'center', fontWeight: '700' }}>
               Forgot password?
             </T>
           </Pressable>
         )}
-        <Pressable onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')} accessibilityRole="button" hitSlop={8}>
+        <Pressable onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')} accessibilityRole="button" hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }}>
           <T variant="body" style={{ textAlign: 'center' }}>
             {mode === 'signin' ? 'New here? ' : 'Already have an account? '}
-            <T variant="body" color={colors.accent} style={{ fontWeight: '600' }}>
+            <T variant="body" color={colors.accentInk} style={{ fontWeight: '700' }}>
               {mode === 'signin' ? 'Create an account' : 'Sign in'}
             </T>
           </T>
@@ -118,5 +118,5 @@ export default function EmailAuth() {
 }
 
 const styles = StyleSheet.create({
-  input: { minHeight: TAP, borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.md, fontSize: 17 },
+  input: { minHeight: TAP, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 17, ...fontStyle({ fontWeight: '500' }, false) },
 });

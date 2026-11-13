@@ -38,7 +38,7 @@ export default function AuthCallback() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, backgroundColor: colors.background }}>
       <Mascot size={96} mood="think" bounce />
-      <ActivityIndicator color={colors.accent} />
+      <ActivityIndicator color={colors.accentInk} />
     </View>
   );
 }

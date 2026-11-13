@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { useAuth } from '@/auth/AuthProvider';
 import { MIN_PASSWORD } from '@/auth/validation';
-import { Button, T } from '@/components/ui';
+import { Button, fontStyle, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { radius, spacing, TAP } from '@/theme/colors';
 
@@ -39,7 +39,7 @@ export default function NewPassword() {
         autoComplete="new-password"
         textContentType="newPassword"
         placeholder={`At least ${MIN_PASSWORD} characters`}
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={colors.textFaint}
         style={[styles.input, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
         onSubmitEditing={save}
       />
@@ -49,5 +49,5 @@ export default function NewPassword() {
 }
 
 const styles = StyleSheet.create({
-  input: { minHeight: TAP, borderWidth: 1, borderRadius: radius.md, paddingHorizontal: spacing.md, fontSize: 17 },
+  input: { minHeight: TAP, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 17, ...fontStyle({ fontWeight: '500' }, false) },
 });

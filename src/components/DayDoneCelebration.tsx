@@ -5,7 +5,8 @@ import { Modal, View } from 'react-native';
 import { getKv, setKv } from '../db/repo';
 import { dayKey } from '../stats/dates';
 import { useApp } from '../state/AppProvider';
-import { radius, spacing } from '../theme/colors';
+import { spacing } from '../theme/colors';
+import { Flame } from './Flame';
 import { Confetti } from './Confetti';
 import { Mascot } from './Mascot';
 import { useGoalPopupOpen } from './popupGate';
@@ -62,29 +63,32 @@ export function DayDoneCelebration({ loaded, allDone, streak }: { loaded: boolea
   const close = () => setCheer(null);
   return (
     <Modal visible transparent animationType="fade" onRequestClose={close}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(16,19,31,0.5)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl }}>
         <View
           accessibilityViewIsModal
-          style={{ alignSelf: 'stretch', backgroundColor: colors.background, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.lg, alignItems: 'center' }}
+          style={{ alignSelf: 'stretch', maxWidth: 440, backgroundColor: colors.background, borderRadius: 28, paddingTop: 30, paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.lg, alignItems: 'center' }}
         >
-          <Mascot size={110} mood="cheer" bounce />
-          <T variant="title" style={{ textAlign: 'center' }}>
-            Congratulations!
-          </T>
-          <View style={{ gap: spacing.xs, alignItems: 'center' }}>
-            <T variant="heading" style={{ textAlign: 'center', fontWeight: '900' }}>
-              {`🎉 ${line.jp}`}
+          <Mascot size={112} mood="cheer" bounce />
+          <View style={{ gap: 2, alignItems: 'center' }}>
+            <T variant="small" color={colors.accentInk} style={{ textAlign: 'center', fontWeight: '800', fontSize: 14, lineHeight: 20 }}>
+              Congratulations!
             </T>
-            <T variant="muted" style={{ textAlign: 'center' }}>
-              {line.en}
+            <T variant="title" style={{ textAlign: 'center', fontSize: 30, lineHeight: 38 }}>
+              {line.jp}
             </T>
-            {streak > 1 && (
-              <T variant="body" style={{ textAlign: 'center', fontWeight: '800' }}>
-                {`🔥 ${streak} days in a row`}
-              </T>
-            )}
           </View>
-          <Button label={BUTTONS[Math.floor(cheer / CHEERS.length) % BUTTONS.length]} onPress={close} style={{ alignSelf: 'stretch' }} />
+          <T variant="muted" style={{ textAlign: 'center' }}>
+            {line.en}
+          </T>
+          {streak > 1 && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, height: 40, paddingHorizontal: spacing.lg, borderRadius: 999, backgroundColor: colors.flameSoft }}>
+              <Flame size={20} color={colors.flame} />
+              <T variant="body" color={colors.flameText} style={{ fontWeight: '800', fontSize: 15, lineHeight: 20 }}>
+                {`${streak} days in a row`}
+              </T>
+            </View>
+          )}
+          <Button label={BUTTONS[Math.floor(cheer / CHEERS.length) % BUTTONS.length]} onPress={close} style={{ alignSelf: 'stretch', marginTop: 6 }} />
         </View>
         <Confetti />
       </View>

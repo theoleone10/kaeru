@@ -1,7 +1,5 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
 import type { Step, StepId } from '../daily/plan';
 import { useToday } from '../daily/useToday';
 import { useDayMilestones } from '../sound/useMilestoneSounds';
@@ -9,86 +7,89 @@ import { useApp } from '../state/AppProvider';
 import { DayDoneCelebration } from './DayDoneCelebration';
 import type { Palette } from '../theme/colors';
 import { spacing } from '../theme/colors';
-import { Button, T } from './ui';
-
-type IconName = keyof typeof Ionicons.glyphMap;
+import { Icon, type IconName } from './Icon';
+import { Button, IconTile, T } from './ui';
 
 /** Each part of the day has its own icon and colour, used everywhere it appears. */
-export function stepMeta(colors: Palette, id: StepId): { icon: IconName; color: string; soft: string } {
+export function stepMeta(colors: Palette, id: StepId): { icon: IconName; color: string; soft: string; lip: string; ink: string } {
   switch (id) {
     case 'learn':
-      return { icon: 'school', color: colors.accent, soft: colors.accentSoft };
+      return { icon: 'learn', color: colors.accent, soft: colors.accentSoft, lip: colors.accentShadow, ink: colors.accentInk };
     case 'review':
-      return { icon: 'refresh', color: colors.correct, soft: colors.correctSoft };
+      return { icon: 'review', color: colors.correct, soft: colors.correctSoft, lip: colors.correctShadow, ink: colors.correctText };
     case 'cards':
-      return { icon: 'albums', color: colors.blue, soft: colors.blueSoft };
+      return { icon: 'cards', color: colors.blue, soft: colors.blueSoft, lip: colors.blueShadow, ink: colors.blueText };
     case 'time':
-      return { icon: 'timer', color: colors.gold, soft: colors.goldSoft };
+      return { icon: 'timer', color: colors.gold, soft: colors.goldSoft, lip: colors.goldShadow, ink: colors.notice };
   }
 }
 
-/** Round step badge: a progress ring around the step's icon, a check when done. */
-export function StepBadge({ step, size = 44 }: { step: Step; size?: number }) {
+/**
+ * A step's icon tile: green with a check when done, the step's colour with a lip when it's up
+ * next (`next`), otherwise a soft tint of it.
+ */
+export function StepBadge({ step, size = 42, next = false }: { step: Step; size?: number; next?: boolean }) {
   const { colors } = useApp();
   const m = stepMeta(colors, step.id);
-  const r = size / 2 - 3;
-  const c = 2 * Math.PI * r;
+  if (step.done) return <IconTile icon={m.icon} color={colors.correct} size={size} done />;
+  if (next) return <IconTile icon={m.icon} color={m.color} lip={m.lip} size={size} />;
+  return <IconTile icon={m.icon} color={m.ink} soft={m.soft} size={size} filled={false} />;
+}
+
+/** The day's progress as a bar with one segment per step. */
+export function StepSegments({ steps }: { steps: Step[] }) {
+  const { colors } = useApp();
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
-        <Circle cx={size / 2} cy={size / 2} r={r} fill={step.done ? m.color : m.soft} stroke={step.done ? m.color : colors.border} strokeWidth={4} />
-        {!step.done && step.progress > 0 && (
-          <Circle
-            cx={size / 2}
-            cy={size / 2}
-            r={r}
-            fill="none"
-            stroke={m.color}
-            strokeWidth={4}
-            strokeLinecap="round"
-            strokeDasharray={`${c * step.progress} ${c}`}
-            transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          />
-        )}
-      </Svg>
-      <Ionicons name={step.done ? 'checkmark' : m.icon} size={size * 0.45} color={step.done ? '#FFFFFF' : m.color} />
+    <View style={styles.segments}>
+      {steps.map((s) => (
+        <View key={s.key} style={[styles.segment, { backgroundColor: s.done ? colors.correct : colors.border }]} />
+      ))}
     </View>
+  );
+}
+
+/** One row of the day's checklist: tile, title and detail; done rows fade, the next one gets a pill. */
+export function StepRow({ step, isNext, onPress }: { step: Step; isNext: boolean; onPress: () => void }) {
+  const { colors, isDark } = useApp();
+  const m = stepMeta(colors, step.id);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${step.title}. ${step.detail}. ${step.done ? 'Done' : isNext ? 'Up next' : 'To do'}`}
+      style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.surfaceAlt : 'transparent' }]}
+    >
+      <StepBadge step={step} next={isNext} />
+      <View style={{ flex: 1 }}>
+        <T variant="body" color={step.done ? colors.textFaint : colors.text} style={{ fontWeight: isNext ? '800' : '700' }} numberOfLines={1}>
+          {step.title}
+        </T>
+        {step.detail ? (
+          <T variant="small" color={step.done ? colors.textFaint : colors.textMuted} numberOfLines={1}>
+            {step.detail}
+          </T>
+        ) : null}
+      </View>
+      {isNext ? (
+        <View style={[styles.nextPill, { backgroundColor: m.color }]}>
+          <T variant="small" color={isDark ? colors.background : '#FFFFFF'} style={{ fontSize: 12, lineHeight: 16, fontWeight: '800' }}>
+            Next
+          </T>
+        </View>
+      ) : !step.done ? (
+        <Icon name="chevronRight" size={18} color={colors.textFaint} strokeWidth={2.4} />
+      ) : null}
+    </Pressable>
   );
 }
 
 /** The day's steps as a checklist; the next one is highlighted. */
 export function StepList({ steps, next, onOpen }: { steps: Step[]; next: Step | null; onOpen: (id: StepId) => void }) {
-  const { colors } = useApp();
   return (
-    <View style={{ gap: spacing.sm }}>
-      {steps.map((s) => {
-        const isNext = next?.id === s.id;
-        return (
-          <Pressable
-            key={s.key}
-            onPress={() => onOpen(s.id)}
-            accessibilityRole="button"
-            accessibilityLabel={`${s.title}. ${s.detail}. ${s.done ? 'Done' : isNext ? 'Up next' : 'To do'}`}
-            style={({ pressed }) => [
-              styles.row,
-              { borderColor: isNext ? stepMeta(colors, s.id).color : 'transparent', backgroundColor: isNext ? colors.surface : 'transparent', opacity: pressed ? 0.7 : 1 },
-            ]}
-          >
-            <StepBadge step={s} />
-            <View style={{ flex: 1 }}>
-              <T variant="body" color={s.done ? colors.textMuted : colors.text} style={{ fontWeight: '800', textDecorationLine: s.done ? 'line-through' : 'none' }} numberOfLines={1}>
-                {s.title}
-              </T>
-              {s.detail ? (
-                <T variant="small" numberOfLines={1}>
-                  {s.detail}
-                </T>
-              ) : null}
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-          </Pressable>
-        );
-      })}
+    <View style={{ marginHorizontal: -spacing.md }}>
+      {steps.map((s) => (
+        <StepRow key={s.key} step={s} isNext={next?.key === s.key} onPress={() => onOpen(s.id)} />
+      ))}
     </View>
   );
 }
@@ -114,12 +115,12 @@ export function NextUp({ from }: { from: StepId }) {
       <DayDoneCelebration loaded={loaded} allDone={plan.allDone} streak={streak.days} />
       <View style={styles.dots} accessibilityLabel={`${plan.doneCount} of ${plan.steps.length} parts of today done`}>
         {plan.steps.map((s) => (
-          <StepBadge key={s.key} step={s} size={36} />
+          <StepBadge key={s.key} step={s} size={40} />
         ))}
       </View>
       {next?.weekly && plan.allDone ? (
         <>
-          <T variant="small" style={{ textAlign: 'center' }}>
+          <T variant="small" style={{ textAlign: 'center', fontSize: 14, lineHeight: 20 }}>
             Done for today! Your weekly goal can wait, or keep going.
           </T>
           <Button label="Back to Today" onPress={() => router.dismissTo('/')} />
@@ -127,12 +128,12 @@ export function NextUp({ from }: { from: StepId }) {
         </>
       ) : next ? (
         <>
-          <T variant="small" style={{ textAlign: 'center' }}>
+          <T variant="small" style={{ textAlign: 'center', fontSize: 14, lineHeight: 20 }}>
             {left === 1 ? 'One more thing today' : `${left} more things today`}
           </T>
           <Button
             label={label}
-            icon={<Ionicons name={stepMeta(colors, next.id).icon} size={20} color="#FFFFFF" />}
+            icon={<Icon name={stepMeta(colors, next.id).icon} size={20} color="#FFFFFF" filled cutout={colors.accent} />}
             onPress={() => goTo(next.id, 'replace')}
           />
           <Button label="Back to Today" kind="ghost" onPress={() => router.dismissTo('/')} />
@@ -145,6 +146,9 @@ export function NextUp({ from }: { from: StepId }) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 18, borderWidth: 2 },
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: spacing.sm },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 62, paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: 16 },
+  nextPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
+  segments: { flexDirection: 'row', gap: 4 },
+  segment: { flex: 1, height: 6, borderRadius: 3 },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: 10 },
 });

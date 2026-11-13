@@ -1,8 +1,7 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deleteNote } from '@/anki/notes';
 import { cardContent, renderCard } from '@/anki/render';
@@ -23,10 +22,11 @@ import { formatInterval, GRADES, previewGrades, schedulerFor, State, type AnkiSc
 import { AnkiCardView } from '@/components/AnkiCardView';
 import { Celebration } from '@/components/Celebration';
 import { NextUp } from '@/components/DayPlan';
+import { Icon } from '@/components/Icon';
 import { Button, T } from '@/components/ui';
 import { playSound } from '@/sound/sounds';
 import { useApp } from '@/state/AppProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+import { LIP, radius, spacing } from '@/theme/colors';
 
 /** New cards one tap on "Learn more today" adds. */
 const MORE_NEW = 10;
@@ -316,17 +316,23 @@ export default function AnkiStudy() {
         options={{
           title,
           headerRight: () => (
-            <Pressable onPress={more} accessibilityRole="button" accessibilityLabel="Card options" hitSlop={10}>
-              <Ionicons name="ellipsis-horizontal-circle-outline" size={26} color={colors.accent} />
+            <Pressable onPress={more} accessibilityRole="button" accessibilityLabel="Card options" hitSlop={10} style={styles.headerBtn}>
+              <Icon name="more" size={24} color={colors.text} filled />
             </Pressable>
           ),
         }}
       />
       <View style={styles.counts} accessibilityLabel={`${counts.new} new, ${counts.learn} learning, ${counts.review} to review`}>
         {(['new', 'learn', 'review'] as const).map((k) => (
-          <Text key={k} style={[styles.count, { color: COUNT_COLORS[k] }, showing && stateKey(showing.card.card.state) === k && styles.countActive]}>
+          <T
+            key={k}
+            variant="body"
+            jp={false}
+            color={COUNT_COLORS[k]}
+            style={[styles.count, showing && stateKey(showing.card.card.state) === k && { borderBottomColor: COUNT_COLORS[k] }]}
+          >
             {counts[k]}
-          </Text>
+          </T>
         ))}
       </View>
 
@@ -346,14 +352,21 @@ export default function AnkiStudy() {
                   onPress={() => grade(r)}
                   accessibilityRole="button"
                   accessibilityLabel={`${label}, next in ${interval}`}
-                  style={({ pressed }) => [styles.grade, { backgroundColor: GRADE_COLORS[rating].face, borderBottomColor: GRADE_COLORS[rating].lip, borderBottomWidth: pressed ? 1 : 5, transform: [{ translateY: pressed ? 4 : 0 }] }]}
+                  style={styles.grade}
                 >
-                  <T variant="small" color="#FFFFFF" style={{ fontWeight: '600' }}>
-                    {interval}
-                  </T>
-                  <T variant="body" color="#FFFFFF" style={{ fontWeight: '700' }}>
-                    {label}
-                  </T>
+                  {({ pressed }) => (
+                    <>
+                      <View style={[StyleSheet.absoluteFill, styles.gradeLip, { backgroundColor: GRADE_COLORS[rating].lip }]} />
+                      <View style={[styles.gradeFace, { backgroundColor: GRADE_COLORS[rating].face, transform: [{ translateY: pressed ? LIP : 0 }] }]}>
+                        <T variant="small" color="#FFFFFF" style={{ fontSize: 12, lineHeight: 16, opacity: 0.9 }} jp={false}>
+                          {interval}
+                        </T>
+                        <T variant="body" color="#FFFFFF" style={{ fontSize: 16, lineHeight: 22, fontWeight: '800' }} numberOfLines={1}>
+                          {label}
+                        </T>
+                      </View>
+                    </>
+                  )}
                 </Pressable>
               );
             })}
@@ -365,11 +378,12 @@ export default function AnkiStudy() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.xl },
-  counts: { flexDirection: 'row', justifyContent: 'center', gap: spacing.lg, paddingVertical: spacing.sm },
-  count: { fontSize: 16, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  countActive: { textDecorationLine: 'underline' },
-  bar: { padding: spacing.md, borderTopWidth: StyleSheet.hairlineWidth },
+  headerBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  counts: { flexDirection: 'row', justifyContent: 'center', gap: 22, paddingTop: 6, paddingBottom: spacing.xs },
+  count: { fontSize: 16, lineHeight: 22, fontWeight: '700', fontVariant: ['tabular-nums'], borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  bar: { paddingHorizontal: 14, paddingTop: 14, borderTopWidth: 1 },
   grades: { flexDirection: 'row', gap: spacing.sm },
-  grade: { flex: 1, minHeight: TAP + 12, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  grade: { flex: 1, height: 66 + LIP },
+  gradeLip: { top: LIP, borderRadius: radius.md },
+  gradeFace: { height: 66, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', gap: 1 },
 });

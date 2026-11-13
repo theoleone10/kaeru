@@ -60,7 +60,7 @@ function ThemedStack({ onReady }: { onReady: () => void }) {
           headerShadowVisible: false,
           headerStyle: { backgroundColor: colors.background },
           headerTitleStyle: { fontFamily: FONTS.extra, fontSize: 17, color: colors.text },
-          headerTintColor: colors.accent,
+          headerTintColor: colors.accentInk,
           headerBackButtonDisplayMode: 'minimal',
         }}
       >

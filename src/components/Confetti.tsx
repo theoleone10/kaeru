@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, Animated, Dimensions, Easing, StyleSheet, View } from 'react-native';
+import { useApp } from '../state/AppProvider';
 
-const COLORS = ['#3D4FA8', '#F2B33D', '#3FA34D', '#2F7FC1', '#8E5BB5', '#F6A38C'];
 const PIECES = 36;
 
 /** A one-shot confetti burst from the top of the screen (skipped when Reduce Motion is on). */
 export function Confetti() {
+  const { colors } = useApp();
+  // The palette's colours (indigo, gold, green, blue, flame, coral), so it matches light and dark.
+  const palette = [colors.accent, colors.gold, colors.correct, colors.blue, colors.flame, colors.wrong];
   const progress = useState(() => new Animated.Value(0))[0];
   const { width, height } = Dimensions.get('window');
   const pieces = useMemo(
@@ -15,9 +18,9 @@ export function Confetti() {
         drift: (((i * 53) % 21) - 10) * 6,
         delay: ((i * 37) % 10) / 25,
         spin: ((i * 29) % 5) + 2,
-        color: COLORS[i % COLORS.length],
-        w: 6 + (i % 3) * 3,
-        h: 10 + (i % 4) * 3,
+        tint: i % 6,
+        w: 7 + (i % 3) * 2,
+        h: 12 + (i % 4) * 2,
       })),
     [],
   );
@@ -48,7 +51,7 @@ export function Confetti() {
               width: p.w,
               height: p.h,
               borderRadius: 2,
-              backgroundColor: p.color,
+              backgroundColor: palette[p.tint],
               opacity: t.interpolate({ inputRange: [0, 0.01, 0.8, 1], outputRange: [0, 1, 1, 0] }),
               transform: [
                 { translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, height * 0.9] }) },
