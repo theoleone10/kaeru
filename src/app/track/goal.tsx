@@ -1,37 +1,19 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { BottomBar, Chip, Input } from '@/components/FormControls';
 import { Button, Section, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { GOAL_MINUTES, newGoalId, repeatLabel, WEEK_ORDER, type TimeGoal } from '@/time/goals';
 import { useTime } from '@/time/TimeProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+import { fontFor, spacing } from '@/theme/colors';
 
 type Repeat = 'day' | 'week' | 'custom';
 const LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-function Chip({ label, active, color, onPress, a11y }: { label: string; active: boolean; color: string; onPress: () => void; a11y?: string }) {
-  const { colors } = useApp();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityLabel={a11y ?? label}
-      accessibilityState={{ selected: active }}
-      style={[styles.chip, { borderColor: color, backgroundColor: active ? color : colors.background }]}
-    >
-      <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '900' }}>
-        {label}
-      </T>
-    </Pressable>
-  );
-}
-
 /** Add or edit one time goal: how long, for which activity, and how it repeats. `?id=` edits. */
 export default function GoalForm() {
-  const insets = useSafeAreaInsets();
   const { colors, settings, updateSettings } = useApp();
   const { activities } = useTime();
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -77,86 +59,87 @@ export default function GoalForm() {
     ]);
 
   const toggleDay = (d: number) => setDays((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]));
-  const input = [styles.input, { color: colors.text, backgroundColor: colors.surfaceAlt }];
 
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: insets.bottom + spacing.xxl }}
-      keyboardShouldPersistTaps="handled"
-    >
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={100}>
       <Stack.Screen options={{ title: existing ? 'Edit goal' : 'New goal' }} />
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Section label="Time" style={styles.section}>
+          <View style={styles.timeRow}>
+            <Input value={hours} onChangeText={setHours} keyboardType="number-pad" selectTextOnFocus maxLength={3} accessibilityLabel="Hours" style={styles.num} />
+            <T variant="body" color={colors.textMuted} style={styles.unit}>
+              h
+            </T>
+            <Input value={mins} onChangeText={setMins} keyboardType="number-pad" selectTextOnFocus maxLength={4} accessibilityLabel="Minutes" style={[styles.num, { marginLeft: 10 }]} />
+            <T variant="body" color={colors.textMuted} style={styles.unit}>
+              m
+            </T>
+          </View>
+          {!Number.isFinite(minutes) || minutes > GOAL_MINUTES.max ? (
+            <T variant="small" color={colors.wrongText}>
+              Enter whole hours and minutes, up to a week.
+            </T>
+          ) : null}
+        </Section>
 
-      <Section label="Time">
-        <View style={styles.timeRow}>
-          <TextInput value={hours} onChangeText={setHours} keyboardType="number-pad" selectTextOnFocus maxLength={3} accessibilityLabel="Hours" style={input} />
-          <T variant="body" style={{ fontWeight: '800' }}>
-            h
-          </T>
-          <TextInput value={mins} onChangeText={setMins} keyboardType="number-pad" selectTextOnFocus maxLength={4} accessibilityLabel="Minutes" style={input} />
-          <T variant="body" style={{ fontWeight: '800' }}>
-            m
-          </T>
-        </View>
-        {!Number.isFinite(minutes) || minutes > GOAL_MINUTES.max ? (
-          <T variant="small" color={colors.wrong}>
-            Enter whole hours and minutes, up to a week.
-          </T>
-        ) : null}
-      </Section>
+        <Section label="Activity" style={styles.section}>
+          <View style={styles.chips} accessibilityRole="radiogroup">
+            <Chip role="radio" label="All activities" active={activityId === null} color={colors.gold} onPress={() => setActivityId(null)} />
+            {visible.map((a) => (
+              <Chip role="radio" key={a.id} label={a.name} active={activityId === a.id} color={a.color} onPress={() => setActivityId(a.id)} />
+            ))}
+          </View>
+        </Section>
 
-      <Section label="Activity">
-        <View style={styles.chips} accessibilityRole="radiogroup">
-          <Chip label="All activities" active={activityId === null} color={colors.gold} onPress={() => setActivityId(null)} />
-          {visible.map((a) => (
-            <Chip key={a.id} label={a.name} active={activityId === a.id} color={a.color} onPress={() => setActivityId(a.id)} />
-          ))}
-        </View>
-      </Section>
-
-      <Section label="Repeats">
-        <View style={styles.chips} accessibilityRole="radiogroup">
-          <Chip label="Every day" active={repeat === 'day'} color={colors.accent} onPress={() => setRepeat('day')} />
-          <Chip label="Every week" active={repeat === 'week'} color={colors.accent} onPress={() => setRepeat('week')} />
-          <Chip label="Custom" active={repeat === 'custom'} color={colors.accent} onPress={() => setRepeat('custom')} />
-        </View>
-        {repeat === 'custom' && (
-          <>
-            <View style={styles.days}>
-              {WEEK_ORDER.map((d) => (
-                <Pressable
-                  key={d}
-                  onPress={() => toggleDay(d)}
-                  accessibilityRole="checkbox"
-                  accessibilityLabel={DAY_NAMES[d]}
-                  accessibilityState={{ checked: days.includes(d) }}
-                  style={[styles.day, { borderColor: colors.accent, backgroundColor: days.includes(d) ? colors.accent : colors.background }]}
-                >
-                  <T variant="body" color={days.includes(d) ? '#FFFFFF' : colors.text} style={{ fontWeight: '900' }}>
-                    {LETTERS[d]}
-                  </T>
-                </Pressable>
-              ))}
-            </View>
-            <T variant="small">{days.length ? `This much time on each of these days: ${repeatLabel({ period: 'day', days: days.length < 7 ? [...days].sort() : undefined })}.` : 'Pick at least one day.'}</T>
-          </>
-        )}
-        {repeat === 'week' && <T variant="small">Counted Monday to Sunday, however you spread it.</T>}
-      </Section>
-
-      <View style={{ gap: spacing.md }}>
+        <Section label="Repeats" style={styles.section}>
+          <View style={styles.chips} accessibilityRole="radiogroup">
+            <Chip role="radio" label="Every day" active={repeat === 'day'} onPress={() => setRepeat('day')} />
+            <Chip role="radio" label="Every week" active={repeat === 'week'} onPress={() => setRepeat('week')} />
+            <Chip role="radio" label="Custom" active={repeat === 'custom'} onPress={() => setRepeat('custom')} />
+          </View>
+          {repeat === 'custom' && (
+            <>
+              <View style={styles.days}>
+                {WEEK_ORDER.map((d) => {
+                  const on = days.includes(d);
+                  return (
+                    <Pressable
+                      key={d}
+                      onPress={() => toggleDay(d)}
+                      accessibilityRole="checkbox"
+                      accessibilityLabel={DAY_NAMES[d]}
+                      accessibilityState={{ checked: on }}
+                      hitSlop={2}
+                      style={[styles.day, on ? { backgroundColor: colors.accent, borderColor: colors.accent } : { borderColor: colors.border }]}
+                    >
+                      <T variant="small" color={on ? '#FFFFFF' : colors.textMuted} style={{ fontSize: 14, fontWeight: '800' }}>
+                        {LETTERS[d]}
+                      </T>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <T variant="small">{days.length ? `This much time on each of these days: ${repeatLabel({ period: 'day', days: days.length < 7 ? [...days].sort() : undefined })}.` : 'Pick at least one day.'}</T>
+            </>
+          )}
+          {repeat === 'week' && <T variant="small">Counted Monday to Sunday, however you spread it.</T>}
+        </Section>
+      </ScrollView>
+      <BottomBar>
         <Button label={existing ? 'Save goal' : 'Add goal'} onPress={save} disabled={!valid} />
         {existing && <Button label="Delete goal" kind="ghost" onPress={remove} />}
-      </View>
-    </ScrollView>
+      </BottomBar>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: spacing.xl, gap: 28 },
+  section: { gap: 12 },
   timeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  input: { flex: 1, minHeight: TAP + 8, borderRadius: radius.md, paddingHorizontal: spacing.md, fontSize: 28, fontWeight: '800', textAlign: 'center' },
+  num: { width: 76, minHeight: 60, borderRadius: 16, paddingHorizontal: 4, fontSize: 28, fontFamily: fontFor('800'), textAlign: 'center' },
+  unit: { fontSize: 18, fontWeight: '700' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: { minHeight: 44, paddingHorizontal: spacing.lg, borderRadius: 999, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  days: { flexDirection: 'row', justifyContent: 'space-between' },
+  days: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 4 },
   day: { width: 42, height: 42, borderRadius: 21, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
 });

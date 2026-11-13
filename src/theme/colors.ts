@@ -3,14 +3,18 @@ export interface Palette {
   surface: string;
   surfaceAlt: string;
   border: string;
-  /** The darker edge under cards and outline buttons (the "3D" lip). */
+  /** The darker edge under raised controls (the "3D" lip of outline buttons and choices). */
   borderStrong: string;
   text: string;
   textMuted: string;
+  /** Quieter than muted: finished items, placeholders, idle tab icons. */
+  textFaint: string;
   /** Indigo (aizome): primary actions, current state, brand. */
   accent: string;
   accentShadow: string;
   accentText: string;
+  /** Indigo used as text or an outline on the background (lighter in dark mode). */
+  accentInk: string;
   accentSoft: string;
   /** Green: correct, done, study. */
   correct: string;
@@ -19,6 +23,7 @@ export interface Palette {
   correctSoft: string;
   wrong: string;
   wrongShadow: string;
+  wrongText: string;
   wrongSoft: string;
   notice: string;
   noticeSoft: string;
@@ -31,21 +36,31 @@ export interface Palette {
   blueShadow: string;
   blueSoft: string;
   blueText: string;
+  /** Streak flame. */
+  flame: string;
+  flameText: string;
+  flameSoft: string;
+  /** A soft peach (avatar background). */
+  peachSoft: string;
+  /** Tab bar and bottom action bars. */
+  bar: string;
   chartBar: string;
 }
 
-// Aizome: cool paper ground, Japanese-indigo primary, chunky colour-blocked accents (the green frog pops on it).
+// Refined paper: cool off-white ground, Japanese-indigo primary, colour carried by icons and buttons rather than boxes.
 export const light: Palette = {
-  background: '#F5F6FA',
+  background: '#F4F5F9',
   surface: '#FFFFFF',
   surfaceAlt: '#ECEEF5',
   border: '#E2E5EF',
   borderStrong: '#D3D7E5',
   text: '#1B1F33',
   textMuted: '#5E6480',
+  textFaint: '#8A90AA',
   accent: '#3D4FA8',
   accentShadow: '#2B3A85',
   accentText: '#FFFFFF',
+  accentInk: '#3D4FA8',
   accentSoft: '#E4E8F7',
   correct: '#3FA34D',
   correctShadow: '#2E7D39',
@@ -53,6 +68,7 @@ export const light: Palette = {
   correctSoft: '#D9F0DC',
   wrong: '#DD4B3E',
   wrongShadow: '#AE3226',
+  wrongText: '#AE3226',
   wrongSoft: '#FBE3E0',
   notice: '#8A5A0B',
   noticeSoft: '#FDF1D6',
@@ -63,20 +79,28 @@ export const light: Palette = {
   blueShadow: '#1F5F95',
   blueSoft: '#EAF3FB',
   blueText: '#1F5F95',
+  flame: '#F08A3C',
+  flameText: '#C2541F',
+  flameSoft: '#FFF1E6',
+  peachSoft: '#FCE6DA',
+  bar: '#FFFFFF',
   chartBar: '#2F7FC1',
 };
 
+// The same design on a deep night-pond blue: lighter inks, deep tinted fills.
 export const dark: Palette = {
-  background: '#12141C',
-  surface: '#1C1F2B',
-  surfaceAlt: '#252938',
-  border: '#2F3446',
-  borderStrong: '#0A0B10',
+  background: '#10131F',
+  surface: '#1C2031',
+  surfaceAlt: '#232838',
+  border: '#2A3150',
+  borderStrong: '#0A0C14',
   text: '#ECEEF6',
   textMuted: '#A3A9C2',
+  textFaint: '#6E7593',
   accent: '#5366CC',
   accentShadow: '#2E3B85',
   accentText: '#FFFFFF',
+  accentInk: '#9CB0FF',
   accentSoft: '#262C4A',
   correct: '#4CB85A',
   correctShadow: '#2B7236',
@@ -84,6 +108,7 @@ export const dark: Palette = {
   correctSoft: '#1F3323',
   wrong: '#F07366',
   wrongShadow: '#A7362B',
+  wrongText: '#F59A8E',
   wrongSoft: '#3D2220',
   notice: '#F2C66B',
   noticeSoft: '#3A301A',
@@ -94,6 +119,11 @@ export const dark: Palette = {
   blueShadow: '#1F5F95',
   blueSoft: '#1D2C3A',
   blueText: '#9CCBF2',
+  flame: '#F59A55',
+  flameText: '#F8B07A',
+  flameSoft: '#3A2618',
+  peachSoft: '#3E2A20',
+  bar: '#151927',
   chartBar: '#5AA3E0',
 };
 
@@ -129,21 +159,23 @@ export const LEVEL_COLORS_DARK: Record<string, LineColors> = {
   N1: { line: '#D9663D', ink: '#F2A07F', soft: '#3E2A20' },
 };
 
+/**
+ * One rounded family for Latin and Japanese alike (M PLUS Rounded 1c), in three weights.
+ * The old names stay so every caller keeps working: black and the jp variants map onto them.
+ */
 export const FONTS = {
-  regular: 'Nunito_600SemiBold',
-  bold: 'Nunito_700Bold',
-  extra: 'Nunito_800ExtraBold',
-  black: 'Nunito_900Black',
-  jp: 'ZenMaruGothic_500Medium',
-  jpBold: 'ZenMaruGothic_700Bold',
-  jpBlack: 'ZenMaruGothic_700Bold', // only 500 + 700 ship (each Japanese weight is ~3.7 MB)
+  regular: 'MPLUSRounded1c_500Medium',
+  bold: 'MPLUSRounded1c_700Bold',
+  extra: 'MPLUSRounded1c_800ExtraBold',
+  black: 'MPLUSRounded1c_800ExtraBold',
+  jp: 'MPLUSRounded1c_500Medium',
+  jpBold: 'MPLUSRounded1c_700Bold',
+  jpBlack: 'MPLUSRounded1c_800ExtraBold',
 } as const;
 
 /** Pick the loaded font file for a weight (custom fonts on native need one family per weight). */
-export function fontFor(weight: string | number | undefined, jp = false): string {
-  const w = Number(weight ?? 600) || 600;
-  if (jp) return w >= 850 ? FONTS.jpBlack : w >= 650 ? FONTS.jpBold : FONTS.jp;
-  if (w >= 850) return FONTS.black;
+export function fontFor(weight: string | number | undefined, _jp = false): string {
+  const w = Number(weight ?? 500) || 500;
   if (w >= 750) return FONTS.extra;
   if (w >= 650) return FONTS.bold;
   return FONTS.regular;

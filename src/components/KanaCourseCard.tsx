@@ -1,4 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
@@ -6,8 +5,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { HIRAGANA, KANA_LESSONS, KATAKANA } from '../kana/data';
 import { passedKanaLessons } from '../kana/repo';
 import { useApp } from '../state/AppProvider';
-import { radius, spacing } from '../theme/colors';
-import { T } from './ui';
+import { Icon } from './Icon';
+import { IconTile, T } from './ui';
 
 /**
  * The way into the kana course. `whileLearning` hides it once every lesson is passed (or marked
@@ -42,28 +41,23 @@ export function KanaCourseCard({ whileLearning = false }: { whileLearning?: bool
       onPress={() => router.push('/kana')}
       accessibilityRole="button"
       accessibilityLabel={`Kana course. Hiragana ${h} of ${HIRAGANA.length}, katakana ${k} of ${KATAKANA.length}. ${detail}`}
-      style={({ pressed }) => [styles.card, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
+      style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
     >
-      <View style={[styles.badge, { backgroundColor: colors.accentSoft }]}>
-        <T jp color={colors.accent} style={{ fontSize: 26, lineHeight: 34, fontWeight: '900' }}>
-          あ
-        </T>
-      </View>
-      <View style={{ flex: 1, gap: 2 }}>
-        <T variant="body" style={{ fontWeight: '800' }}>
+      <IconTile icon="kana" color={colors.accentInk} soft={colors.accentSoft} filled={false} />
+      <View style={{ flex: 1 }}>
+        <T variant="body" style={{ fontWeight: '700' }}>
           {passed.size === 0 ? 'Learn to read kana' : 'Kana course'}
         </T>
         <T variant="small" numberOfLines={1}>
           {detail}
         </T>
-        <T variant="small">{`Hiragana ${h}/${HIRAGANA.length} · Katakana ${k}/${KATAKANA.length}`}</T>
+        <T variant="small" color={colors.textFaint}>{`Hiragana ${h}/${HIRAGANA.length} · Katakana ${k}/${KATAKANA.length}`}</T>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+      <Icon name="chevronRight" size={18} color={colors.textFaint} strokeWidth={2.4} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1 },
-  badge: { width: 52, height: 52, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 62, paddingVertical: 10 },
 });

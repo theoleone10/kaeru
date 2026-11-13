@@ -59,8 +59,8 @@ export default function KanaReview() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg }}>
-      {questions && questions.length === 0 && <T variant="body">Pass a lesson first, then practise here.</T>}
+    <View style={{ flex: 1, backgroundColor: colors.background, paddingHorizontal: 20, paddingTop: spacing.lg, paddingBottom: insets.bottom + spacing.xl }}>
+      {questions && questions.length === 0 && <T variant="muted">Pass a lesson first, then practise here.</T>}
       {questions && questions.length > 0 && <KanaQuiz key={round} questions={questions} onDone={finish} />}
     </View>
   );

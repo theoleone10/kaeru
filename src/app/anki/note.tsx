@@ -1,9 +1,7 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import {
   addNote,
   BUILTIN_NOTETYPES,
@@ -18,31 +16,16 @@ import {
   type BuiltinKind,
   type EditableNote,
 } from '@/anki/notes';
+import { BottomBar, Chip, Input } from '@/components/FormControls';
+import { Icon } from '@/components/Icon';
 import { Button, Section, T } from '@/components/ui';
 import { getKv, setKv } from '@/db/repo';
 import { useApp } from '@/state/AppProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+import { spacing } from '@/theme/colors';
 
 const KINDS: BuiltinKind[] = ['basic', 'reversed', 'vocab'];
 
 type Field = { text: string; raw: boolean };
-
-function Chip({ label, active, onPress, icon }: { label: string; active: boolean; onPress: () => void; icon?: keyof typeof Ionicons.glyphMap }) {
-  const { colors } = useApp();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      style={[styles.chip, { backgroundColor: active ? colors.accentSoft : colors.surfaceAlt, borderColor: active ? colors.accent : 'transparent' }]}
-    >
-      {icon && <Ionicons name={icon} size={16} color={active ? colors.accent : colors.textMuted} />}
-      <T variant="small" color={active ? colors.accent : colors.text} style={{ fontWeight: '800' }}>
-        {label}
-      </T>
-    </Pressable>
-  );
-}
 
 /**
  * Add cards to a deck (?deck=path) with one of Kaeru's note types, or edit a card's note
@@ -50,7 +33,6 @@ function Chip({ label, active, onPress, icon }: { label: string; active: boolean
  */
 export default function NoteEditor() {
   const db = useSQLiteContext();
-  const insets = useSafeAreaInsets();
   const { colors } = useApp();
   const params = useLocalSearchParams<{ deck?: string; note?: string }>();
   const noteId = params.note ? Number(params.note) : null;
@@ -156,21 +138,21 @@ export default function NoteEditor() {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={100}>
       <Stack.Screen options={{ title: editing ? 'Edit card' : 'Add cards' }} />
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: insets.bottom + spacing.xxl }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {editing ? (
           <T variant="small">
             {editing.notetype.name} · {editing.deck.replaceAll('::', ' › ')}
           </T>
         ) : (
           <>
-            <Section label="Type">
+            <Section label="Type" style={styles.section}>
               <View style={styles.chips}>
                 {KINDS.map((k) => (
                   <Chip key={k} label={BUILTIN_NOTETYPES[k].label} active={kind === k} onPress={() => pickKind(k)} />
                 ))}
               </View>
             </Section>
-            <Section label="Deck">
+            <Section label="Deck" style={styles.section}>
               <View style={styles.chips}>
                 {decks.map((d) => (
                   <Chip
@@ -183,43 +165,41 @@ export default function NoteEditor() {
                     }}
                   />
                 ))}
-                <Chip label="New deck" icon="add" active={newDeck !== null} onPress={() => setNewDeck(newDeck ?? '')} />
+                <Chip label="New deck" icon="plus" active={newDeck !== null} onPress={() => setNewDeck(newDeck ?? '')} />
               </View>
               {newDeck !== null && (
-                <TextInput
+                <Input
                   value={newDeck}
                   onChangeText={setNewDeck}
                   placeholder="Deck name (use :: for a subdeck)"
-                  placeholderTextColor={colors.textMuted}
                   autoFocus={decks.length > 0}
                   accessibilityLabel="New deck name"
-                  style={[styles.input, { color: colors.text, backgroundColor: colors.surfaceAlt }]}
                 />
               )}
             </Section>
           </>
         )}
 
-        <Section label="Fields">
+        <Section label="Fields" style={{ gap: 14 }}>
           {names.map((name, i) => (
-            <View key={`${kind}-${name}`} style={{ gap: spacing.xs }}>
+            <View key={`${kind}-${name}`} style={{ gap: 6 }}>
               <View style={styles.fieldHead}>
-                <T variant="small" style={{ fontWeight: '800' }}>
+                <T variant="small" style={{ fontWeight: '700' }}>
                   {name}
                 </T>
-                {fields[i]?.raw && <T variant="small">HTML</T>}
+                {fields[i]?.raw && <T variant="small" color={colors.textFaint}>HTML</T>}
               </View>
-              <TextInput
+              <Input
                 ref={i === 0 ? firstInput : undefined}
                 value={fields[i]?.text ?? ''}
                 onChangeText={(t) => setField(i, t)}
                 placeholder={hints[name] ?? ''}
-                placeholderTextColor={colors.textMuted}
                 multiline
+                big
                 autoCapitalize="none"
                 autoFocus={i === 0 && editing === null && decks.length > 0}
                 accessibilityLabel={name}
-                style={[styles.input, styles.multiline, { color: colors.text, backgroundColor: colors.surfaceAlt }]}
+                style={styles.multiline}
               />
             </View>
           ))}
@@ -227,26 +207,27 @@ export default function NoteEditor() {
 
         {added && !editing && (
           <View style={styles.added}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.correct} />
-            <T variant="small" color={colors.correct} style={{ fontWeight: '800', flex: 1 }}>
+            <Icon name="check" size={20} color={colors.correct} strokeWidth={2.6} />
+            <T variant="small" color={colors.correctText} style={{ fontWeight: '700', flex: 1 }}>
               {added}
             </T>
           </View>
         )}
-
+      </ScrollView>
+      <BottomBar>
         <Button label={editing ? 'Save' : 'Add card'} onPress={save} loading={busy} disabled={!canSave} />
         {editing && <Button label="Delete note" kind="danger" onPress={confirmDelete} />}
         {!editing && added && <Button label="Done" kind="ghost" onPress={() => router.back()} />}
-      </ScrollView>
+      </BottomBar>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: spacing.xl, gap: 22 },
+  section: { gap: 10 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.md, borderWidth: 2 },
-  input: { minHeight: TAP, borderRadius: radius.md, paddingHorizontal: spacing.md, fontSize: 17 },
-  multiline: { paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' },
+  multiline: { paddingTop: 11, paddingBottom: 11, textAlignVertical: 'top' },
   fieldHead: { flexDirection: 'row', justifyContent: 'space-between' },
   added: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

@@ -1,7 +1,7 @@
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useApp } from '../state/AppProvider';
-import { radius, spacing, TAP } from '../theme/colors';
+import { spacing } from '../theme/colors';
 import { T } from './ui';
 
 /** Date + time picker: iOS shows the compact native control; Android opens the date then time dialogs. */
@@ -10,8 +10,10 @@ export function DateTimeField({ label, value, onChange }: { label: string; value
 
   if (Platform.OS === 'ios') {
     return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: TAP }}>
-        <T variant="body">{label}</T>
+      <View style={styles.row}>
+        <T variant="body" style={styles.label}>
+          {label}
+        </T>
         <DateTimePicker
           value={new Date(value)}
           mode="datetime"
@@ -39,16 +41,38 @@ export function DateTimeField({ label, value, onChange }: { label: string; value
       },
     });
 
+  const d = new Date(value);
+  const pick = [styles.pick, { backgroundColor: colors.surfaceAlt }];
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: TAP }}>
-      <T variant="body">{label}</T>
+    <View style={styles.row}>
+      <T variant="body" style={styles.label}>
+        {label}
+      </T>
       <Pressable
         onPress={Platform.OS === 'android' ? openAndroid : undefined}
         accessibilityRole="button"
-        style={{ backgroundColor: colors.surfaceAlt, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}
+        accessibilityLabel={`${label}, ${d.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`}
+        style={({ pressed }) => [styles.picks, { opacity: pressed ? 0.7 : 1 }]}
       >
-        <T variant="body">{new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</T>
+        <View style={pick}>
+          <T variant="body" style={styles.pickText}>
+            {d.toLocaleDateString([], { month: 'short', day: 'numeric' })}
+          </T>
+        </View>
+        <View style={pick}>
+          <T variant="body" style={styles.pickText}>
+            {d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+          </T>
+        </View>
       </Pressable>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 54, gap: spacing.md },
+  label: { fontWeight: '700' },
+  picks: { flexDirection: 'row', gap: 6 },
+  pick: { minHeight: 36, paddingHorizontal: spacing.md, borderRadius: 10, justifyContent: 'center' },
+  pickText: { fontSize: 15, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
+});

@@ -1,12 +1,12 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Section, T } from '@/components/ui';
+import { Icon } from '@/components/Icon';
+import { Rule, Section, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
 import { useTime } from '@/time/TimeProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+import { spacing, TAP } from '@/theme/colors';
 
 function timerUrl(action: 'start' | 'stop' | 'toggle', activity?: string): string {
   return Linking.createURL(`timer/${action}`, activity ? { queryParams: { activity } } : undefined);
@@ -24,19 +24,35 @@ function CopyRow({ label, url }: { label: string; url: string }) {
       }}
       accessibilityRole="button"
       accessibilityHint="Copies the link"
-      style={({ pressed }) => [styles.copyRow, { backgroundColor: colors.surfaceAlt, opacity: pressed ? 0.7 : 1 }]}
+      style={({ pressed }) => [styles.copyRow, { opacity: pressed ? 0.6 : 1 }]}
     >
       <View style={{ flex: 1, gap: 2 }}>
-        <T variant="body" style={{ fontWeight: '600' }}>
+        <T variant="body" style={{ fontWeight: '700' }}>
           {label}
         </T>
-        <T variant="small" style={{ fontFamily: 'Menlo' }} numberOfLines={2}>
+        <T variant="small" color={colors.textFaint} style={{ fontSize: 12 }} numberOfLines={2}>
           {url}
         </T>
       </View>
-      <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={20} color={colors.accent} />
+      <Icon name={copied ? 'check' : 'copy'} size={20} color={copied ? colors.correct : colors.accentInk} strokeWidth={copied ? 2.6 : 2} />
     </Pressable>
   );
+}
+
+function Steps({ steps }: { steps: string[] }) {
+  const { colors } = useApp();
+  return steps.map((s, i) => (
+    <View key={i} style={styles.step}>
+      <View style={[styles.num, { backgroundColor: colors.accentSoft }]}>
+        <T variant="small" color={colors.accentInk} style={{ fontWeight: '800' }} jp={false}>
+          {i + 1}
+        </T>
+      </View>
+      <T variant="body" color={colors.textMuted} style={{ flex: 1 }}>
+        {s}
+      </T>
+    </View>
+  ));
 }
 
 const ACTION_STEPS = [
@@ -60,44 +76,31 @@ export default function ShortcutsHelp() {
   const visible = activities.filter((a) => !a.archived);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl }}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: spacing.xxl, gap: 28 }}>
       {Platform.OS === 'ios' && (
         <Section label="Shortcuts app">
-          {ACTION_STEPS.map((s, i) => (
-            <View key={i} style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <T variant="body" style={{ fontWeight: '700', width: 18 }}>
-                {i + 1}.
-              </T>
-              <T variant="body" style={{ flex: 1 }}>
-                {s}
-              </T>
-            </View>
-          ))}
+          <Steps steps={ACTION_STEPS} />
           <T variant="small">Or ask Siri: {SIRI_PHRASES.join(', ')}</T>
         </Section>
       )}
 
       <Section label={Platform.OS === 'ios' ? 'Or use a link' : 'Set up a shortcut'}>
-        {STEPS.map((s, i) => (
-          <View key={i} style={{ flexDirection: 'row', gap: spacing.sm }}>
-            <T variant="body" style={{ fontWeight: '700', width: 18 }}>
-              {i + 1}.
-            </T>
-            <T variant="body" style={{ flex: 1 }}>
-              {s}
-            </T>
-          </View>
-        ))}
+        <Steps steps={STEPS} />
       </Section>
 
       <Section label="Links · tap to copy">
-        {visible.map((a) => (
-          <CopyRow key={`start-${a.id}`} label={`Start ${a.name}`} url={timerUrl('start', a.name)} />
-        ))}
-        <CopyRow label="Stop the timer" url={timerUrl('stop')} />
-        {visible.map((a) => (
-          <CopyRow key={`toggle-${a.id}`} label={`Start / stop ${a.name} (one button)`} url={timerUrl('toggle', a.name)} />
-        ))}
+        <View>
+          {[
+            ...visible.map((a) => ({ key: `start-${a.id}`, label: `Start ${a.name}`, url: timerUrl('start', a.name) })),
+            { key: 'stop', label: 'Stop the timer', url: timerUrl('stop') },
+            ...visible.map((a) => ({ key: `toggle-${a.id}`, label: `Start / stop ${a.name} (one button)`, url: timerUrl('toggle', a.name) })),
+          ].map((r, i) => (
+            <View key={r.key}>
+              {i > 0 && <Rule />}
+              <CopyRow label={r.label} url={r.url} />
+            </View>
+          ))}
+        </View>
         <T variant="small">Add a note with &amp;note=…</T>
       </Section>
     </ScrollView>
@@ -105,5 +108,7 @@ export default function ShortcutsHelp() {
 }
 
 const styles = StyleSheet.create({
-  copyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, minHeight: TAP },
+  copyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, minHeight: TAP },
+  step: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  num: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
 });

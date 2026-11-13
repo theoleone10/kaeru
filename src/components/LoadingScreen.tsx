@@ -39,5 +39,5 @@ export function LoadingScreen({ ready }: { ready: boolean }) {
 const styles = StyleSheet.create({
   root: { backgroundColor: SPLASH_BLUE, alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
   frog: { position: 'absolute', left: 0, bottom: 0 },
-  title: { fontFamily: FONTS.black, fontSize: 56, color: '#FFFFFF', letterSpacing: 1 },
+  title: { fontFamily: FONTS.black, fontSize: 56, color: '#FFFFFF' },
 });

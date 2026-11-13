@@ -1,4 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -6,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
 import { DayDoneCelebration } from '@/components/DayDoneCelebration';
-import { StepBadge } from '@/components/DayPlan';
+import { StepRow, StepSegments } from '@/components/DayPlan';
 import { Flame } from '@/components/Flame';
 import { KanaCourseCard } from '@/components/KanaCourseCard';
 import { Mascot } from '@/components/Mascot';
@@ -25,7 +24,7 @@ const pick = () => Math.floor(Math.random() * 1000);
 
 export default function Today() {
   const insets = useSafeAreaInsets();
-  const { colors, lines, cards, settings } = useApp();
+  const { colors, lines, cards, settings, isDark } = useApp();
   const { running } = useTime();
   const today = useToday();
   const { plan, now, streak } = today;
@@ -44,26 +43,33 @@ export default function Today() {
   const say = said[seed % said.length];
   const date = new Date(now);
 
+  const level = next?.level ?? 'N1';
+  const lit = streak.goalMetToday;
+  const lift = isDark ? undefined : SHADOW;
+
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
       alwaysBounceVertical={false}
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.topBar}>
         <Pressable
-          onPress={() => router.navigate({ pathname: '/grammar', params: { level: next?.level ?? 'N1' } })}
+          onPress={() => router.navigate({ pathname: '/grammar', params: { level } })}
           accessibilityRole="button"
-          accessibilityLabel={`${next?.level ?? 'N1'} line, open the grammar map`}
-          style={[styles.levelPill, { backgroundColor: line.soft }]}
+          accessibilityLabel={`${level} line, open the grammar map`}
+          hitSlop={4}
+          style={({ pressed }) => [styles.levelPill, { backgroundColor: colors.surface, boxShadow: lift, paddingRight: station ? 14 : 5, transform: [{ scale: pressed ? 0.96 : 1 }] }]}
         >
-          <T variant="small" color={line.ink} style={{ fontWeight: '900', fontSize: 15 }}>
-            {next?.level ?? 'N1'}
-          </T>
+          <View style={[styles.levelBadge, { backgroundColor: line.line }]}>
+            <T variant="small" color="#FFFFFF" style={{ fontWeight: '800', fontSize: 11, lineHeight: 14 }}>
+              {level}
+            </T>
+          </View>
           {station && (
-            <T variant="small" color={line.ink} style={{ fontSize: 14 }}>
-              · Unit {station.unit}
+            <T variant="small" color={line.ink} style={{ fontSize: 14, lineHeight: 20, fontWeight: '700' }}>
+              Unit {station.unit}
             </T>
           )}
         </Pressable>
@@ -72,26 +78,35 @@ export default function Today() {
             onPress={() => router.push('/progress')}
             accessibilityRole="button"
             accessibilityLabel={`${streak.days} day streak. Open progress.`}
-            hitSlop={8}
-            style={({ pressed }) => [styles.topStat, { opacity: pressed ? 0.6 : 1 }]}
+            hitSlop={4}
+            style={({ pressed }) => [styles.streak, { backgroundColor: lit ? colors.flameSoft : colors.surfaceAlt, transform: [{ scale: pressed ? 0.96 : 1 }] }]}
           >
-            <Flame color={streak.goalMetToday ? '#F08A3C' : colors.textMuted} />
-            <T variant="heading" color={streak.goalMetToday ? '#D9663D' : colors.textMuted} style={{ fontWeight: '900' }}>
+            <Flame size={18} color={lit ? colors.flame : colors.textFaint} core={lit ? undefined : colors.surfaceAlt} />
+            <T variant="body" color={lit ? colors.flameText : colors.textMuted} style={{ fontWeight: '800', fontSize: 16, lineHeight: 20, fontVariant: ['tabular-nums'] }}>
               {streak.days}
             </T>
           </Pressable>
-          <Pressable onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel="Your profile" hitSlop={6}>
+          <Pressable
+            onPress={() => router.push('/profile')}
+            accessibilityRole="button"
+            accessibilityLabel="Your profile"
+            hitSlop={6}
+            style={({ pressed }) => [styles.avatar, { borderColor: isDark ? 'transparent' : colors.surface, boxShadow: isDark ? undefined : '0px 1px 4px rgba(27,31,51,0.12)', transform: [{ scale: pressed ? 0.94 : 1 }] }]}
+          >
             <Avatar size={40} />
           </Pressable>
         </View>
       </View>
 
       <View style={{ gap: 2 }}>
-        <T variant="small" style={{ fontWeight: '800', fontSize: 15 }}>
+        <T variant="small" style={{ fontSize: 14, lineHeight: 20 }}>
           {date.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })}
         </T>
-        <T variant="title" style={{ fontSize: 32, lineHeight: 38 }}>
-          {date.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}
+        <T variant="title" style={{ fontSize: 34, lineHeight: 40 }}>
+          {date.toLocaleDateString([], { weekday: 'long' })}
+        </T>
+        <T variant="muted" style={{ fontSize: 17, lineHeight: 24 }}>
+          {date.toLocaleDateString([], { day: 'numeric', month: 'long' })}
         </T>
       </View>
 
@@ -105,10 +120,9 @@ export default function Today() {
         accessibilityHint="Tap for something else"
         style={styles.frog}
       >
-        <Mascot size={92} mood={plan.allDone ? 'cheer' : 'happy'} bounce />
-        <View style={[styles.bubble, { backgroundColor: colors.surface }]}>
-          <View style={[styles.tail, { borderRightColor: colors.surface }]} />
-          <T variant="heading" style={{ fontWeight: '900' }}>
+        <Mascot size={90} mood={plan.allDone ? 'cheer' : 'happy'} bounce />
+        <View style={{ flex: 1, gap: 2 }}>
+          <T variant="body" style={{ fontSize: 18, lineHeight: 26, fontWeight: '700' }}>
             {say.jp}
           </T>
           <T variant="small">{say.en}</T>
@@ -116,64 +130,50 @@ export default function Today() {
       </Pressable>
 
       {plan.steps.length > 0 && (
-        <View style={{ gap: spacing.xs }}>
-          <T variant="small" style={{ fontWeight: '900', letterSpacing: 1 }}>
-            {plan.allDone ? '今日 · ALL DONE' : `今日 · ${plan.doneCount}/${plan.steps.length}`}
-          </T>
-          {plan.steps.map((s) => (
-            <Pressable
-              key={s.key}
-              onPress={() => today.goTo(s.id)}
-              accessibilityRole="button"
-              accessibilityLabel={`${s.title}. ${s.detail}. ${s.done ? 'Done' : 'To do'}`}
-              style={({ pressed }) => [styles.step, { opacity: pressed ? 0.6 : 1 }]}
-            >
-              <StepBadge step={s} size={40} />
-              <View style={{ flex: 1 }}>
-                <T variant="body" color={s.done ? colors.textMuted : colors.text} style={{ fontWeight: '800', textDecorationLine: s.done ? 'line-through' : 'none' }} numberOfLines={1}>
-                  {s.title}
-                </T>
-                {s.detail ? (
-                  <T variant="small" numberOfLines={1}>
-                    {s.detail}
-                  </T>
-                ) : null}
-              </View>
-              {!s.done && <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />}
-            </Pressable>
-          ))}
+        <View>
+          <View style={styles.listHead}>
+            <T variant="body" style={{ fontSize: 15, lineHeight: 22, fontWeight: '800' }}>
+              今日{' '}
+              <T variant="muted" style={{ fontSize: 15, lineHeight: 22 }}>
+                Today
+              </T>
+            </T>
+            <T variant="small" style={{ fontWeight: '700', fontVariant: ['tabular-nums'] }}>
+              {plan.allDone ? 'All done' : `${plan.doneCount} of ${plan.steps.length}`}
+            </T>
+          </View>
+          <View style={{ paddingBottom: 10 }}>
+            <StepSegments steps={plan.steps} />
+          </View>
+          <View style={{ marginHorizontal: -spacing.md }}>
+            {plan.steps.map((s) => (
+              <StepRow key={s.key} step={s} isNext={plan.next?.key === s.key} onPress={() => today.goTo(s.id)} />
+            ))}
+          </View>
         </View>
       )}
 
       {settings.studyKana && <KanaCourseCard whileLearning />}
 
       <View style={{ flex: 1 }} />
-      <TimerChips showAdd={false} />
+      <View style={{ paddingBottom: spacing.sm }}>
+        <TimerChips showAdd={false} />
+      </View>
       <DayDoneCelebration loaded={today.loaded} allDone={plan.allDone} streak={streak.days} />
     </ScrollView>
   );
 }
 
+const SHADOW = '0px 1px 2px rgba(27,31,51,0.06), 0px 2px 8px rgba(27,31,51,0.05)';
+
 const styles = StyleSheet.create({
-  content: { flexGrow: 1, padding: spacing.lg, gap: spacing.lg },
+  content: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: spacing.lg, gap: 22 },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  levelPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
+  levelPill: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 36, paddingLeft: 5, borderRadius: 999 },
+  levelBadge: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   topStats: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  topStat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  streak: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 36, paddingHorizontal: spacing.md, borderRadius: 999 },
+  avatar: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   frog: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  bubble: { flex: 1, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, gap: 2 },
-  tail: {
-    position: 'absolute',
-    left: -10,
-    top: '50%',
-    marginTop: -8,
-    width: 0,
-    height: 0,
-    borderTopWidth: 8,
-    borderBottomWidth: 8,
-    borderRightWidth: 11,
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-  },
-  step: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 6 },
+  listHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10 },
 });
