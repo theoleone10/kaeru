@@ -4,15 +4,17 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type S
 import { playSound } from '../sound/sounds';
 import { useApp } from '../state/AppProvider';
 import { fontFor, LIP, radius, spacing, TAP, type Palette } from '../theme/colors';
+import { Icon, type IconName } from './Icon';
 
 type Variant = 'title' | 'heading' | 'body' | 'muted' | 'small' | 'jp';
 
+// One family, three weights: 500 for reading, 700 for labels and list titles, 800 for headings and numbers.
 const TEXT: Record<Variant, TextStyle> = {
-  title: { fontSize: 30, lineHeight: 36, fontWeight: '900' },
-  heading: { fontSize: 19, lineHeight: 25, fontWeight: '800' },
-  body: { fontSize: 16, lineHeight: 23, fontWeight: '600' },
-  muted: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
-  small: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
+  title: { fontSize: 32, lineHeight: 40, fontWeight: '800' },
+  heading: { fontSize: 19, lineHeight: 26, fontWeight: '800' },
+  body: { fontSize: 16, lineHeight: 24, fontWeight: '500' },
+  muted: { fontSize: 15, lineHeight: 22, fontWeight: '500' },
+  small: { fontSize: 13, lineHeight: 18, fontWeight: '500' },
   jp: { fontSize: 22, lineHeight: 32, fontWeight: '700' },
 };
 
@@ -26,7 +28,7 @@ function containsCjk(node: ReactNode): boolean {
 
 /**
  * Map a weight to the loaded font file (native custom fonts need one family per weight).
- * Japanese text uses Zen Maru Gothic; everything else Nunito.
+ * M PLUS Rounded 1c covers Japanese and Latin alike.
  */
 export function fontStyle(style: StyleProp<TextStyle>, jp: boolean): TextStyle {
   const flat = StyleSheet.flatten(style) ?? {};
@@ -61,16 +63,16 @@ export function T({
 }
 
 /**
- * A plain block on the page background: a small-caps label (with an optional control on the
- * right), then its content. Used instead of cards, like the 今日 list on Today.
+ * A plain block on the page background: a bold label (with an optional control on the right),
+ * then its content. Used instead of cards: the app separates things with space and thin rules.
  */
 export function Section({ label, right, children, style }: { label?: string; right?: ReactNode; children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[{ gap: spacing.sm }, style]}>
       {(label || right) && (
         <View style={styles.sectionHead}>
-          <T variant="small" style={{ flex: 1, fontWeight: '900', letterSpacing: 1 }}>
-            {label?.toUpperCase()}
+          <T variant="body" style={{ flex: 1, fontSize: 15, lineHeight: 22, fontWeight: '800' }}>
+            {label}
           </T>
           {right}
         </View>
@@ -84,7 +86,7 @@ export function Section({ label, right, children, style }: { label?: string; rig
 export function Stat({ value, label, color }: { value: string; label: string; color?: string }) {
   return (
     <View style={{ flex: 1, gap: 0 }}>
-      <T variant="title" color={color} style={{ fontSize: 26, lineHeight: 32 }} numberOfLines={1}>
+      <T variant="title" color={color} style={{ fontSize: 26, lineHeight: 32 }} numberOfLines={1} jp={false}>
         {value}
       </T>
       <T variant="small">{label}</T>
@@ -92,34 +94,33 @@ export function Stat({ value, label, color }: { value: string; label: string; co
   );
 }
 
-/** A white card with a soft 3D lip. */
-export function Card({ children, style, tone }: { children: ReactNode; style?: StyleProp<ViewStyle>; tone?: 'accent' | 'blue' | 'green' | 'gold' }) {
+/** A thin divider between rows. */
+export function Rule({ style }: { style?: StyleProp<ViewStyle> }) {
   const { colors } = useApp();
-  const tint = tone ? toneColors(colors, tone) : null;
-  return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: tint ? tint.soft : colors.surface,
-          borderColor: tint ? tint.edge : colors.border,
-          borderBottomColor: tint ? tint.edge : colors.borderStrong,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </View>
-  );
+  return <View style={[{ height: StyleSheet.hairlineWidth * 2, backgroundColor: colors.border }, style]} />;
 }
 
-function toneColors(colors: Palette, tone: 'accent' | 'blue' | 'green' | 'gold') {
-  return {
-    accent: { soft: colors.accentSoft, edge: colors.accent },
-    blue: { soft: colors.blueSoft, edge: colors.blue },
-    green: { soft: colors.correctSoft, edge: colors.correct },
-    gold: { soft: colors.goldSoft, edge: colors.gold },
-  }[tone];
+/**
+ * A rounded-square icon tile: a coloured face with a white icon (with `lip`, a darker edge under it),
+ * or a soft tint with a coloured icon. Used for the parts of the day, settings rows and features.
+ */
+export function IconTile({ icon, color, soft, lip, size = 42, filled = true, done }: { icon: IconName; color: string; soft?: string; lip?: string; size?: number; filled?: boolean; done?: boolean }) {
+  const onSoft = !!soft && !done;
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.31),
+        backgroundColor: onSoft ? soft : color,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...(lip && !onSoft ? { borderBottomWidth: 3, borderBottomColor: lip } : null),
+      }}
+    >
+      <Icon name={done ? 'check' : icon} size={size * 0.54} color={onSoft ? color : '#FFFFFF'} filled={filled || done} cutout={onSoft ? soft : color} strokeWidth={done ? 2.6 : 2} />
+    </View>
+  );
 }
 
 export type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'blue';
@@ -135,9 +136,9 @@ export function buttonColors(colors: Palette, kind: ButtonKind): { bg: string; l
     case 'danger':
       return { bg: colors.wrong, lip: colors.wrongShadow, fg: '#FFFFFF' };
     case 'secondary':
-      return { bg: colors.surface, lip: colors.borderStrong, fg: colors.accent, border: colors.border };
+      return { bg: colors.surface, lip: colors.borderStrong, fg: colors.accentInk, border: colors.border };
     case 'ghost':
-      return { bg: 'transparent', lip: 'transparent', fg: colors.accent, border: colors.border };
+      return { bg: 'transparent', lip: 'transparent', fg: colors.accentInk };
   }
 }
 
@@ -152,7 +153,7 @@ export function darken(hex: string, amount = 0.25): string {
 
 /**
  * Chunky 3D button: a coloured face on a darker lip that presses down when tapped.
- * Labels are uppercase and extra-bold, like a game button.
+ * Labels are written as given (sentence case), never shouted.
  */
 export function Button({
   label,
@@ -223,8 +224,8 @@ export function Button({
             ) : (
               <>
                 {icon}
-                <T variant="body" color={c.fg} jp={false} style={{ fontWeight: '900', fontSize: small ? 14 : 17, letterSpacing: 0.8 }}>
-                  {label.toUpperCase()}
+                <T variant="body" color={c.fg} style={{ fontWeight: kind === 'ghost' ? '700' : '800', fontSize: small ? 15 : 17, lineHeight: small ? 20 : 22 }} numberOfLines={2}>
+                  {label}
                 </T>
               </>
             )}
@@ -258,10 +259,10 @@ export function ProgressBar({ value, secondary, height = 12, color }: { value: n
 export function Pill({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'accent' | 'notice' | 'green' | 'blue' | 'gold' }) {
   const { colors } = useApp();
   const bg = { neutral: colors.surfaceAlt, accent: colors.accentSoft, notice: colors.noticeSoft, green: colors.correctSoft, blue: colors.blueSoft, gold: colors.goldSoft }[tone];
-  const fg = { neutral: colors.textMuted, accent: colors.accent, notice: colors.notice, green: colors.correctText, blue: colors.blueText, gold: colors.notice }[tone];
+  const fg = { neutral: colors.textMuted, accent: colors.accentInk, notice: colors.notice, green: colors.correctText, blue: colors.blueText, gold: colors.notice }[tone];
   return (
     <View style={[styles.pill, { backgroundColor: bg }]}>
-      <T variant="small" color={fg} style={{ fontSize: 12, fontWeight: '900' }}>
+      <T variant="small" color={fg} style={{ fontSize: 12, fontWeight: '800' }}>
         {label}
       </T>
     </View>
@@ -328,18 +329,17 @@ export function Stepper({ value, display, onChange, min, max, step = 1 }: { valu
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label === '−' ? 'Decrease' : 'Increase'}
-      style={({ pressed }) => [styles.stepBtn, { backgroundColor: colors.surfaceAlt, opacity: disabled ? 0.35 : pressed ? 0.7 : 1 }]}
+      hitSlop={4}
+      style={({ pressed }) => [styles.stepBtn, { backgroundColor: colors.accentSoft, opacity: disabled ? 0.35 : 1, transform: [{ scale: pressed ? 0.92 : 1 }] }]}
     >
-      <T variant="heading" color={colors.accent}>
-        {label}
-      </T>
+      <Icon name={label === '−' ? 'minus' : 'plus'} size={18} color={colors.accentInk} strokeWidth={2.6} />
     </Pressable>
   );
   return (
     <View style={styles.stepper}>
       {btn('−', Math.max(min, value - step), value <= min)}
       {display !== undefined ? (
-        <T variant="body" style={{ minWidth: 56, textAlign: 'center', fontWeight: '600' }}>
+        <T variant="body" style={{ minWidth: 56, textAlign: 'center', fontWeight: '800' }}>
           {display}
         </T>
       ) : (
@@ -354,7 +354,7 @@ export function Stepper({ value, display, onChange, min, max, step = 1 }: { valu
           selectTextOnFocus
           maxLength={String(max).length}
           accessibilityLabel={`Value, ${value}. Tap to type a number`}
-          style={[TEXT.body, fontStyle({ fontWeight: '800' }, false), styles.stepInput, { color: colors.text, borderBottomColor: colors.border }]}
+          style={[TEXT.body, fontStyle({ fontWeight: '800' }, false), styles.stepInput, { color: colors.text, borderBottomColor: 'transparent', fontSize: 18 }]}
         />
       )}
       {btn('+', Math.min(max, value + step), value >= max)}
@@ -363,7 +363,6 @@ export function Stepper({ value, display, onChange, min, max, step = 1 }: { valu
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.lg, borderWidth: 2, borderBottomWidth: 2 + LIP, padding: spacing.lg },
   buttonFace: {
     borderRadius: radius.md,
     alignItems: 'center',
@@ -373,9 +372,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 24 },
-  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  iconButton: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
+  iconButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   stepInput: { minWidth: 56, textAlign: 'center', paddingVertical: 4, borderBottomWidth: 2 },
-  stepBtn: { width: 44, height: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  stepBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
 });

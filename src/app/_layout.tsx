@@ -1,9 +1,6 @@
-import { Nunito_600SemiBold } from '@expo-google-fonts/nunito/600SemiBold';
-import { Nunito_700Bold } from '@expo-google-fonts/nunito/700Bold';
-import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito/800ExtraBold';
-import { Nunito_900Black } from '@expo-google-fonts/nunito/900Black';
-import { ZenMaruGothic_500Medium } from '@expo-google-fonts/zen-maru-gothic/500Medium';
-import { ZenMaruGothic_700Bold } from '@expo-google-fonts/zen-maru-gothic/700Bold';
+import { MPLUSRounded1c_500Medium } from '@expo-google-fonts/m-plus-rounded-1c/500Medium';
+import { MPLUSRounded1c_700Bold } from '@expo-google-fonts/m-plus-rounded-1c/700Bold';
+import { MPLUSRounded1c_800ExtraBold } from '@expo-google-fonts/m-plus-rounded-1c/800ExtraBold';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
@@ -62,7 +59,7 @@ function ThemedStack({ onReady }: { onReady: () => void }) {
           contentStyle: { backgroundColor: colors.background },
           headerShadowVisible: false,
           headerStyle: { backgroundColor: colors.background },
-          headerTitleStyle: { fontFamily: FONTS.black, fontSize: 18, color: colors.text },
+          headerTitleStyle: { fontFamily: FONTS.extra, fontSize: 17, color: colors.text },
           headerTintColor: colors.accent,
           headerBackButtonDisplayMode: 'minimal',
         }}
@@ -112,12 +109,9 @@ export default function RootLayout() {
   const [ready, setReady] = useState(false);
   const markReady = useCallback(() => setReady(true), []);
   const [fontsLoaded, fontError] = useFonts({
-    Nunito_600SemiBold,
-    Nunito_700Bold,
-    Nunito_800ExtraBold,
-    Nunito_900Black,
-    ZenMaruGothic_500Medium,
-    ZenMaruGothic_700Bold,
+    MPLUSRounded1c_500Medium,
+    MPLUSRounded1c_700Bold,
+    MPLUSRounded1c_800ExtraBold,
   });
   if (!fontsLoaded && !fontError) return null;
   return (

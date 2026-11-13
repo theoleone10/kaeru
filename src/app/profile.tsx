@@ -12,7 +12,7 @@ import { Button, Section, Stat, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { stationCode, stationOf } from '@/content/units';
 import { useToday } from '@/daily/useToday';
-import { AVATAR_COLORS, AVATARS, type AvatarColor } from '@/profile/avatars';
+import { AVATAR_COLORS, AVATARS, type AvatarColor, type AvatarId } from '@/profile/avatars';
 import { useApp, useNow } from '@/state/AppProvider';
 import { formatDuration } from '@/time/model';
 import { useTime } from '@/time/TimeProvider';
@@ -36,7 +36,7 @@ export default function Profile() {
   // Time logged in the last seven days (the part of each entry inside them).
   const weekMs = entries.reduce((sum, e) => sum + Math.max(0, Math.min(e.ended_at ?? now, now) - Math.max(e.started_at, now - WEEK)), 0);
 
-  const pick = (patch: { avatar?: string; avatarColor?: AvatarColor }) => {
+  const pick = (patch: { avatar?: AvatarId; avatarColor?: AvatarColor }) => {
     Haptics.selectionAsync().catch(() => undefined);
     updateSettings(patch).catch(() => undefined);
   };
@@ -75,7 +75,7 @@ export default function Profile() {
                 accessibilityState={{ selected: a === settings.avatar }}
                 style={[styles.cell, { borderColor: a === settings.avatar ? colors.accent : 'transparent' }]}
               >
-                <Avatar size={44} emoji={a} />
+                <Avatar size={44} avatar={a} />
               </Pressable>
             ))}
           </View>
