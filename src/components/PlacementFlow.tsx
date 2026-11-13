@@ -22,7 +22,7 @@ import { useApp } from '../state/AppProvider';
 import { radius, spacing, TAP } from '../theme/colors';
 import { ClozeSentence } from './Furigana';
 import { Mascot } from './Mascot';
-import { Choice, Heading } from './SetupChoice';
+import { Choice, ChoiceList, Heading } from './SetupChoice';
 import { Button, ProgressBar, T } from './ui';
 
 export type Level = 'new' | Experience;
@@ -43,7 +43,7 @@ const FEEDBACK_MS = 700;
  */
 export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onLevel?: (level: Level) => void }) {
   const db = useSQLiteContext();
-  const { colors, refresh } = useApp();
+  const { colors, lines, refresh } = useApp();
   const units = useMemo(() => placementUnits(), []);
   const [level, setLevel] = useState<Level | null>(null);
   const [state, setState] = useState<PlacementState | null>(null);
@@ -109,12 +109,12 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
       <View style={{ gap: spacing.xl }}>
         <View style={{ alignItems: 'center', gap: spacing.md }}>
           <Mascot size={96} mood="cheer" bounce />
-          <T variant="small" style={{ fontWeight: '800' }}>
-            YOUR STATION
+          <T variant="small" style={{ fontWeight: '700' }}>
+            Your station
           </T>
           {start.station && (
-            <View style={[styles.sign, { backgroundColor: colors.surface, borderColor: colors.accent }]}>
-              <T variant="title" color={colors.accent}>
+            <View style={[styles.sign, { backgroundColor: colors.surface, borderColor: colors.accent, borderBottomColor: colors.accentShadow }]}>
+              <T variant="title" color={colors.accentInk}>
                 {start.station}
               </T>
             </View>
@@ -142,51 +142,71 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
     // Roughly: a decided unit narrows the search by half.
     const progress = Math.min(0.95, state.questions / (2 * Math.ceil(Math.log2(units.length + 1))));
     return (
-      <View style={{ gap: spacing.xl }}>
+      <View style={{ gap: 26 }}>
         <View style={{ gap: spacing.sm }}>
-          <ProgressBar value={progress} />
-          <T variant="small">{`Question ${state.questions + 1} · ${question.point.level}`}</T>
+          <T variant="small" style={{ fontSize: 14, lineHeight: 20, fontWeight: '700' }}>
+            {`Question ${state.questions + 1} · `}
+            <T variant="small" color={lines[question.point.level]?.ink ?? colors.textMuted} style={{ fontSize: 14, lineHeight: 20, fontWeight: '700' }}>
+              {question.point.level}
+            </T>
+          </T>
+          <ProgressBar value={progress} height={6} color={colors.accent} />
         </View>
         <Heading title="Fill the blank" body={question.example.english} />
-        <View style={[styles.sentence, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <ClozeSentence example={question.example} state={picked == null ? 'empty' : correct ? 'correct' : 'revealed'} />
+        <View style={styles.sentence}>
+          <ClozeSentence example={question.example} state={picked == null ? 'empty' : correct ? 'correct' : 'revealed'} size={28} />
         </View>
-        <View style={{ gap: spacing.sm }} accessibilityRole="radiogroup">
-          {question.choices.map((c) => {
-            const isRight = picked != null && question.example.accepted_answers.includes(c);
-            const isWrongPick = picked === c && !isRight;
-            return (
-              <Pressable
-                key={c}
-                onPress={() => choose(c)}
-                accessibilityRole="button"
-                style={[
-                  styles.option,
-                  {
-                    backgroundColor: isRight ? colors.correctSoft : isWrongPick ? colors.wrongSoft : colors.surface,
-                    borderColor: isRight ? colors.correct : isWrongPick ? colors.wrong : colors.border,
-                  },
-                ]}
-              >
-                <T variant="heading" jp>
-                  {c}
-                </T>
-              </Pressable>
-            );
-          })}
+        <View style={{ gap: spacing.sm }}>
+          <View style={styles.grid}>
+            {question.choices.map((c) => {
+              const isRight = picked != null && question.example.accepted_answers.includes(c);
+              const isWrongPick = picked === c && !isRight;
+              const face = isRight
+                ? { bg: colors.correctSoft, ring: colors.correct, lip: colors.correctShadow, fg: colors.correctText }
+                : isWrongPick
+                  ? { bg: colors.wrongSoft, ring: colors.wrong, lip: colors.wrongShadow, fg: colors.wrongText }
+                  : { bg: colors.surface, ring: colors.border, lip: colors.borderStrong, fg: colors.text };
+              return (
+                <Pressable
+                  key={c}
+                  onPress={() => choose(c)}
+                  accessibilityRole="button"
+                  accessibilityLabel={c}
+                  style={({ pressed }) => [
+                    styles.option,
+                    {
+                      backgroundColor: face.bg,
+                      borderColor: face.ring,
+                      borderBottomColor: face.lip,
+                      borderWidth: isRight || isWrongPick ? 2.5 : 2,
+                      borderBottomWidth: 5,
+                      transform: [{ translateY: pressed && picked == null ? 2 : 0 }],
+                    },
+                  ]}
+                >
+                  <T variant="jp" color={face.fg} style={{ fontSize: 22, lineHeight: 30 }}>
+                    {c}
+                  </T>
+                </Pressable>
+              );
+            })}
+          </View>
           <Button label="I don’t know" kind="ghost" onPress={() => choose(DONT_KNOW)} disabled={picked != null} />
         </View>
-        <T variant="small" style={{ textAlign: 'center' }}>
-          Not sure? Say so: guessing puts you further along than you are.
-        </T>
+        <View style={styles.hint}>
+          <Mascot size={56} mood="think" />
+          <T variant="small" style={{ flex: 1, fontSize: 14, lineHeight: 20 }}>
+            Not sure? Say so: guessing puts you further along than you are.
+          </T>
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={{ gap: spacing.xl }}>
+    <View style={{ gap: 26 }}>
       <Heading title="How much Japanese do you know?" body="Grammar is laid out like train lines, N5 to N1. Let’s find the station you should start at." />
-      <View style={{ gap: spacing.md }} accessibilityRole="radiogroup">
+      <ChoiceList>
         {LEVEL_CHOICES.map((c) => (
           <Choice
             key={c.value}
@@ -200,7 +220,7 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
             }}
           />
         ))}
-      </View>
+      </ChoiceList>
       {level == null || level === 'new' ? (
         <Button label="Continue" onPress={begin} disabled={level == null} />
       ) : (
@@ -217,7 +237,9 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
 }
 
 const styles = StyleSheet.create({
-  sentence: { padding: spacing.lg, borderRadius: radius.lg, borderWidth: 1, alignItems: 'center' },
-  option: { minHeight: TAP + 8, borderRadius: radius.md, borderWidth: 2, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.md },
-  sign: { paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, borderRadius: radius.lg, borderWidth: 4 },
+  sentence: { paddingVertical: spacing.md },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  option: { flexBasis: '45%', flexGrow: 1, minHeight: TAP + 8, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.md },
+  hint: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  sign: { paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, borderRadius: radius.lg, borderWidth: 3, borderBottomWidth: 6 },
 });

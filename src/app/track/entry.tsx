@@ -1,14 +1,15 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { DateTimeField } from '@/components/DateTimeField';
-import { Button, Section, T } from '@/components/ui';
+import { BottomBar, Chip, Input } from '@/components/FormControls';
+import { Button, Rule, Section, T } from '@/components/ui';
 import { useApp, useNow } from '@/state/AppProvider';
 import { entryDuration, formatDuration, type TimeEntry } from '@/time/model';
 import { addEntry, deleteEntry, updateEntry } from '@/time/repo';
 import { useTime } from '@/time/TimeProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+import { spacing } from '@/theme/colors';
 
 const HOUR = 60 * 60 * 1000;
 
@@ -59,52 +60,58 @@ export default function EntryEditor() {
     ]);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl }} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={100}>
       <Stack.Screen options={{ title: existing ? 'Edit entry' : 'Add entry' }} />
-      <Section label="Activity">
-        <View style={styles.chips}>
-          {visible.map((a) => {
-            const active = a.id === activityId;
-            return (
-              <Pressable
-                key={a.id}
-                onPress={() => setActivityId(a.id)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                style={[styles.chip, { borderColor: a.color, backgroundColor: active ? a.color : colors.background }]}
-              >
-                <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '600' }}>
-                  {a.name}
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Section label="Activity" style={{ gap: 12 }}>
+          <View style={styles.chips} accessibilityRole="radiogroup">
+            {visible.map((a) => (
+              <Chip key={a.id} role="radio" label={a.name} color={a.color} active={a.id === activityId} onPress={() => setActivityId(a.id)} />
+            ))}
+          </View>
+        </Section>
+
+        <Section
+          label="When"
+          style={{ gap: 6 }}
+          right={
+            <T variant="small" style={{ fontSize: 14, fontWeight: '700' }}>
+              {formatDuration(entryDuration({ started_at: start, ended_at: end }, now))}
+            </T>
+          }
+        >
+          <View>
+            <Rule />
+            <DateTimeField label="Start" value={start} onChange={setStart} />
+            <Rule />
+            {end != null ? (
+              <DateTimeField label="End" value={end} onChange={setEnd} />
+            ) : (
+              <View style={styles.running}>
+                <T variant="body" style={{ fontWeight: '700' }}>
+                  End
                 </T>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Section>
+                <T variant="small">Still running</T>
+              </View>
+            )}
+            <Rule />
+          </View>
+        </Section>
 
-      <Section label="When" right={<T variant="small">{formatDuration(entryDuration({ started_at: start, ended_at: end }, now))}</T>}>
-        <DateTimeField label="Start" value={start} onChange={setStart} />
-        {end != null ? <DateTimeField label="End" value={end} onChange={setEnd} /> : <T variant="small">Still running</T>}
-      </Section>
-
-      <Section label="Note">
-        <TextInput
-          value={note}
-          onChangeText={setNote}
-          placeholder="Optional"
-          placeholderTextColor={colors.textMuted}
-          style={[styles.input, { color: colors.text, backgroundColor: colors.surfaceAlt }]}
-        />
-      </Section>
-
-      <Button label="Save" onPress={save} loading={busy} disabled={activityId == null} />
-      {existing && <Button label="Delete entry" kind="danger" onPress={remove} />}
-    </ScrollView>
+        <Section label="Note" style={{ gap: 10 }}>
+          <Input value={note} onChangeText={setNote} placeholder="Optional" accessibilityLabel="Note" />
+        </Section>
+      </ScrollView>
+      <BottomBar>
+        <Button label="Save" onPress={save} loading={busy} disabled={activityId == null} />
+        {existing && <Button label="Delete entry" kind="danger" onPress={remove} />}
+      </BottomBar>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  content: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: spacing.xl, gap: 28 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: { minHeight: TAP, paddingHorizontal: spacing.lg, borderRadius: 999, borderWidth: 2, justifyContent: 'center' },
-  input: { minHeight: TAP, borderRadius: radius.md, paddingHorizontal: spacing.md, fontSize: 17 },
+  running: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 54 },
 });

@@ -17,7 +17,7 @@ export default function Login() {
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ flexGrow: 1, padding: spacing.xl, gap: spacing.xl, paddingTop: returning ? insets.top + spacing.xxl : spacing.xl, paddingBottom: insets.bottom + spacing.xl }}
+      contentContainerStyle={{ flexGrow: 1, padding: spacing.xl, gap: spacing.xxl, paddingTop: returning ? insets.top + 72 : spacing.xl, paddingBottom: insets.bottom + spacing.xl }}
     >
       <Stack.Screen options={{ headerShown: !returning }} />
       <View style={{ alignItems: 'center', gap: spacing.md }}>
@@ -25,7 +25,7 @@ export default function Login() {
         <T variant="title" style={{ textAlign: 'center' }}>
           Welcome back
         </T>
-        <T variant="muted" style={{ textAlign: 'center' }}>
+        <T variant="muted" style={{ textAlign: 'center', fontSize: 16 }}>
           Log in to pick up where you left off.
         </T>
       </View>
@@ -34,11 +34,11 @@ export default function Login() {
 
       <View style={{ flex: 1 }} />
 
-      <View style={{ gap: spacing.md }}>
-        <Pressable onPress={() => router.push('/setup')} accessibilityRole="button" hitSlop={8}>
-          <T variant="body" style={{ textAlign: 'center' }}>
+      <View style={{ gap: spacing.xs, alignItems: 'center' }}>
+        <Pressable onPress={() => router.push('/setup')} accessibilityRole="button" hitSlop={8} style={{ minHeight: 44, justifyContent: 'center' }}>
+          <T variant="body" style={{ textAlign: 'center', fontSize: 15 }}>
             New here?{' '}
-            <T variant="body" color={colors.accent} style={{ fontWeight: '700' }}>
+            <T variant="body" color={colors.accentInk} style={{ fontWeight: '700', fontSize: 15 }}>
               Set up Kaeru
             </T>
           </T>

@@ -10,11 +10,11 @@ import { spacing } from '@/theme/colors';
 export default function SignIn() {
   const { colors } = useApp();
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.xl, gap: spacing.xl }}>
       <View style={{ alignItems: 'center' }}>
         <Mascot size={96} mood="happy" bounce />
       </View>
-      <T variant="muted">
+      <T variant="muted" style={{ textAlign: 'center' }}>
         Sign in to back up your progress to your account and pick it up on another phone. Your current progress on this phone is kept.
       </T>
       <SignInOptions onSignedIn={() => router.back()} />

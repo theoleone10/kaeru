@@ -1,4 +1,4 @@
-import { isAvatar, isAvatarColor, type AvatarColor } from '../profile/avatars';
+import { isAvatarColor, toAvatar, type AvatarColor, type AvatarId } from '../profile/avatars';
 import { DEFAULT_TIME_GOALS, sanitizeTimeGoals, type TimeGoal } from '../time/goals';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
@@ -34,7 +34,7 @@ export interface Settings {
   /** Show the kana course on Today (chosen at sign-up; it's always on the profile). */
   studyKana: boolean;
   /** Profile icon (an emoji from AVATARS) and its background colour. */
-  avatar: string;
+  avatar: AvatarId;
   avatarColor: AvatarColor;
 }
 
@@ -59,7 +59,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ankiRetention: 92,
   soundEffects: true,
   studyKana: false,
-  avatar: '🐸',
+  avatar: 'frog',
   avatarColor: 'green',
 };
 
@@ -112,7 +112,8 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
     if (b !== undefined) s[k] = b;
   }
   s.timeGoals = sanitizeTimeGoals(raw.timeGoals, raw.dailyTimeGoalMin);
-  if (isAvatar(raw.avatar)) s.avatar = raw.avatar;
+  const avatar = toAvatar(raw.avatar);
+  if (avatar) s.avatar = avatar;
   if (isAvatarColor(raw.avatarColor)) s.avatarColor = raw.avatarColor;
   if (raw.theme === 'system' || raw.theme === 'light' || raw.theme === 'dark') s.theme = raw.theme;
   return s;

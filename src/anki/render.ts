@@ -260,10 +260,10 @@ export function cardShell(): string {
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <style>
 html, body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
-body { padding: 16px; background: #FFFFFF; color: #1F2320; }
-html.night-mode body { background: #141715; color: #E8EAE6; }
+body { padding: 16px; background: #F4F5F9; color: #1B1F33; }
+html.night-mode body { background: #10131F; color: #ECEEF6; }
 .card { font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; font-size: 22px; text-align: center; }
-body.nightMode.card { background-color: #141715; color: #E8EAE6; }
+body.nightMode.card { background-color: #10131F; color: #ECEEF6; }
 .cloze { font-weight: bold; color: #3F6E5A; }
 .nightMode .cloze { color: #79B094; }
 img { max-width: 100%; height: auto; }

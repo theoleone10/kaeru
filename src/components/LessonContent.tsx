@@ -1,19 +1,24 @@
 import { router } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { getPoint } from '../content/loader';
 import type { GrammarPoint } from '../content/types';
 import { useApp } from '../state/AppProvider';
 import { stationOf } from '../content/units';
 import { radius, spacing } from '../theme/colors';
-import { FuriganaText } from './Furigana';
+import { ExampleSentence } from './Furigana';
+import { Icon } from './Icon';
 import { RichText, Section, T } from './ui';
 
 function Bullets({ items }: { items: string[] }) {
+  const { colors } = useApp();
   return (
     <View style={{ gap: spacing.sm }}>
       {items.map((item, i) => (
         <View key={i} style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <T variant="body">•</T>
+          <T variant="body" color={colors.textFaint} jp={false}>
+            •
+          </T>
           <T variant="body" style={{ flex: 1 }}>
             {item}
           </T>
@@ -28,16 +33,54 @@ function PointLink({ id, note }: { id: string; note?: string }) {
   const p = getPoint(id);
   if (!p) return null;
   return (
-    <Pressable
-      onPress={() => router.push(`/grammar/${id}`)}
-      accessibilityRole="link"
-      style={({ pressed }) => [styles.link, { opacity: pressed ? 0.6 : 1 }]}
-    >
-      <T variant="body" color={colors.accent} style={{ fontWeight: '600' }}>
-        {p.title} ›
-      </T>
-      <T variant="small">{note ?? p.meaning}</T>
+    <Pressable onPress={() => router.push(`/grammar/${id}`)} accessibilityRole="link" style={({ pressed }) => [styles.link, { borderTopColor: colors.border, opacity: pressed ? 0.6 : 1 }]}>
+      <View style={{ flex: 1, gap: 2 }}>
+        <T variant="body" color={colors.accentInk} style={{ fontSize: 17, fontWeight: '700' }}>
+          {p.title}
+        </T>
+        <T variant="small">{note ?? p.meaning}</T>
+      </View>
+      <Icon name="chevronRight" size={18} color={colors.textFaint} strokeWidth={2.6} />
     </Pressable>
+  );
+}
+
+const KANA_ONLY = /^[〜～ぁ-ゟ゠-ヿ一-鿿・ー…]+$/;
+
+/** The structure lines as chips: slots on soft chips, the grammar itself on a filled indigo chip. */
+function Structure({ point }: { point: GrammarPoint }) {
+  const { colors } = useApp();
+  const title = point.title.replace(/[〜～]/g, '');
+  return (
+    <View style={{ gap: spacing.sm }}>
+      {point.structure.map((line, i) => {
+        const parts = line.split(/\s+\+\s+/);
+        return (
+          <View key={i} style={styles.structureRow}>
+            {parts.map((part, j) => {
+              const bare = part.trim().replace(/[〜～]/g, '');
+              const isGrammar = KANA_ONLY.test(part.trim()) && bare.length > 0 && title.includes(bare);
+              return (
+                <View key={j} style={styles.structureRow}>
+                  {j > 0 && (
+                    <T variant="body" color={colors.textFaint} style={{ fontSize: 18, fontWeight: '700' }} jp={false}>
+                      +
+                    </T>
+                  )}
+                  {part.trim() === '' ? null : (
+                    <View style={[styles.chip, { backgroundColor: isGrammar ? colors.accent : colors.accentSoft }]}>
+                      <T variant="body" color={isGrammar ? colors.accentText : colors.accentInk} style={{ fontSize: isGrammar ? 17 : 15, lineHeight: 22, fontWeight: isGrammar ? '800' : '700' }}>
+                        {part.trim()}
+                      </T>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        );
+      })}
+    </View>
   );
 }
 
@@ -45,7 +88,9 @@ export function FuriganaToggle() {
   const { settings, updateSettings, colors } = useApp();
   return (
     <View style={styles.toggle}>
-      <T variant="small">Furigana</T>
+      <T variant="small" style={{ fontWeight: '700' }}>
+        Furigana
+      </T>
       <Switch
         value={settings.furigana}
         onValueChange={(v) => updateSettings({ furigana: v })}
@@ -57,32 +102,39 @@ export function FuriganaToggle() {
   );
 }
 
-/** Full lesson content for a grammar point (used by lessons and the grammar detail screen). */
-export function LessonContent({ point }: { point: GrammarPoint }) {
+/**
+ * Full lesson content for a grammar point (used by lessons and the grammar detail screen).
+ * `kicker` picks the small line over the title; `afterHeader` goes between the title and the lesson (the grammar page's progress).
+ */
+export function LessonContent({ point, kicker = 'station', afterHeader }: { point: GrammarPoint; kicker?: 'station' | 'new'; afterHeader?: ReactNode }) {
   const { colors, lines } = useApp();
   const station = stationOf(point.id);
   const line = lines[point.level] ?? lines.N5;
+  const label = [
+    point.level,
+    station ? `Unit ${station.unit}` : null,
+    kicker === 'new' ? 'New grammar' : station ? `Station ${station.number}` : null,
+    point.formality && point.formality !== 'neutral' ? point.formality[0].toUpperCase() + point.formality.slice(1) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   return (
-    <View style={{ gap: spacing.xl }}>
+    <View style={{ gap: 22 }}>
       <View style={{ gap: spacing.xs }}>
-        <T variant="small" color={line.ink} style={{ fontWeight: '900', letterSpacing: 1 }}>
-          {point.level}
-          {station ? ` · UNIT ${station.unit}` : ''}
-          {point.formality ? ` · ${point.formality.toUpperCase()}` : ''}
+        <T variant="small" color={line.ink} style={{ fontWeight: '700' }} jp={false}>
+          {label}
         </T>
-        <T variant="title" style={{ fontSize: 34, lineHeight: 46 }}>
+        <T variant="title" style={{ fontSize: 40, lineHeight: 50 }}>
           {point.title}
         </T>
-        <T variant="muted">{point.meaning}</T>
+        <T variant="muted" style={{ fontSize: 17, lineHeight: 24 }}>
+          {point.meaning}
+        </T>
       </View>
 
-      <View style={[styles.structure, { backgroundColor: colors.accentSoft }]}>
-        {point.structure.map((s, i) => (
-          <T key={i} variant="body" style={{ fontSize: 17 }}>
-            {s}
-          </T>
-        ))}
-      </View>
+      {afterHeader}
+
+      <Structure point={point} />
 
       <Section label="How it works">
         <RichText text={point.explanation} />
@@ -101,24 +153,26 @@ export function LessonContent({ point }: { point: GrammarPoint }) {
       )}
 
       {point.comparisons && point.comparisons.length > 0 && (
-        <Section label="Compared with">
+        <Section label="Compared with" style={{ gap: 4 }}>
           {point.comparisons.map((c) => (
             <PointLink key={c.id} id={c.id} note={c.note} />
           ))}
         </Section>
       )}
 
-      <Section label="Examples" right={<FuriganaToggle />}>
+      <Section label="Examples" right={<FuriganaToggle />} style={{ gap: 4 }}>
         {point.examples.map((ex) => (
-          <View key={ex.id} style={[styles.example, { borderLeftColor: line.line }]}>
-            <FuriganaText markup={ex.furigana} size={21} />
-            <T variant="muted">{ex.english}</T>
+          <View key={ex.id} style={[styles.example, { borderTopColor: colors.border }]}>
+            <ExampleSentence example={ex} size={20} />
+            <T variant="small" style={{ fontSize: 14, lineHeight: 20 }}>
+              {ex.english}
+            </T>
           </View>
         ))}
       </Section>
 
       {point.related_ids.length > 0 && (
-        <Section label="Related">
+        <Section label="Related" style={{ gap: 4 }}>
           {point.related_ids.map((id) => (
             <PointLink key={id} id={id} />
           ))}
@@ -129,8 +183,9 @@ export function LessonContent({ point }: { point: GrammarPoint }) {
 }
 
 const styles = StyleSheet.create({
-  structure: { borderRadius: radius.md, padding: spacing.lg, gap: spacing.xs },
-  example: { borderLeftWidth: 4, paddingLeft: spacing.md, paddingVertical: 2, gap: spacing.xs, marginBottom: spacing.sm },
-  link: { paddingVertical: spacing.sm, gap: 2, minHeight: 48, justifyContent: 'center' },
+  structureRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
+  chip: { minHeight: 34, paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.sm, justifyContent: 'center', flexShrink: 1 },
+  example: { borderTopWidth: StyleSheet.hairlineWidth * 2, paddingVertical: 10, gap: 2 },
+  link: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, minHeight: 52, borderTopWidth: StyleSheet.hairlineWidth * 2 },
   toggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing.sm },
 });

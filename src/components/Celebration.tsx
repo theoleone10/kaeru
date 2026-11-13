@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { playSound, type SoundName } from '../sound/sounds';
 import { View } from 'react-native';
+import { useApp } from '../state/AppProvider';
 import { spacing } from '../theme/colors';
 import { Confetti } from './Confetti';
 import { Mascot, type Mood } from './Mascot';
@@ -12,7 +13,7 @@ export interface Stat {
   tone?: 'accent' | 'blue' | 'green' | 'gold';
 }
 
-/** End-of-session screen: Kaeru the frog, a headline, a row of stat tiles, then actions. */
+/** End-of-session screen: Kaeru the frog, a headline, big numbers side by side, then actions. */
 export function Celebration({
   title,
   subtitle,
@@ -31,32 +32,32 @@ export function Celebration({
   sound?: SoundName;
   children?: ReactNode;
 }) {
+  const { colors } = useApp();
+  const tone = { accent: colors.accentInk, blue: colors.blueText, green: colors.correctText, gold: colors.notice };
   useEffect(() => {
     if (confetti) playSound(sound);
   }, [confetti, sound]);
   return (
-    <View style={{ flex: 1, padding: spacing.xl, gap: spacing.xl, justifyContent: 'center' }}>
-      <View style={{ alignItems: 'center', gap: spacing.md }}>
-        <Mascot size={120} mood={mood} bounce />
+    <View style={{ flex: 1, padding: spacing.xl, gap: 26, justifyContent: 'center' }}>
+      <View style={{ alignItems: 'center', gap: 14 }}>
+        <Mascot size={124} mood={mood} bounce />
         <T variant="title" style={{ textAlign: 'center' }}>
           {title}
         </T>
         {subtitle ? (
-          <T variant="muted" style={{ textAlign: 'center' }}>
+          <T variant="muted" style={{ textAlign: 'center', fontSize: 16, lineHeight: 24 }}>
             {subtitle}
           </T>
         ) : null}
       </View>
       {stats.length > 0 && (
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 40, paddingVertical: spacing.xs }}>
           {stats.map((s) => (
-            <View key={s.label} style={{ flex: 1, alignItems: 'center', gap: 0 }}>
-              <T variant="title" style={{ fontSize: 28, lineHeight: 34 }}>
+            <View key={s.label} style={{ alignItems: 'center' }}>
+              <T variant="title" color={s.tone ? tone[s.tone] : colors.text} style={{ fontSize: 28, lineHeight: 34 }} jp={false}>
                 {s.value}
               </T>
-              <T variant="small" style={{ fontWeight: '900', letterSpacing: 1 }}>
-                {s.label.toUpperCase()}
-              </T>
+              <T variant="small">{s.label}</T>
             </View>
           ))}
         </View>

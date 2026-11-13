@@ -5,7 +5,7 @@ import { requeueMissed, type KanaAnswer, type KanaQuestion } from '../kana/pract
 import { playSound } from '../sound/sounds';
 import { useApp } from '../state/AppProvider';
 import { radius, spacing } from '../theme/colors';
-import { ProgressBar, T } from './ui';
+import { Pill, ProgressBar, T } from './ui';
 
 /** How long feedback shows before moving on (longer after a miss, to take in the right one). */
 const NEXT_MS = { right: 550, wrong: 1400 };
@@ -52,21 +52,26 @@ export function KanaQuiz({ questions, onDone }: { questions: KanaQuestion[]; onD
 
   const reading = q.direction === 'read';
   return (
-    <View style={{ gap: spacing.xl, flex: 1 }}>
-      <ProgressBar value={index / queue.length} />
-      <T variant="small" style={{ textAlign: 'center', fontWeight: '800' }}>
-        {reading ? 'How do you read this?' : `Which ${q.script} is “${q.prompt}”?`}
-      </T>
-      <View style={[styles.prompt, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <T jp={reading} style={{ fontSize: reading ? 88 : 56, lineHeight: reading ? 110 : 70, fontWeight: '800' }}>
+    <View style={{ gap: spacing.lg, flex: 1 }}>
+      <ProgressBar value={index / queue.length} height={14} color={colors.correct} />
+      <View style={styles.prompt}>
+        <T variant="muted" style={{ textAlign: 'center', fontWeight: '700' }}>
+          {reading ? 'How do you read this?' : `Which ${q.script} is “${q.prompt}”?`}
+        </T>
+        <T jp={reading} style={{ fontSize: reading ? 120 : 64, lineHeight: reading ? 144 : 80, fontWeight: '800' }}>
           {q.prompt}
         </T>
-        {q.retry && <T variant="small">Again</T>}
+        {q.retry && <Pill label="Again" tone="gold" />}
       </View>
       <View style={styles.grid} accessibilityRole="radiogroup">
         {q.choices.map((c) => {
           const isAnswer = picked != null && c === q.answer;
           const isWrongPick = picked === c && c !== q.answer;
+          const face = isAnswer
+            ? { bg: colors.correctSoft, ring: colors.correct, lip: colors.correctShadow, fg: colors.correctText }
+            : isWrongPick
+              ? { bg: colors.wrongSoft, ring: colors.wrong, lip: colors.wrongShadow, fg: colors.wrongText }
+              : { bg: colors.surface, ring: colors.border, lip: colors.borderStrong, fg: colors.text };
           return (
             <Pressable
               key={c}
@@ -76,14 +81,16 @@ export function KanaQuiz({ questions, onDone }: { questions: KanaQuestion[]; onD
               style={({ pressed }) => [
                 styles.choice,
                 {
-                  backgroundColor: isAnswer ? colors.correctSoft : isWrongPick ? colors.wrongSoft : colors.surface,
-                  borderColor: isAnswer ? colors.correct : isWrongPick ? colors.wrong : colors.border,
-                  borderBottomColor: isAnswer ? colors.correctShadow : isWrongPick ? colors.wrongShadow : colors.borderStrong,
-                  opacity: pressed ? 0.85 : 1,
+                  backgroundColor: face.bg,
+                  borderColor: face.ring,
+                  borderBottomColor: face.lip,
+                  borderWidth: isAnswer || isWrongPick ? 2.5 : 2,
+                  borderBottomWidth: 5,
+                  transform: [{ translateY: pressed && picked == null ? 2 : 0 }],
                 },
               ]}
             >
-              <T jp={!reading} style={{ fontSize: reading ? 26 : 40, lineHeight: reading ? 32 : 52, fontWeight: '800' }}>
+              <T jp={!reading} color={face.fg} style={{ fontSize: reading ? 22 : 36, lineHeight: reading ? 30 : 46, fontWeight: '700' }}>
                 {c}
               </T>
             </Pressable>
@@ -95,7 +102,7 @@ export function KanaQuiz({ questions, onDone }: { questions: KanaQuestion[]; onD
 }
 
 const styles = StyleSheet.create({
-  prompt: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xl, borderRadius: radius.lg, borderWidth: 1, minHeight: 170 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  choice: { flexBasis: '47%', flexGrow: 1, minHeight: 76, alignItems: 'center', justifyContent: 'center', borderRadius: radius.lg, borderWidth: 2, borderBottomWidth: 4 },
+  prompt: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.xs, minHeight: 200 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  choice: { flexBasis: '45%', flexGrow: 1, minHeight: 68, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md },
 });

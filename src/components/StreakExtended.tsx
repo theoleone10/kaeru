@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Animated, View } from 'react-native';
 import { useOncePerDaySound } from '../sound/useMilestoneSounds';
 import { useApp } from '../state/AppProvider';
-import { radius, spacing } from '../theme/colors';
+import { spacing } from '../theme/colors';
 import { Flame } from './Flame';
 import { T } from './ui';
 
@@ -21,14 +21,14 @@ export function StreakExtended({ days }: { days: number }) {
     <Animated.View
       accessibilityRole="alert"
       accessibilityLabel={`Streak extended. ${days} day streak.`}
-      style={{ transform: [{ scale }], alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: radius.lg, backgroundColor: colors.goldSoft }}
+      style={{ transform: [{ scale }], alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, paddingLeft: spacing.md, paddingRight: spacing.lg + 2, borderRadius: 999, backgroundColor: colors.flameSoft }}
     >
-      <Flame size={34} color="#F08A3C" />
+      <Flame size={30} color={colors.flame} />
       <View>
-        <T variant="heading" color="#D9663D" style={{ fontWeight: '900' }}>
+        <T variant="body" color={colors.flameText} style={{ fontWeight: '800', fontSize: 17, lineHeight: 22 }}>
           {`${days}-day streak!`}
         </T>
-        <T variant="small" color="#B5532F" style={{ fontWeight: '800' }}>
+        <T variant="small" color={colors.flameText} style={{ fontWeight: '700', fontSize: 12, lineHeight: 16 }}>
           Streak extended
         </T>
       </View>

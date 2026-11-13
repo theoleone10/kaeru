@@ -1,19 +1,25 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { exportDeck } from '@/anki/exporter';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { deleteDeck, listDecks, type DeckNode } from '@/anki/repo';
 import { addStarterDeck, STARTER_DECK, STARTER_WORDS, starterWordsAdded } from '@/anki/starter';
+import { Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Button, IconButton, ProgressBar, Section, T } from '@/components/ui';
+import type { Palette } from '@/theme/colors';
 import { useApp } from '@/state/AppProvider';
 import { spacing } from '@/theme/colors';
 
-const COUNT_COLORS = { new: '#2F7FC1', learn: '#C8562F', review: '#2E8B3E' };
+/** New / Learn / Due: blue, red, green (the counts), with darker inks for the column heads. */
+const countColors = (c: Palette) => ({
+  new: { n: c.blue, head: c.blueText },
+  learn: { n: c.wrong, head: c.wrongText },
+  review: { n: c.correct, head: c.correctText },
+});
 const PHASE_LABEL: Record<ImportPhase, string> = {
   unpacking: 'Unpacking…',
   reading: 'Reading the collection…',
@@ -21,9 +27,13 @@ const PHASE_LABEL: Record<ImportPhase, string> = {
   media: 'Copying images and audio…',
 };
 
-function Count({ n, color }: { n: number; color: string }) {
+function Count({ n, color, small, wide }: { n: number; color: string; small?: boolean; wide?: boolean }) {
   const { colors } = useApp();
-  return <Text style={[styles.count, { color: n > 0 ? color : colors.textMuted }]}>{n}</Text>;
+  return (
+    <T variant="body" jp={false} color={n > 0 ? color : colors.textFaint} style={[styles.count, wide && { width: 48 }, n === 0 && { opacity: 0.55 }, small && { fontSize: 15 }]}>
+      {n}
+    </T>
+  );
 }
 
 export default function Decks() {
@@ -129,14 +139,16 @@ export default function Decks() {
   const ordered = (decks ?? []).filter((d) => d.depth === 0).flatMap((top) => [top, ...(decks ?? []).filter((d) => d.path.startsWith(`${top.path}::`))]);
   const study = (d: DeckNode) => router.push({ pathname: '/anki/[deck]', params: { deck: encodeURIComponent(d.path) } });
 
+  const cc = countColors(colors);
+
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}>
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.header}>
-        <T variant="title" style={{ fontSize: 32, lineHeight: 38 }}>
+        <T variant="title" style={{ fontSize: 34, lineHeight: 40 }}>
           Flashcards
         </T>
-        <IconButton label="Add cards, a new deck, or import" onPress={addMenu}>
-          <Ionicons name="add" size={26} color={colors.textMuted} />
+        <IconButton label="Add cards, a new deck, or import" tone="accent" onPress={addMenu}>
+          <Icon name="plus" size={22} color={colors.accentInk} strokeWidth={2.4} />
         </IconButton>
       </View>
 
@@ -148,16 +160,16 @@ export default function Decks() {
       )}
 
       {decks && decks.length === 0 && !progress && (
-        <View style={{ gap: spacing.lg }}>
+        <View style={{ gap: spacing.xl }}>
           <View style={styles.frog}>
             <Mascot size={84} mood="happy" bounce />
-            <T variant="heading" style={{ flex: 1, fontWeight: '900' }}>
+            <T variant="heading" style={{ flex: 1, fontSize: 21, lineHeight: 28 }}>
               Make cards, or bring your Anki decks
             </T>
           </View>
           <Section label="New to Japanese?">
-            <T variant="body">{`${STARTER_DECK}: the ${STARTER_WORDS.length} everyday words to learn first, each with its reading, meaning and an example sentence.`}</T>
-            <Button label="Add the starter deck" kind="success" onPress={addStarter} loading={addingStarter} />
+            <T variant="body" color={colors.textMuted}>{`${STARTER_DECK}: the ${STARTER_WORDS.length} everyday words to learn first, each with its reading, meaning and an example sentence.`}</T>
+            <Button label="Add the starter deck" kind="success" onPress={addStarter} loading={addingStarter} style={{ marginTop: spacing.xs }} />
           </Section>
           <Section label="How">
             {[
@@ -167,32 +179,36 @@ export default function Decks() {
             ].map((t, i) => (
               <View key={i} style={styles.howRow}>
                 <View style={[styles.howNum, { backgroundColor: colors.accentSoft }]}>
-                  <T variant="small" color={colors.accent} style={{ fontWeight: '900' }}>
+                  <T variant="small" color={colors.accentInk} style={{ fontWeight: '800' }} jp={false}>
                     {i + 1}
                   </T>
                 </View>
-                <T variant="body" style={{ flex: 1 }}>
+                <T variant="body" color={colors.textMuted} style={{ flex: 1 }}>
                   {t}
                 </T>
               </View>
             ))}
           </Section>
-          <Button label="Import a deck" onPress={importDeck} />
-          <Button label="Start a new deck" kind="secondary" onPress={() => router.push('/anki/new-deck')} />
+          <View style={{ gap: spacing.md }}>
+            <Button label="Import a deck" onPress={importDeck} />
+            <Button label="Start a new deck" kind="secondary" onPress={() => router.push('/anki/new-deck')} />
+          </View>
         </View>
       )}
 
       {decks && decks.length > 0 && (
         <View>
-          <View style={styles.deckRow}>
-            <View style={{ flex: 1 }} />
-            <T variant="small" style={styles.countHead} color={COUNT_COLORS.new}>
+          <View style={[styles.deckRow, { minHeight: 30 }]}>
+            <T variant="small" style={[styles.countHead, { flex: 1, textAlign: 'left' }]}>
+              Decks
+            </T>
+            <T variant="small" style={styles.countHead} color={cc.new.head}>
               New
             </T>
-            <T variant="small" style={styles.countHead} color={COUNT_COLORS.learn}>
+            <T variant="small" style={[styles.countHead, { width: 48 }]} color={cc.learn.head}>
               Learn
             </T>
-            <T variant="small" style={styles.countHead} color={COUNT_COLORS.review}>
+            <T variant="small" style={styles.countHead} color={cc.review.head}>
               Due
             </T>
             <View style={{ width: 32 }} />
@@ -201,29 +217,37 @@ export default function Decks() {
             const top = d.depth === 0;
             const todo = d.newCount + d.learnCount + d.reviewCount;
             return (
-              <Pressable
+              // The row and its options button are siblings, so neither button sits inside the other.
+              <View
                 key={d.path}
-                onPress={() => study(d)}
-                onLongPress={() => options(d)}
-                accessibilityRole="button"
-                accessibilityLabel={`${d.path}: ${d.newCount} new, ${d.learnCount} learning, ${d.reviewCount} due`}
-                accessibilityHint="Long-press for options"
-                style={({ pressed }) => [styles.deckRow, top && styles.topRow, top && d !== ordered[0] && { borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth }, { paddingLeft: d.depth * spacing.lg, opacity: pressed ? 0.6 : 1 }]}
+                style={[styles.deckRow, top ? styles.topRow : styles.subRow, top && { borderTopColor: colors.border, borderTopWidth: 1 }]}
               >
-                <T variant={top ? 'heading' : 'body'} color={top || todo > 0 ? colors.text : colors.textMuted} numberOfLines={1} style={{ flex: 1, fontWeight: top ? '900' : '700' }}>
-                  {d.name}
-                </T>
-                <Count n={d.newCount} color={COUNT_COLORS.new} />
-                <Count n={d.learnCount} color={COUNT_COLORS.learn} />
-                <Count n={d.reviewCount} color={COUNT_COLORS.review} />
+                <Pressable
+                  onPress={() => study(d)}
+                  onLongPress={() => options(d)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${d.path}: ${d.newCount} new, ${d.learnCount} learning, ${d.reviewCount} due`}
+                  accessibilityHint="Long-press for options"
+                  style={({ pressed }) => [styles.deckPress, { paddingLeft: (d.depth > 0 ? 18 : 0) + Math.max(0, d.depth - 1) * spacing.lg, opacity: pressed ? 0.6 : 1 }]}
+                >
+                  <View style={styles.name}>
+                    {!top && <View style={[styles.dash, { backgroundColor: colors.textFaint }]} />}
+                    <T variant="body" color={todo > 0 ? colors.text : colors.textMuted} numberOfLines={1} style={{ flex: 1, fontSize: top ? 18 : 16, lineHeight: top ? 24 : 22, fontWeight: top ? '700' : '500' }}>
+                      {d.name}
+                    </T>
+                  </View>
+                  <Count n={d.newCount} color={cc.new.n} small={!top} />
+                  <Count n={d.learnCount} color={cc.learn.n} small={!top} wide />
+                  <Count n={d.reviewCount} color={cc.review.n} small={!top} />
+                </Pressable>
                 {top ? (
                   <Pressable onPress={() => openLimits(d)} accessibilityRole="button" accessibilityLabel={`Options for ${d.name}`} hitSlop={10} style={styles.gear}>
-                    <Ionicons name="ellipsis-horizontal" size={20} color={colors.textMuted} />
+                    <Icon name="more" size={20} color={colors.textFaint} filled />
                   </Pressable>
                 ) : (
                   <View style={{ width: 32 }} />
                 )}
-              </Pressable>
+              </View>
             );
           })}
         </View>
@@ -233,14 +257,18 @@ export default function Decks() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
+  content: { paddingHorizontal: 20, gap: 22, paddingBottom: spacing.xxl },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   frog: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   howRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   howNum: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  deckRow: { flexDirection: 'row', alignItems: 'center', minHeight: 44, gap: spacing.xs },
-  topRow: { minHeight: 56, marginTop: spacing.xs },
-  gear: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  count: { width: 44, textAlign: 'right', fontSize: 16, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  countHead: { width: 44, textAlign: 'right', fontWeight: '900' },
+  deckRow: { flexDirection: 'row', alignItems: 'center', minHeight: 46 },
+  deckPress: { flex: 1, flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch' },
+  topRow: { minHeight: 58 },
+  subRow: { minHeight: 46 },
+  name: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  dash: { width: 8, height: 2, borderRadius: 1, opacity: 0.6 },
+  gear: { width: 32, height: 32, alignItems: 'flex-end', justifyContent: 'center' },
+  count: { width: 44, textAlign: 'right', fontSize: 16, lineHeight: 22, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  countHead: { width: 44, textAlign: 'right', fontSize: 12, lineHeight: 16, fontWeight: '700' },
 });

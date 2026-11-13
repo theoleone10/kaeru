@@ -1,19 +1,21 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useApp, useNow } from '../state/AppProvider';
 import { entryDuration, formatClock } from '../time/model';
 import { useTime } from '../time/TimeProvider';
-import { spacing, TAP } from '../theme/colors';
+import { spacing } from '../theme/colors';
+import { Icon } from './Icon';
 import { T } from './ui';
 
+const SHADOW = '0px 1px 2px rgba(27,31,51,0.06), 0px 2px 8px rgba(27,31,51,0.06)';
+
 /**
- * One chunky chip per activity: tap to start it (switching over), tap the running one to stop.
- * The running chip shows the time on the clock.
+ * One pill per activity: tap to start it (switching over), tap the running one to stop.
+ * The running pill fills with the activity's colour and shows the time on the clock.
  */
 export function TimerChips({ showAdd = true }: { showAdd?: boolean }) {
-  const { colors } = useApp();
+  const { colors, isDark } = useApp();
   const { activities, running, start, stop } = useTime();
   const now = useNow(running ? 1000 : 60_000);
   return (
@@ -32,19 +34,19 @@ export function TimerChips({ showAdd = true }: { showAdd?: boolean }) {
               style={({ pressed }) => [
                 styles.chip,
                 {
-                  borderColor: a.color,
                   backgroundColor: active ? a.color : colors.surface,
-                  borderBottomWidth: pressed ? 2 : 5,
-                  transform: [{ translateY: pressed ? 3 : 0 }],
+                  borderColor: active ? a.color : isDark ? colors.border : colors.surface,
+                  boxShadow: isDark || active ? undefined : SHADOW,
+                  transform: [{ scale: pressed ? 0.96 : 1 }],
                 },
               ]}
             >
-              <Ionicons name={active ? 'stop' : 'play'} size={16} color={active ? '#FFFFFF' : a.color} />
-              <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '900' }}>
+              <Icon name={active ? 'stop' : 'play'} size={14} color={active ? '#FFFFFF' : a.color} />
+              <T variant="body" color={active ? '#FFFFFF' : colors.text} style={{ fontWeight: '700', fontSize: 15, lineHeight: 20 }}>
                 {a.name}
               </T>
               {active && running && (
-                <T variant="body" color="#FFFFFF" style={{ fontWeight: '900', fontVariant: ['tabular-nums'] }}>
+                <T variant="body" color="#FFFFFF" style={{ fontWeight: '800', fontSize: 15, lineHeight: 20, fontVariant: ['tabular-nums'] }}>
                   {formatClock(entryDuration(running, now))}
                 </T>
               )}
@@ -52,8 +54,13 @@ export function TimerChips({ showAdd = true }: { showAdd?: boolean }) {
           );
         })}
       {showAdd && (
-        <Pressable onPress={() => router.push('/track/activities')} accessibilityRole="button" accessibilityLabel="Add an activity" style={[styles.addChip, { borderColor: colors.border }]}>
-          <Ionicons name="add" size={22} color={colors.textMuted} />
+        <Pressable
+          onPress={() => router.push('/track/activities')}
+          accessibilityRole="button"
+          accessibilityLabel="Add an activity"
+          style={({ pressed }) => [styles.addChip, { borderColor: colors.borderStrong, transform: [{ scale: pressed ? 0.94 : 1 }] }]}
+        >
+          <Icon name="plus" size={20} color={colors.textMuted} strokeWidth={2.4} />
         </Pressable>
       )}
     </View>
@@ -61,7 +68,7 @@ export function TimerChips({ showAdd = true }: { showAdd?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'center' },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: TAP, paddingHorizontal: spacing.lg, borderRadius: 999, borderWidth: 2 },
-  addChip: { width: TAP, height: TAP, borderRadius: TAP / 2, borderWidth: 2, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 44, paddingHorizontal: 18, borderRadius: 999, borderWidth: 1 },
+  addChip: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
 });

@@ -41,11 +41,54 @@ export const FuriganaText = memo(function FuriganaText({ markup, size = 22, show
   const { colors, settings } = useApp();
   const show = showFurigana ?? settings.furigana;
   if (!show) {
-    return <Text style={{ fontSize: size, lineHeight: size * 1.45, color: colors.text, fontFamily: FONTS.jpBold }}>{parseFurigana(markup).map((t) => t.text).join('')}</Text>;
+    return (
+      <Text style={{ fontSize: size, lineHeight: size * 1.45, color: colors.text, fontFamily: FONTS.jpBold }}>
+        {parseFurigana(markup)
+          .map((t) => t.text)
+          .join('')}
+      </Text>
+    );
   }
   return (
     <View style={styles.row}>
       <RubyUnits tokens={parseFurigana(markup)} showFurigana size={size} color={colors.text} mutedColor={colors.textMuted} />
+    </View>
+  );
+});
+
+/**
+ * An example sentence with its grammar (the cloze target) picked out in indigo with a soft underline,
+ * for lessons and the grammar page. Falls back to the plain sentence when the target can't be found.
+ */
+export const ExampleSentence = memo(function ExampleSentence({ example, size = 20 }: { example: Example; size?: number }) {
+  const { colors, settings } = useApp();
+  const tokens = parseFurigana(example.furigana);
+  const split = splitCloze(tokens, example.cloze_target, example.cloze_occurrence ?? 1);
+  if (!split) return <FuriganaText markup={example.furigana} size={size} />;
+  const show = settings.furigana;
+  const underline = `${colors.accentInk}66`;
+  if (!show) {
+    const text = (list: RubyToken[]) => list.map((t) => t.text).join('');
+    return (
+      <Text style={{ fontSize: size, lineHeight: size * 1.5, color: colors.text, fontFamily: FONTS.jpBold }}>
+        {text(split.before)}
+        <Text style={{ color: colors.accentInk, textDecorationLine: 'underline', textDecorationColor: underline }}>{text(split.blank)}</Text>
+        {text(split.after)}
+      </Text>
+    );
+  }
+  const common = { showFurigana: true, size, mutedColor: colors.textMuted };
+  const [lead, rest] = takeLeadingPunctuation(split.after);
+  return (
+    <View style={styles.row}>
+      <RubyUnits tokens={split.before} {...common} color={colors.text} />
+      <View style={styles.cluster}>
+        <View style={[styles.row, { borderBottomWidth: 2, borderBottomColor: underline }]}>
+          <RubyUnits tokens={split.blank} {...common} color={colors.accentInk} />
+        </View>
+        <RubyUnits tokens={lead} {...common} color={colors.text} />
+      </View>
+      <RubyUnits tokens={rest} {...common} color={colors.text} />
     </View>
   );
 });
@@ -69,14 +112,15 @@ export function ClozeSentence({ example, state, size = 24 }: { example: Example;
     blank = (
       <View style={styles.unit}>
         {show && <Text style={{ fontSize: size * 0.5, lineHeight: size * 0.5 + 3 }}> </Text>}
-        <View style={[styles.blank, { width, height: size * 1.35, borderBottomColor: colors.accent, backgroundColor: colors.accentSoft, borderRadius: 8, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]} />
+        <View style={[styles.blank, { width, height: size * 1.35, borderBottomColor: colors.accentInk }]} />
       </View>
     );
   } else {
-    const tint = state === 'correct' ? colors.correct : state === 'wrong' ? colors.wrong : colors.accent;
+    const line = state === 'correct' ? colors.correct : state === 'wrong' ? colors.wrong : colors.accent;
+    const ink = state === 'correct' ? colors.correctText : state === 'wrong' ? colors.wrongText : colors.accentInk;
     blank = (
-      <View style={[styles.row, { borderBottomWidth: 2, borderBottomColor: tint }]}>
-        <RubyUnits tokens={split.blank} {...common} color={tint} />
+      <View style={[styles.row, { borderBottomWidth: 3, borderBottomColor: line, paddingHorizontal: 2, marginHorizontal: 2 }]}>
+        <RubyUnits tokens={split.blank} {...common} color={ink} />
       </View>
     );
   }
@@ -99,5 +143,5 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end' },
   unit: { alignItems: 'center' },
   cluster: { flexDirection: 'row', alignItems: 'flex-end' },
-  blank: { borderBottomWidth: 2, borderRadius: 4, marginHorizontal: 2 },
+  blank: { borderBottomWidth: 3, marginHorizontal: 4 },
 });

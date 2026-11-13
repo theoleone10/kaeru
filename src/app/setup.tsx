@@ -1,9 +1,8 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { pickAndImportAnki, type ImportPhase } from '@/anki/importer';
 import { listDecks, type DeckNode } from '@/anki/repo';
@@ -12,13 +11,14 @@ import { useAuth } from '@/auth/AuthProvider';
 import { pointsForLevel } from '@/content/loader';
 import { Mascot } from '@/components/Mascot';
 import { PlacementFlow, type Level } from '@/components/PlacementFlow';
-import { Choice, Heading } from '@/components/SetupChoice';
+import { Icon } from '@/components/Icon';
+import { Choice, ChoiceList, Heading, StepBar } from '@/components/SetupChoice';
 import { LegalNote, NoAccountLink, SignInOptions } from '@/components/SignInOptions';
-import { Button, IconButton, ProgressBar, T } from '@/components/ui';
+import { Button, IconTile, ProgressBar, Rule, T } from '@/components/ui';
 import { KANA_LESSONS } from '@/kana/data';
 import { passKanaLessons } from '@/kana/repo';
 import { useApp } from '@/state/AppProvider';
-import { radius, spacing } from '@/theme/colors';
+import { spacing } from '@/theme/colors';
 import { everyDayPracticeMinutes, withDailyPractice } from '@/time/goals';
 
 const STEPS = ['level', 'kana', 'grammar', 'time', 'anki', 'account'] as const;
@@ -132,15 +132,15 @@ export default function Setup() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top + spacing.sm }}>
+    <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top + spacing.md }}>
       <View style={styles.header}>
-        <IconButton label="Back" onPress={back}>
-          <Ionicons name="chevron-back" size={26} color={colors.textMuted} />
-        </IconButton>
+        <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Back" hitSlop={8} style={({ pressed }) => [styles.back, { opacity: pressed ? 0.6 : 1 }]}>
+          <Icon name="chevronLeft" size={22} color={colors.accentInk} strokeWidth={2.6} />
+        </Pressable>
         <View style={{ flex: 1 }}>
-          <ProgressBar value={(index + 1) / STEPS.length} />
+          <StepBar step={index + 1} count={STEPS.length} />
         </View>
-        <View style={{ width: 44 }} />
+        <View style={{ width: 32 }} />
       </View>
 
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
@@ -160,7 +160,7 @@ export default function Setup() {
               title="Learn to read kana?"
               body="Hiragana and katakana are the two Japanese alphabets, 46 sounds each. Everything else builds on them."
             />
-            <View style={styles.choices} accessibilityRole="radiogroup">
+            <ChoiceList>
               {KANA_CHOICES.map((c) => (
                 <Choice
                   key={c.value}
@@ -174,14 +174,14 @@ export default function Setup() {
                   }}
                 />
               ))}
-            </View>
+            </ChoiceList>
           </>
         )}
 
         {step === 'grammar' && (
           <>
             <Heading title="How much grammar a day?" body="Each day you get one short lesson and quiz on your new points, then reviews of the ones you’ve learned." />
-            <View style={styles.choices} accessibilityRole="radiogroup">
+            <ChoiceList>
               {GRAMMAR_CHOICES.map((c) => (
                 <Choice
                   key={c.value}
@@ -192,14 +192,14 @@ export default function Setup() {
                   onPress={() => pick({ dailyNewGrammar: c.value })}
                 />
               ))}
-            </View>
+            </ChoiceList>
           </>
         )}
 
         {step === 'time' && (
           <>
             <Heading title="Your daily time goal" body="Lessons, reviews and flashcards count, and so does time you log with the timer: reading, listening, watching." />
-            <View style={styles.choices} accessibilityRole="radiogroup">
+            <ChoiceList>
               {TIME_CHOICES.map((c) => (
                 <Choice
                   key={c.value}
@@ -209,7 +209,7 @@ export default function Setup() {
                   onPress={() => pick({ timeGoals: withDailyPractice(settings.timeGoals, c.value) })}
                 />
               ))}
-            </View>
+            </ChoiceList>
           </>
         )}
 
@@ -219,7 +219,7 @@ export default function Setup() {
               title="Want a deck of words to start with?"
               body="Kaeru comes with one, or bring your own Anki decks with their progress. You can do either later from the Cards tab."
             />
-            <View style={styles.choices}>
+            <ChoiceList radio={false}>
               <Choice
                 title={STARTER_DECK}
                 detail={
@@ -239,16 +239,19 @@ export default function Setup() {
                 selected={decks.some((d) => d.path !== STARTER_DECK)}
                 onPress={() => !importing && importDeck()}
               />
-            </View>
+            </ChoiceList>
             {decks.some((d) => d.path !== STARTER_DECK) && (
-              <View style={{ gap: spacing.sm }}>
-                {decks.filter((d) => d.path !== STARTER_DECK).map((d) => (
-                  <View key={d.path} style={[styles.deck, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Ionicons name="checkmark-circle" size={22} color={colors.correct} />
-                    <T variant="body" style={{ flex: 1, fontWeight: '800' }} numberOfLines={1}>
-                      {d.name}
-                    </T>
-                    <T variant="small">{`${d.total.toLocaleString()} cards`}</T>
+              <View>
+                {decks.filter((d) => d.path !== STARTER_DECK).map((d, i) => (
+                  <View key={d.path}>
+                    {i > 0 && <Rule />}
+                    <View style={styles.deck}>
+                      <IconTile icon="check" color={colors.correct} size={28} done />
+                      <T variant="body" style={{ flex: 1, fontWeight: '700' }} numberOfLines={1}>
+                        {d.name}
+                      </T>
+                      <T variant="small">{`${d.total.toLocaleString()} cards`}</T>
+                    </View>
                   </View>
                 ))}
               </View>
@@ -293,8 +296,8 @@ export default function Setup() {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.md },
-  content: { flexGrow: 1, padding: spacing.xl, gap: spacing.xl },
-  choices: { gap: spacing.md },
-  deck: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: 12, minHeight: 44 },
+  back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  content: { flexGrow: 1, paddingHorizontal: 20, paddingTop: spacing.xl, gap: 26 },
+  deck: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 48, paddingVertical: spacing.sm },
 });

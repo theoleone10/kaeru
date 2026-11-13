@@ -1,12 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Svg, { Path } from 'react-native-svg';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Link, router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useAuth } from '../auth/AuthProvider';
 import { useApp } from '../state/AppProvider';
 import { radius, spacing, TAP } from '../theme/colors';
-import { T } from './ui';
+import { Icon } from './Icon';
+import { fontStyle, T } from './ui';
+
+const LIP_PROVIDER = 3;
 
 /**
  * Apple, Google and email sign-in buttons. Calls `onSignedIn` after a successful sign-in.
@@ -34,8 +38,6 @@ export function SignInOptions({ onSignedIn, newAccount = false }: { onSignedIn: 
     }
   };
 
-  const outlined = { backgroundColor: colors.surface, borderColor: colors.border };
-
   return (
     <View style={{ gap: spacing.md }}>
       {nativeApple ? (
@@ -43,43 +45,89 @@ export function SignInOptions({ onSignedIn, newAccount = false }: { onSignedIn: 
           buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
           buttonStyle={isDark ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
           cornerRadius={radius.md}
-          style={{ height: TAP + 4, opacity: busy ? 0.6 : 1 }}
+          style={{ height: TAP + 2, opacity: busy ? 0.6 : 1 }}
           onPress={() => !busy && run('apple')}
         />
       ) : (
-        <ProviderButton icon="logo-apple" label="Continue with Apple" onPress={() => run('apple')} busy={busy === 'apple'} disabled={!!busy} style={outlined} />
+        <ProviderButton
+          icon={<Ionicons name="logo-apple" size={20} color={isDark ? '#000000' : '#FFFFFF'} />}
+          label="Continue with Apple"
+          onPress={() => run('apple')}
+          busy={busy === 'apple'}
+          disabled={!!busy}
+          face={isDark ? { bg: '#FFFFFF', lip: colors.textMuted, fg: '#000000' } : { bg: '#1B1F33', lip: '#000000', fg: '#FFFFFF' }}
+        />
       )}
-      <ProviderButton icon="logo-google" label="Continue with Google" onPress={() => run('google')} busy={busy === 'google'} disabled={!!busy} style={outlined} />
-      <ProviderButton icon="mail-outline" label="Continue with email" onPress={() => router.push(newAccount ? { pathname: '/email-auth', params: { mode: 'signup' } } : '/email-auth')} disabled={!!busy} style={outlined} />
+      <ProviderButton icon={<GoogleLogo />} label="Continue with Google" onPress={() => run('google')} busy={busy === 'google'} disabled={!!busy} />
+      <ProviderButton
+        icon={<Icon name="mail" size={20} color={colors.accentInk} />}
+        label="Continue with email"
+        onPress={() => router.push(newAccount ? { pathname: '/email-auth', params: { mode: 'signup' } } : '/email-auth')}
+        disabled={!!busy}
+      />
     </View>
   );
 }
 
+/** Google's four-colour "G" (brand mark, drawn as given). */
+function GoogleLogo() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24">
+      <Path d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z" fill="#4285F4" />
+      <Path d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z" fill="#34A853" />
+      <Path d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2z" fill="#FBBC05" />
+      <Path d="M12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10C7.2 7.7 9.4 6 12 6z" fill="#EA4335" />
+    </Svg>
+  );
+}
+
+/** A provider button: an outlined face on a lip (or a solid face, for Apple). */
 function ProviderButton({
   icon,
   label,
   onPress,
   busy,
   disabled,
-  style,
+  face,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: ReactNode;
   label: string;
   onPress?: () => void;
   busy?: boolean;
   disabled?: boolean;
-  style?: object;
+  face?: { bg: string; lip: string; fg: string };
 }) {
   const { colors } = useApp();
+  const c = face ?? { bg: colors.surface, lip: colors.borderStrong, fg: colors.text };
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled, busy: !!busy }}
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [styles.button, style, { opacity: disabled && !busy ? 0.5 : pressed ? 0.8 : 1 }]}
+      style={{ minHeight: TAP + 2 + LIP_PROVIDER, opacity: disabled && !busy ? 0.5 : 1 }}
     >
-      <Ionicons name={icon} size={20} color={colors.text} />
-      <Text style={[styles.label, { color: colors.text }]}>{busy ? 'Signing in…' : label}</Text>
+      {({ pressed }) => (
+        <>
+          <View style={[StyleSheet.absoluteFill, { top: LIP_PROVIDER, borderRadius: radius.md, backgroundColor: c.lip }]} />
+          <View
+            style={[
+              styles.button,
+              {
+                backgroundColor: c.bg,
+                borderColor: face ? c.bg : colors.border,
+                transform: [{ translateY: pressed ? LIP_PROVIDER : 0 }],
+              },
+            ]}
+          >
+            {icon}
+            <T variant="body" color={c.fg} style={{ fontWeight: '700' }}>
+              {busy ? 'Signing in…' : label}
+            </T>
+          </View>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -95,7 +143,7 @@ export function NoAccountLink({ onPress }: { onPress: () => void }) {
       hitSlop={8}
       style={({ pressed }) => ({ minHeight: TAP, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.lg, opacity: pressed ? 0.6 : 1 })}
     >
-      <T variant="body" color={colors.accent} style={{ fontWeight: '700', textAlign: 'center' }}>
+      <T variant="body" color={colors.accentInk} style={{ fontWeight: '700', textAlign: 'center', fontSize: 15 }}>
         Continue without an account
       </T>
     </Pressable>
@@ -108,11 +156,11 @@ export function LegalNote() {
   return (
     <T variant="small" style={{ textAlign: 'center' }}>
       By continuing you agree to the{' '}
-      <Link href="/legal/terms" style={{ color: colors.accent, fontWeight: '600' }}>
+      <Link href="/legal/terms" style={[{ color: colors.accentInk }, fontStyle({ fontWeight: '700' }, false)]}>
         Terms
       </Link>{' '}
       and{' '}
-      <Link href="/legal/privacy" style={{ color: colors.accent, fontWeight: '600' }}>
+      <Link href="/legal/privacy" style={[{ color: colors.accentInk }, fontStyle({ fontWeight: '700' }, false)]}>
         Privacy Policy
       </Link>
       .
@@ -122,14 +170,13 @@ export function LegalNote() {
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: TAP + 4,
+    minHeight: TAP + 2,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: spacing.sm + 2,
     paddingHorizontal: spacing.lg,
   },
-  label: { fontSize: 17, fontWeight: '600' },
 });

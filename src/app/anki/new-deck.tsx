@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { cleanDeckPath, createDeck } from '@/anki/notes';
+import { BottomBar, Input } from '@/components/FormControls';
 import { Button, Section, T } from '@/components/ui';
 import { useApp } from '@/state/AppProvider';
-import { radius, spacing, TAP } from '@/theme/colors';
+
 
 /** Start an empty deck, then go straight to adding cards to it. */
 export default function NewDeck() {
@@ -23,26 +24,24 @@ export default function NewDeck() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl }} keyboardShouldPersistTaps="handled">
-      <Section label="Name">
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="e.g. Japanese::Verbs"
-          placeholderTextColor={colors.textMuted}
-          autoFocus
-          returnKeyType="done"
-          onSubmitEditing={() => cleanDeckPath(name) && create()}
-          accessibilityLabel="Deck name"
-          style={[styles.input, { color: colors.text, backgroundColor: colors.surfaceAlt }]}
-        />
-        <T variant="small">Use :: to put it inside another deck, like in Anki.</T>
-      </Section>
-      <Button label="Create deck" onPress={create} disabled={!cleanDeckPath(name)} />
-    </ScrollView>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={100}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, gap: 22 }} keyboardShouldPersistTaps="handled">
+        <Section label="Name" style={{ gap: 10 }}>
+          <Input
+            value={name}
+            onChangeText={setName}
+            placeholder="e.g. Japanese::Verbs"
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={() => cleanDeckPath(name) && create()}
+            accessibilityLabel="Deck name"
+          />
+          <T variant="small">Use :: to put it inside another deck, like in Anki.</T>
+        </Section>
+      </ScrollView>
+      <BottomBar>
+        <Button label="Create deck" onPress={create} disabled={!cleanDeckPath(name)} />
+      </BottomBar>
+    </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  input: { minHeight: TAP, borderRadius: radius.md, paddingHorizontal: spacing.md, fontSize: 17 },
-});

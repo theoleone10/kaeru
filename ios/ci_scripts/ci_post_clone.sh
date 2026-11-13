@@ -24,6 +24,17 @@ npm ci
 echo "Writing app settings (.env)"
 : "${EXPO_PUBLIC_SUPABASE_URL:?Set EXPO_PUBLIC_SUPABASE_URL on the Xcode Cloud workflow}"
 : "${EXPO_PUBLIC_SUPABASE_KEY:?Set EXPO_PUBLIC_SUPABASE_KEY on the Xcode Cloud workflow}"
+# Only the value, e.g. https://abcdefgh.supabase.co: no quotes, spaces or variable name.
+case "$EXPO_PUBLIC_SUPABASE_URL" in
+  https://*.*) ;;
+  *) echo "EXPO_PUBLIC_SUPABASE_URL must be just the URL, like https://abcdefgh.supabase.co (no quotes or name=)" >&2; exit 1 ;;
+esac
+case "$EXPO_PUBLIC_SUPABASE_URL" in
+  *\"*|*\'*|*" "*|*=*) echo "EXPO_PUBLIC_SUPABASE_URL contains quotes, spaces or '=': paste only the URL" >&2; exit 1 ;;
+esac
+case "$EXPO_PUBLIC_SUPABASE_KEY" in
+  *\"*|*\'*|*" "*|EXPO_PUBLIC_*) echo "EXPO_PUBLIC_SUPABASE_KEY contains quotes, spaces or its name: paste only the key" >&2; exit 1 ;;
+esac
 {
   echo "EXPO_PUBLIC_SUPABASE_URL=$EXPO_PUBLIC_SUPABASE_URL"
   echo "EXPO_PUBLIC_SUPABASE_KEY=$EXPO_PUBLIC_SUPABASE_KEY"

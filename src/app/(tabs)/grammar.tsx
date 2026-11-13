@@ -1,12 +1,12 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toKana } from 'wanakana';
+import { Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
-import { Button, IconButton, T } from '@/components/ui';
+import { Button, fontStyle, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { LEVELS, type GrammarPoint, type JlptLevel } from '@/content/types';
 import { stationCode, unitsFor, type Station } from '@/content/units';
@@ -14,18 +14,16 @@ import { markKnown } from '@/db/repo';
 import { katakanaToHiragana } from '@/review/normalize';
 import { isMastered } from '@/srs/scheduler';
 import { useApp } from '@/state/AppProvider';
-import { radius, spacing, TAP, type LineColors } from '@/theme/colors';
+import { dark, radius, spacing, TAP, type LineColors } from '@/theme/colors';
 
-const UNIT_H = 52;
-const STATION_H = 62;
-const CURRENT_H = 74;
+const UNIT_H = 44;
+const STATION_H = 58;
+const CURRENT_H = 70;
 
 const fold = (s: string) => katakanaToHiragana(s.toLowerCase());
 // Japanese side (title + structure) and English side (meaning) are searched separately
 // so a romaji query like "mo" matches も without matching every English word containing "mo".
-const INDEX = new Map(
-  curriculum.map((p) => [p.id, { jp: fold([p.title, ...p.structure].join(' ')), en: fold(`${p.meaning} ${p.id}`) }]),
-);
+const INDEX = new Map(curriculum.map((p) => [p.id, { jp: fold([p.title, ...p.structure].join(' ')), en: fold(`${p.meaning} ${p.id}`) }]));
 
 function matches(p: GrammarPoint, q: string): boolean {
   const idx = INDEX.get(p.id)!;
@@ -40,48 +38,53 @@ function matches(p: GrammarPoint, q: string): boolean {
 }
 
 type Status = 'mastered' | 'learned' | 'current' | 'ahead';
-type Row = { kind: 'unit'; unit: number; first: boolean; count: number; points: GrammarPoint[] } | { kind: 'station'; station: Station; status: Status; last: boolean };
+type Row =
+  | { kind: 'unit'; unit: number; first: boolean; count: number; done: number; points: GrammarPoint[] }
+  | { kind: 'station'; station: Station; status: Status; last: boolean; nextTravelled: boolean };
 
-/** Round station marker in the Tokyo subway style: line-coloured ring with the station number. */
+const MARKER = 32;
+const CURRENT_MARKER = 46;
+
+/** Round station marker: gold star (mastered), line-coloured check (learned), the frog (you are here), or the station number. */
 function StationMarker({ station, status, line }: { station: Station; status: Status; line: LineColors }) {
   const { colors } = useApp();
   if (status === 'current') {
     return (
-      <View style={[styles.currentMarker, { backgroundColor: colors.accent, borderBottomColor: colors.accentShadow }]}>
-        <Mascot size={42} mood="happy" />
+      <View style={[styles.ring, { borderColor: colors.background, borderRadius: CURRENT_MARKER / 2 + 3 }]}>
+        <View style={[styles.currentMarker, { backgroundColor: colors.accentSoft, borderColor: colors.accentInk }]}>
+          <Mascot size={32} mood="happy" />
+        </View>
       </View>
     );
   }
   if (status === 'learned' || status === 'mastered') {
     const mastered = status === 'mastered';
     return (
-      <View
-        style={[styles.marker, { backgroundColor: mastered ? colors.gold : line.line, borderColor: colors.background }]}
-        accessibilityLabel={mastered ? 'Mastered' : 'Learned'}
-      >
-        <Ionicons name={mastered ? 'star' : 'checkmark'} size={mastered ? 17 : 20} color="#FFFFFF" />
+      <View style={[styles.ring, { borderColor: colors.background }]} accessibilityLabel={mastered ? 'Mastered' : 'Learned'}>
+        <View style={[styles.marker, { backgroundColor: mastered ? colors.gold : line.line }]}>
+          <Icon name={mastered ? 'star' : 'check'} size={mastered ? 18 : 16} color="#FFFFFF" filled={mastered} strokeWidth={3.2} />
+        </View>
       </View>
     );
   }
   return (
-    <View style={[styles.marker, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-      <T variant="small" color={colors.textMuted} style={{ fontSize: 7, lineHeight: 8, fontWeight: '900' }}>
-        {station.point.level}
-      </T>
-      <T variant="small" color={colors.text} style={{ fontSize: 12, lineHeight: 13, fontWeight: '900' }}>
-        {station.number}
-      </T>
+    <View style={[styles.ring, { borderColor: colors.background }]}>
+      <View style={[styles.marker, { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors === dark ? colors.border : colors.borderStrong }]}>
+        <T variant="small" color={colors.textMuted} style={{ fontSize: 12, lineHeight: 14, fontWeight: '800' }} jp={false}>
+          {station.number}
+        </T>
+      </View>
     </View>
   );
 }
 
 /** Solid line where you've travelled, dots ahead. */
-function Track({ solid, color, dots }: { solid: boolean; color: string; dots: string }) {
-  if (solid) return <View style={[styles.track, { backgroundColor: color }]} />;
+function Track({ solid, color, dots, style }: { solid: boolean; color: string; dots: string; style?: { top?: number | `${number}%`; bottom?: number | `${number}%` } }) {
+  if (solid) return <View style={[styles.track, { backgroundColor: color }, style]} />;
   return (
-    <View style={styles.dotTrack}>
-      {[0, 1, 2, 3, 4].map((i) => (
-        <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: dots }} />
+    <View style={[styles.dotTrack, style]}>
+      {Array.from({ length: 6 }, (_, i) => (
+        <View key={i} style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: dots }} />
       ))}
     </View>
   );
@@ -98,6 +101,7 @@ export default function GrammarMap() {
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
   const line = lines[level];
+  const dots = colors === dark ? colors.textFaint : colors.borderStrong;
 
   const { rows, current, startIndex, layout } = useMemo(() => {
     const units = unitsFor(level);
@@ -105,15 +109,20 @@ export default function GrammarMap() {
     const currentStation = stations.find((s) => !cardsById.has(s.point.id)) ?? stations[stations.length - 1];
     const out: Row[] = [];
     units.forEach((u, ui) => {
-      out.push({ kind: 'unit', unit: u.number, first: ui === 0, count: u.stations.length, points: u.stations.map((s) => s.point) });
+      const done = u.stations.filter((s) => cardsById.has(s.point.id)).length;
+      out.push({ kind: 'unit', unit: u.number, first: ui === 0, count: u.stations.length, done, points: u.stations.map((s) => s.point) });
       u.stations.forEach((s, si) => {
         const card = cardsById.get(s.point.id);
         const status: Status = card ? (isMastered(card) ? 'mastered' : 'learned') : s === currentStation ? 'current' : 'ahead';
-        out.push({ kind: 'station', station: s, status, last: ui === units.length - 1 && si === u.stations.length - 1 });
+        const next = u.stations[si + 1] ?? units[ui + 1]?.stations[0];
+        out.push({ kind: 'station', station: s, status, last: ui === units.length - 1 && si === u.stations.length - 1, nextTravelled: !!next && cardsById.has(next.point.id) });
       });
     });
     // The unit you're on opens at the top of the map.
-    const startIndex = Math.max(0, out.findIndex((r) => r.kind === 'unit' && r.unit === currentStation?.unit));
+    const startIndex = Math.max(
+      0,
+      out.findIndex((r) => r.kind === 'unit' && r.unit === currentStation?.unit),
+    );
     // Fixed row heights, so the list can jump straight there.
     const layout: { length: number; offset: number; index: number }[] = [];
     let offset = 0;
@@ -155,24 +164,29 @@ export default function GrammarMap() {
     else Alert.alert(`${level} Unit ${unit}`, undefined, [...actions, { text: 'Cancel', style: 'cancel' }]);
   };
 
+  const travelledAt = (i: number) => {
+    const r = rows[i];
+    return r?.kind === 'station' && (r.status === 'learned' || r.status === 'mastered');
+  };
+
   const isNextLesson = current && nextGlobal?.id === current.point.id && !cardsById.has(current.point.id);
 
   const header = current ? (
-    <View style={{ gap: spacing.sm, paddingBottom: spacing.md }}>
-      <T variant="small" color={line.ink} style={{ fontWeight: '900', letterSpacing: 1 }}>
-        {`${level} · UNIT ${current.unit}`}
+    <View style={{ gap: 4, paddingBottom: spacing.lg }}>
+      <T variant="small" color={line.ink} style={{ fontWeight: '700' }} jp={false}>
+        {`${level} · Unit ${current.unit} · Station ${current.number}`}
       </T>
-      <T variant="title" style={{ fontSize: 34, lineHeight: 44 }} numberOfLines={1}>
+      <T variant="title" style={{ fontSize: 40, lineHeight: 50 }} numberOfLines={1}>
         {current.point.title}
       </T>
-      <T variant="muted" numberOfLines={2}>
+      <T variant="muted" style={{ fontSize: 16 }} numberOfLines={2}>
         {current.point.meaning}
       </T>
       <Button
         label={isNextLesson ? 'Start lesson' : 'Open'}
-        icon={isNextLesson ? <Ionicons name="play" size={20} color="#FFFFFF" /> : undefined}
+        icon={isNextLesson ? <Icon name="play" size={16} color="#FFFFFF" filled /> : undefined}
         onPress={() => (isNextLesson ? router.push('/lessons') : router.push(`/grammar/${current.point.id}`))}
-        style={{ marginTop: spacing.sm }}
+        style={{ marginTop: spacing.lg }}
       />
     </View>
   ) : null;
@@ -186,11 +200,11 @@ export default function GrammarMap() {
             onChangeText={setQuery}
             autoFocus
             placeholder="Search grammar"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={colors.textFaint}
             autoCapitalize="none"
             autoCorrect={false}
             clearButtonMode="while-editing"
-            style={[styles.search, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
+            style={[styles.search, fontStyle({ fontWeight: '500' }, false), { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             accessibilityLabel="Search grammar"
           />
         ) : (
@@ -205,9 +219,14 @@ export default function GrammarMap() {
                   accessibilityRole="tab"
                   accessibilityLabel={`${l} line`}
                   accessibilityState={{ selected: active }}
-                  style={[styles.linePill, active ? { backgroundColor: c.line, borderColor: c.line, paddingHorizontal: 12 } : { borderColor: c.line, backgroundColor: colors.background }]}
+                  hitSlop={{ top: 5, bottom: 5 }}
+                  style={({ pressed }) => [
+                    styles.linePill,
+                    active ? { backgroundColor: c.line, borderColor: c.line, paddingHorizontal: 14 } : { borderColor: c.line, width: 40 },
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
                 >
-                  <T variant="small" color={active ? '#FFFFFF' : c.ink} style={{ fontWeight: '900', fontSize: 13 }}>
+                  <T variant="small" color={active ? '#FFFFFF' : c.ink} style={{ fontWeight: active ? '800' : '700', fontSize: active ? 14 : 13 }} jp={false}>
                     {active ? `${l} Line` : l}
                   </T>
                 </Pressable>
@@ -215,15 +234,18 @@ export default function GrammarMap() {
             })}
           </View>
         )}
-        <IconButton
-          label={searching ? 'Close search' : 'Search grammar'}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={searching ? 'Close search' : 'Search grammar'}
+          hitSlop={4}
           onPress={() => {
             setSearching(!searching);
             setQuery('');
           }}
+          style={({ pressed }) => [styles.searchButton, { backgroundColor: pressed ? colors.surfaceAlt : 'transparent' }]}
         >
-          <Ionicons name={searching ? 'close' : 'search'} size={22} color={colors.textMuted} />
-        </IconButton>
+          <Icon name={searching ? 'close' : 'search'} size={22} color={colors.textMuted} />
+        </Pressable>
       </View>
 
       {searching ? (
@@ -232,7 +254,7 @@ export default function GrammarMap() {
           keyExtractor={(p) => p.id}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: spacing.xxl }}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', gap: spacing.md, marginTop: spacing.xl }}>
               <Mascot size={80} mood={query.trim() ? 'sad' : 'think'} />
@@ -244,13 +266,10 @@ export default function GrammarMap() {
           renderItem={({ item }) => {
             const card = cardsById.get(item.id);
             return (
-              <Pressable
-                onPress={() => router.push(`/grammar/${item.id}`)}
-                style={({ pressed }) => [styles.result, { opacity: pressed ? 0.6 : 1 }]}
-              >
+              <Pressable onPress={() => router.push(`/grammar/${item.id}`)} style={({ pressed }) => [styles.result, { borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 }]}>
                 <View style={[styles.lineDot, { borderColor: lines[item.level].line }]} />
                 <View style={{ flex: 1 }}>
-                  <T variant="body" style={{ fontSize: 18, fontWeight: '700' }}>
+                  <T variant="body" style={{ fontSize: 17, fontWeight: '700' }}>
                     {item.title}
                   </T>
                   <T variant="small" numberOfLines={1}>
@@ -258,9 +277,9 @@ export default function GrammarMap() {
                   </T>
                 </View>
                 {card ? (
-                  <Ionicons name={isMastered(card) ? 'star' : 'checkmark-circle'} size={20} color={isMastered(card) ? colors.gold : lines[item.level].line} />
+                  <Icon name={isMastered(card) ? 'star' : 'check'} size={20} filled={isMastered(card)} strokeWidth={2.8} color={isMastered(card) ? colors.gold : lines[item.level].line} />
                 ) : (
-                  <T variant="small" style={{ fontWeight: '900' }}>
+                  <T variant="small" color={lines[item.level].ink} style={{ fontWeight: '800' }} jp={false}>
                     {item.level}
                   </T>
                 )}
@@ -270,7 +289,7 @@ export default function GrammarMap() {
         />
       ) : (
         <>
-          <View style={{ paddingHorizontal: spacing.lg }}>{header}</View>
+          <View style={{ paddingHorizontal: 20 }}>{header}</View>
           <FlatList
             // A fresh list per line, so switching lines opens at that line's current unit too.
             key={level}
@@ -278,8 +297,8 @@ export default function GrammarMap() {
             keyExtractor={(r) => (r.kind === 'unit' ? `u${r.unit}` : r.station.point.id)}
             initialScrollIndex={startIndex}
             getItemLayout={(_data, index) => layout[index]}
-            contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl }}
-            renderItem={({ item }) => {
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: spacing.xxl }}
+            renderItem={({ item, index }) => {
               if (item.kind === 'unit') {
                 return (
                   <Pressable
@@ -290,12 +309,15 @@ export default function GrammarMap() {
                     style={({ pressed }) => [styles.unitRow, { opacity: pressed ? 0.6 : 1 }]}
                   >
                     <View style={styles.trackCol}>
+                      <Track solid={travelledAt(index + 1)} color={line.line} dots={dots} style={item.first ? { top: '50%', bottom: 0 } : undefined} />
                       <View style={[styles.transfer, { borderColor: line.line, backgroundColor: colors.background }]} />
                     </View>
-                    <T variant="small" color={line.ink} style={{ flex: 1, fontWeight: '900', letterSpacing: 1 }}>
-                      {`UNIT ${item.unit}`}
+                    <T variant="small" color={line.ink} style={{ flex: 1, fontWeight: '800' }} jp={false}>
+                      {`Unit ${item.unit}`}
                     </T>
-                    <Ionicons name="ellipsis-horizontal" size={18} color={colors.textMuted} />
+                    <T variant="small" color={colors.textFaint} jp={false}>
+                      {`${item.done} of ${item.count}`}
+                    </T>
                   </Pressable>
                 );
               }
@@ -310,15 +332,27 @@ export default function GrammarMap() {
                   style={({ pressed }) => [styles.stationRow, isCurrent && { height: CURRENT_H }, { opacity: pressed ? 0.7 : 1 }]}
                 >
                   <View style={styles.trackCol}>
-                    {!isCurrent && <Track solid={travelled} color={line.line} dots={colors.border} />}
+                    {travelled ? (
+                      <>
+                        <Track solid color={line.line} dots={dots} style={{ top: 0, bottom: item.last ? '50%' : item.nextTravelled ? 0 : '50%' }} />
+                        {!item.last && !item.nextTravelled && <Track solid={false} color={line.line} dots={dots} style={{ top: '50%', bottom: 0 }} />}
+                      </>
+                    ) : (
+                      <Track solid={false} color={line.line} dots={dots} style={item.last ? { top: 0, bottom: '50%' } : undefined} />
+                    )}
                     <StationMarker station={station} status={status} line={line} />
                   </View>
                   <View style={{ flex: 1, gap: 1 }}>
-                    <T variant="body" color={status === 'ahead' ? colors.textMuted : colors.text} style={{ fontSize: 17, fontWeight: isCurrent ? '800' : '700' }} numberOfLines={1}>
+                    <T
+                      variant="body"
+                      color={isCurrent ? colors.accentInk : status === 'ahead' ? colors.textMuted : colors.text}
+                      style={{ fontSize: isCurrent ? 18 : 17, lineHeight: 24, fontWeight: isCurrent ? '800' : '700' }}
+                      numberOfLines={1}
+                    >
                       {station.point.title}
                     </T>
-                    <T variant="small" numberOfLines={1}>
-                      {station.point.meaning}
+                    <T variant="small" color={status === 'ahead' ? colors.textFaint : colors.textMuted} numberOfLines={1}>
+                      {isCurrent ? 'You are here' : station.point.meaning}
                     </T>
                   </View>
                 </Pressable>
@@ -332,18 +366,20 @@ export default function GrammarMap() {
 }
 
 const styles = StyleSheet.create({
-  topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: 20, paddingBottom: 20 },
   lines: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center' },
-  linePill: { minWidth: 40, height: 40, borderRadius: 20, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
-  search: { flex: 1, minHeight: 46, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 17 },
-  unitRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, height: UNIT_H },
-  transfer: { width: 42, height: 28, borderRadius: 14, borderWidth: 4 },
-  stationRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, height: STATION_H },
-  trackCol: { width: 64, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  track: { position: 'absolute', top: 0, bottom: 0, width: 10, borderRadius: 5 },
+  linePill: { height: 34, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  searchButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  search: { flex: 1, minHeight: 46, borderRadius: radius.md, borderWidth: 2, paddingHorizontal: spacing.lg, fontSize: 17 },
+  unitRow: { flexDirection: 'row', alignItems: 'center', gap: 14, height: UNIT_H },
+  transfer: { width: 14, height: 14, borderRadius: 7, borderWidth: 3 },
+  stationRow: { flexDirection: 'row', alignItems: 'center', gap: 14, height: STATION_H },
+  trackCol: { width: 36, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  track: { position: 'absolute', top: 0, bottom: 0, width: 4 },
   dotTrack: { position: 'absolute', top: 0, bottom: 0, justifyContent: 'space-evenly', alignItems: 'center' },
-  marker: { width: 38, height: 38, borderRadius: 19, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
-  currentMarker: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 4 },
-  result: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, minHeight: TAP + 8 },
-  lineDot: { width: 18, height: 18, borderRadius: 9, borderWidth: 4 },
+  ring: { borderWidth: 3, borderRadius: MARKER / 2 + 3 },
+  marker: { width: MARKER, height: MARKER, borderRadius: MARKER / 2, alignItems: 'center', justifyContent: 'center' },
+  currentMarker: { width: CURRENT_MARKER, height: CURRENT_MARKER, borderRadius: CURRENT_MARKER / 2, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  result: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, minHeight: TAP + 8, borderBottomWidth: StyleSheet.hairlineWidth * 2 },
+  lineDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 3 },
 });
