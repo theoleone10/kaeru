@@ -217,24 +217,29 @@ export default function Decks() {
             const top = d.depth === 0;
             const todo = d.newCount + d.learnCount + d.reviewCount;
             return (
-              <Pressable
+              // The row and its options button are siblings, so neither button sits inside the other.
+              <View
                 key={d.path}
-                onPress={() => study(d)}
-                onLongPress={() => options(d)}
-                accessibilityRole="button"
-                accessibilityLabel={`${d.path}: ${d.newCount} new, ${d.learnCount} learning, ${d.reviewCount} due`}
-                accessibilityHint="Long-press for options"
-                style={({ pressed }) => [styles.deckRow, top ? styles.topRow : styles.subRow, top && { borderTopColor: colors.border, borderTopWidth: 1 }, { paddingLeft: (d.depth > 0 ? 18 : 0) + Math.max(0, d.depth - 1) * spacing.lg, opacity: pressed ? 0.6 : 1 }]}
+                style={[styles.deckRow, top ? styles.topRow : styles.subRow, top && { borderTopColor: colors.border, borderTopWidth: 1 }]}
               >
-                <View style={styles.name}>
-                  {!top && <View style={[styles.dash, { backgroundColor: colors.textFaint }]} />}
-                  <T variant="body" color={todo > 0 ? colors.text : colors.textMuted} numberOfLines={1} style={{ flex: 1, fontSize: top ? 18 : 16, lineHeight: top ? 24 : 22, fontWeight: top ? '700' : '500' }}>
-                    {d.name}
-                  </T>
-                </View>
-                <Count n={d.newCount} color={cc.new.n} small={!top} />
-                <Count n={d.learnCount} color={cc.learn.n} small={!top} wide />
-                <Count n={d.reviewCount} color={cc.review.n} small={!top} />
+                <Pressable
+                  onPress={() => study(d)}
+                  onLongPress={() => options(d)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${d.path}: ${d.newCount} new, ${d.learnCount} learning, ${d.reviewCount} due`}
+                  accessibilityHint="Long-press for options"
+                  style={({ pressed }) => [styles.deckPress, { paddingLeft: (d.depth > 0 ? 18 : 0) + Math.max(0, d.depth - 1) * spacing.lg, opacity: pressed ? 0.6 : 1 }]}
+                >
+                  <View style={styles.name}>
+                    {!top && <View style={[styles.dash, { backgroundColor: colors.textFaint }]} />}
+                    <T variant="body" color={todo > 0 ? colors.text : colors.textMuted} numberOfLines={1} style={{ flex: 1, fontSize: top ? 18 : 16, lineHeight: top ? 24 : 22, fontWeight: top ? '700' : '500' }}>
+                      {d.name}
+                    </T>
+                  </View>
+                  <Count n={d.newCount} color={cc.new.n} small={!top} />
+                  <Count n={d.learnCount} color={cc.learn.n} small={!top} wide />
+                  <Count n={d.reviewCount} color={cc.review.n} small={!top} />
+                </Pressable>
                 {top ? (
                   <Pressable onPress={() => openLimits(d)} accessibilityRole="button" accessibilityLabel={`Options for ${d.name}`} hitSlop={10} style={styles.gear}>
                     <Icon name="more" size={20} color={colors.textFaint} filled />
@@ -242,7 +247,7 @@ export default function Decks() {
                 ) : (
                   <View style={{ width: 32 }} />
                 )}
-              </Pressable>
+              </View>
             );
           })}
         </View>
@@ -258,6 +263,7 @@ const styles = StyleSheet.create({
   howRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   howNum: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   deckRow: { flexDirection: 'row', alignItems: 'center', minHeight: 46 },
+  deckPress: { flex: 1, flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch' },
   topRow: { minHeight: 58 },
   subRow: { minHeight: 46 },
   name: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
