@@ -99,10 +99,16 @@ export function ReviewSession({
   const maxPerDay = useRef(settings.grammarMaxReviewsPerDay);
   const [quizLeft, setQuizLeft] = useState(quiz?.items.length ?? 0);
 
+  /**
+   * Show `card` with `rest` as the queue behind it. Both are set after the database read,
+   * in one render: setting the queue first would briefly show one card fewer left (and
+   * jump the progress bar) while the previous result is still on screen.
+   */
   const present = useCallback(
-    async (card: StoredCard) => {
+    async (card: StoredCard, rest: StoredCard[]) => {
       const point = getPoint(card.grammar_id)!;
       const seen = await getExampleSeen(db, card.grammar_id);
+      setQueue(rest);
       setCurrent({ card, point, example: pickExample(point.examples, seen), shownAt: Date.now() });
       setInput('');
       setPhase({ kind: 'answering' });
@@ -145,8 +151,7 @@ export function ReviewSession({
         }
       }
       const [head, ...tail] = q;
-      setQueue(tail);
-      await present(head);
+      await present(head, tail);
     },
     [db, present],
   );
