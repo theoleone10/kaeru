@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Animated, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getPoint } from '../content/loader';
 import type { Example, GrammarPoint } from '../content/types';
@@ -42,6 +42,21 @@ type Phase =
 export interface SessionSummary {
   reviewed: number;
   correct: number;
+}
+
+/** Whether the on-screen keyboard is up (so the bottom safe-area padding can go). */
+function useKeyboardShown(): boolean {
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const ios = Platform.OS === 'ios';
+    const show = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', () => setShown(true));
+    const hide = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setShown(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  return shown;
 }
 
 function retryMessage(r: NonNullable<Extract<Phase, { kind: 'answering' }>['retry']>): string {
@@ -98,6 +113,7 @@ export function ReviewSession({
   // Read when the queue is built, so changing the setting doesn't restart a session.
   const maxPerDay = useRef(settings.grammarMaxReviewsPerDay);
   const [quizLeft, setQuizLeft] = useState(quiz?.items.length ?? 0);
+  const keyboardShown = useKeyboardShown();
 
   /**
    * Show `card` with `rest` as the queue behind it. Both are set after the database read,
@@ -316,7 +332,7 @@ export function ReviewSession({
         </View>
 
         <View style={{ gap: 14, paddingTop: spacing.sm }}>
-          <ClozeSentence example={example} state={result ? (result.correct ? 'correct' : 'wrong') : 'empty'} size={30} />
+          <ClozeSentence example={example} state={result ? (result.correct ? 'correct' : 'wrong') : 'empty'} typed={result ? undefined : input.trim()} size={30} />
           <T variant="body" color={colors.textMuted}>
             {example.english}
           </T>
@@ -339,47 +355,47 @@ export function ReviewSession({
             </T>
           </View>
         )}
-
-        <View style={styles.frog}>
-          <Mascot size={64} mood={result ? (result.correct ? 'cheer' : 'sad') : 'think'} />
-        </View>
       </ScrollView>
 
-      {result ? (
-        <ResultPanel key={phase.kind === 'result' ? phase.logId : 0} correct={result.correct} bottomInset={bottomInset}>
-          {!result.correct && (
-            <T variant="body" color={colors.textMuted}>
-              You typed: {result.answer}
-            </T>
-          )}
-          <T variant="body" style={{ fontSize: 18, lineHeight: 26, fontWeight: '700' }}>
-            {result.correct ? '' : 'Answer: '}
-            {example.accepted_answers.join(' / ')}
-          </T>
-          <Pressable
-            onPress={() => router.push(`/grammar/${point.id}`)}
-            accessibilityRole="link"
-            hitSlop={8}
-            style={({ pressed }) => [styles.pointLink, { opacity: pressed ? 0.6 : 1 }]}
-          >
-            <T variant="body" color={result.correct ? colors.correctText : colors.wrongText} style={{ flexShrink: 1, fontSize: 15, lineHeight: 22, fontWeight: '700' }}>
-              {point.title} · {point.meaning}
-            </T>
-            <Icon name="chevronRight" size={14} color={result.correct ? colors.correctText : colors.wrongText} strokeWidth={2.8} />
-          </Pressable>
-          <View style={styles.buttons}>
-            <OutlineButton
-              label="Undo"
-              onPress={undo}
-              color={result.correct ? colors.correctText : colors.wrongText}
-              border={`${result.correct ? colors.correct : colors.wrong}66`}
-              accessibilityHint="Take back this answer and try again"
-            />
-            <Button label="Continue" kind={result.correct ? 'success' : 'danger'} onPress={next} style={{ flex: 2 }} />
-          </View>
-        </ResultPanel>
-      ) : (
-        <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.bar, paddingBottom: spacing.lg + bottomInset }]}>
+      {/*
+        One tray for typing and the verdict. The input stays mounted (and focused) through the
+        result, so the keyboard doesn't drop and come back between cards: the tray takes the
+        result colour, the verdict grows out of its top, and Check turns into Continue.
+      */}
+      <View
+        style={[
+          styles.dock,
+          {
+            backgroundColor: result ? (result.correct ? colors.correctSoft : colors.wrongSoft) : colors.bar,
+            borderColor: result ? 'transparent' : colors.border,
+            paddingBottom: keyboardShown ? spacing.md : spacing.lg + bottomInset,
+          },
+        ]}
+      >
+        <View style={styles.perch} pointerEvents="none">
+          <Mascot size={56} mood={result ? (result.correct ? 'cheer' : 'sad') : 'think'} />
+        </View>
+        {result && (
+          <Verdict key={phase.kind === 'result' ? phase.logId : 0} correct={result.correct} onUndo={undo}>
+            {!result.correct && (
+              <T variant="body" style={{ fontSize: 18, lineHeight: 26, fontWeight: '700' }}>
+                Answer: {example.accepted_answers.join(' / ')}
+              </T>
+            )}
+            <Pressable
+              onPress={() => router.push(`/grammar/${point.id}`)}
+              accessibilityRole="link"
+              hitSlop={8}
+              style={({ pressed }) => [styles.pointLink, { opacity: pressed ? 0.6 : 1 }]}
+            >
+              <T variant="body" color={result.correct ? colors.correctText : colors.wrongText} style={{ flexShrink: 1, fontSize: 15, lineHeight: 22, fontWeight: '700' }}>
+                {point.title} · {point.meaning}
+              </T>
+              <Icon name="chevronRight" size={14} color={result.correct ? colors.correctText : colors.wrongText} strokeWidth={2.8} />
+            </Pressable>
+          </Verdict>
+        )}
+        <View style={styles.composer}>
           <TextInput
             ref={inputRef}
             value={input}
@@ -392,39 +408,33 @@ export function ReviewSession({
             autoComplete="off"
             spellCheck={false}
             importantForAutofill="no"
-            returnKeyType="done"
-            placeholder={settings.romajiInput ? 'Type in kana or romaji' : 'Type your answer'}
+            returnKeyType={result ? 'next' : 'done'}
+            placeholder={settings.romajiInput ? 'Kana or romaji' : 'Your answer'}
             placeholderTextColor={colors.textFaint}
-            style={[styles.input, { color: colors.text, borderColor: inputBorder, backgroundColor: colors.surface, fontFamily: FONTS.jpBold }]}
-            accessibilityLabel="Answer"
+            style={[
+              styles.input,
+              result
+                ? { color: result.correct ? colors.correctText : colors.wrongText, borderColor: `${result.correct ? colors.correct : colors.wrong}55`, backgroundColor: colors.surface }
+                : { color: colors.text, borderColor: inputBorder, backgroundColor: colors.surface },
+              { fontFamily: FONTS.jpBold },
+            ]}
+            accessibilityLabel={result ? `Your answer: ${result.answer}` : 'Answer'}
           />
-          <Button label="Check" kind="success" onPress={submit} disabled={!input.trim()} />
+          <Button
+            label={result ? 'Continue' : 'Check'}
+            kind={result && !result.correct ? 'danger' : 'success'}
+            onPress={submit}
+            disabled={!result && !input.trim()}
+            style={styles.action}
+          />
         </View>
-      )}
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
-/** A flat outlined button for the result panel (Undo): tinted text on a tinted 2px outline. */
-function OutlineButton({ label, onPress, color, border, accessibilityHint }: { label: string; onPress: () => void; color: string; border: string; accessibilityHint?: string }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityHint={accessibilityHint}
-      hitSlop={6}
-      style={({ pressed }) => [styles.outline, { borderColor: border, opacity: pressed ? 0.6 : 1 }]}
-    >
-      <T variant="body" color={color} style={{ fontWeight: '700' }}>
-        {label}
-      </T>
-    </Pressable>
-  );
-}
-
-/** Slides up with a little bounce: green for correct, red for a miss. */
-function ResultPanel({ correct, bottomInset, children }: { correct: boolean; bottomInset: number; children: React.ReactNode }) {
+/** The verdict at the top of the tray: badge, 正解！ / Not quite, Undo, and the details. Pops in with a little bounce. */
+function Verdict({ correct, onUndo, children }: { correct: boolean; onUndo: () => void; children: React.ReactNode }) {
   const { colors } = useApp();
   const enter = useState(() => new Animated.Value(0))[0];
   useEffect(() => {
@@ -434,36 +444,42 @@ function ResultPanel({ correct, bottomInset, children }: { correct: boolean; bot
   return (
     <Animated.View
       accessibilityLiveRegion="polite"
-      style={[
-        styles.panel,
-        {
-          backgroundColor: correct ? colors.correctSoft : colors.wrongSoft,
-          paddingBottom: spacing.lg + bottomInset,
-          transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [80, 0] }) }, { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }],
-        },
-      ]}
+      style={{
+        gap: 6,
+        opacity: enter,
+        transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }, { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1] }) }],
+      }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }} accessible accessibilityLabel={correct ? 'Nice! 正解' : 'Not quite'}>
-        <View style={styles.badge}>
-          <View style={[styles.resultIcon, { top: 3, position: 'absolute', backgroundColor: correct ? colors.correctShadow : colors.wrongShadow }]} />
-          <View style={[styles.resultIcon, { backgroundColor: correct ? colors.correct : colors.wrong }]}>
-            <Icon name={correct ? 'check' : 'close'} size={correct ? 20 : 18} color="#FFFFFF" strokeWidth={3.2} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }} accessible accessibilityLabel={correct ? 'Nice! 正解' : 'Not quite'}>
+          <View style={styles.badge}>
+            <View style={[styles.resultIcon, { top: 3, position: 'absolute', backgroundColor: correct ? colors.correctShadow : colors.wrongShadow }]} />
+            <View style={[styles.resultIcon, { backgroundColor: correct ? colors.correct : colors.wrong }]}>
+              <Icon name={correct ? 'check' : 'close'} size={correct ? 20 : 18} color="#FFFFFF" strokeWidth={3.2} />
+            </View>
           </View>
-        </View>
-        {correct ? (
-          <>
-            <T variant="title" color={ink} style={{ fontSize: 24, lineHeight: 30 }}>
-              正解！
-            </T>
+          <T variant="title" color={ink} style={{ fontSize: 24, lineHeight: 30 }}>
+            {correct ? '正解！' : 'Not quite'}
+          </T>
+          {correct && (
             <T variant="body" color={ink} style={{ fontSize: 15 }}>
               Nice!
             </T>
-          </>
-        ) : (
-          <T variant="title" color={ink} style={{ fontSize: 24, lineHeight: 30 }}>
-            Not quite
+          )}
+        </View>
+        <Pressable
+          onPress={onUndo}
+          accessibilityRole="button"
+          accessibilityLabel="Undo"
+          accessibilityHint="Take back this answer and try again"
+          hitSlop={10}
+          style={({ pressed }) => [styles.undo, { borderColor: `${correct ? colors.correct : colors.wrong}66`, opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Icon name="undo" size={15} color={ink} strokeWidth={2.6} />
+          <T variant="small" color={ink} style={{ fontSize: 14, fontWeight: '700' }} jp={false}>
+            Undo
           </T>
-        )}
+        </Pressable>
       </View>
       {children}
     </Animated.View>
@@ -476,20 +492,21 @@ export function useFooterInset(): number {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: 20, paddingTop: spacing.lg, gap: 22, flexGrow: 1 },
+  // Bottom padding leaves room for the frog perched on the tray.
+  scroll: { paddingHorizontal: 20, paddingTop: spacing.lg, paddingBottom: 56, gap: 22, flexGrow: 1 },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingLeft: spacing.sm, paddingRight: 20, paddingTop: spacing.xs },
   closeRow: { paddingHorizontal: spacing.sm, paddingTop: spacing.xs },
   close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   combo: { flexDirection: 'row', alignItems: 'center', gap: 3, minWidth: 36 },
   levelChip: { height: 24, paddingHorizontal: 9, borderRadius: 999, justifyContent: 'center' },
   hint: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  frog: { flexGrow: 1, alignItems: 'flex-end', justifyContent: 'flex-end', paddingBottom: spacing.sm },
-  footer: { paddingHorizontal: 20, paddingTop: spacing.lg, gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth * 2 },
-  input: { minHeight: 56, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 22 },
-  buttons: { flexDirection: 'row', gap: 10, paddingTop: 6 },
-  outline: { flex: 1, minHeight: 56, borderRadius: radius.md, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  pointLink: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 36 },
-  panel: { paddingHorizontal: 20, paddingTop: 20, gap: 10, borderTopLeftRadius: 26, borderTopRightRadius: 26 },
+  dock: { paddingHorizontal: 16, paddingTop: 16, gap: 12, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: StyleSheet.hairlineWidth * 2, borderBottomWidth: 0 },
+  perch: { position: 'absolute', right: 22, top: -46 },
+  composer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  input: { flex: 1, minWidth: 0, width: 0, minHeight: 56, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: spacing.lg, fontSize: 22 },
+  action: { minWidth: 118 },
+  undo: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: 2 },
+  pointLink: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32 },
   badge: { width: 34, height: 37 },
   resultIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
 });
