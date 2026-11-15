@@ -12,7 +12,7 @@ import { Button, Section, Stat, T } from '@/components/ui';
 import { curriculum } from '@/content/loader';
 import { stationCode, stationOf } from '@/content/units';
 import { useToday } from '@/daily/useToday';
-import { AVATAR_COLORS, AVATAR_NAMES, AVATARS, type AvatarColor, type AvatarId } from '@/profile/avatars';
+import { AVATAR_COLORS, AVATAR_NAMES, AVATAR_NAMES_JA, AVATARS, type AvatarColor, type AvatarId } from '@/profile/avatars';
 import { useApp, useNow } from '@/state/AppProvider';
 import { formatDuration } from '@/time/model';
 import { useTime } from '@/time/TimeProvider';
@@ -85,7 +85,7 @@ export default function Profile() {
                   key={a}
                   onPress={() => pick({ avatar: a })}
                   accessibilityRole="button"
-                  accessibilityLabel={AVATAR_NAMES[a]}
+                  accessibilityLabel={`${AVATAR_NAMES_JA[a]}, ${AVATAR_NAMES[a]}`}
                   accessibilityState={{ selected: on }}
                   style={({ pressed }) => [styles.cell, { transform: [{ scale: pressed ? 0.94 : 1 }] }]}
                 >
@@ -93,7 +93,7 @@ export default function Profile() {
                     <Avatar size={64} avatar={a} />
                   </View>
                   <T variant="small" color={on ? colors.accentInk : colors.textMuted} style={{ fontSize: 13, lineHeight: 18, fontWeight: on ? '800' : '600' }} numberOfLines={1}>
-                    {AVATAR_NAMES[a]}
+                    {AVATAR_NAMES_JA[a]}
                   </T>
                 </Pressable>
               );
