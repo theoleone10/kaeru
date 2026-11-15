@@ -9,3 +9,4 @@
 - Anki tables are backed up row for row with ids (`src/anki/backup.ts`); media files are not.
 - Tests must pass in any time zone: build dates with local time (`+new Date(y, m, d, h)`), not `Date.UTC`. `npm run test:zones` checks four zones.
 - The Anki card WebView runs scripts from imported decks: don't widen its file access (`src/components/AnkiCardView.tsx`).
+- iOS uses the UIScene life cycle via `plugins/scene-lifecycle/` (apps built with the iOS 27 SDK crash at launch without it). Keep it in `app.json` until Expo's template adopts scenes itself. Releases go through Xcode Cloud, which sets its own build numbers. See `docs/incidents/2026-11-15-xcode-cloud-release.md`.

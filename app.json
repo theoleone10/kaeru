@@ -53,6 +53,7 @@
       ],
       "expo-apple-authentication",
       "./plugins/app-intents/withAppIntents.js",
+      "./plugins/scene-lifecycle/withSceneLifecycle.js",
       "@react-native-community/datetimepicker",
       "expo-font",
       [
