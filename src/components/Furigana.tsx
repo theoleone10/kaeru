@@ -96,10 +96,10 @@ export const ExampleSentence = memo(function ExampleSentence({ example, size = 2
 export type BlankState = 'empty' | 'correct' | 'wrong' | 'revealed';
 
 /**
- * Cloze sentence. The blank shows a placeholder, or once answered, the target
- * grammar highlighted as correct / wrong.
+ * Cloze sentence. The blank shows a placeholder (or `typed`, the answer as it's being
+ * typed), or once answered, the target grammar highlighted as correct / wrong.
  */
-export function ClozeSentence({ example, state, size = 24 }: { example: Example; state: BlankState; size?: number }) {
+export function ClozeSentence({ example, state, size = 24, typed }: { example: Example; state: BlankState; size?: number; typed?: string }) {
   const { colors, settings } = useApp();
   const split = splitCloze(parseFurigana(example.furigana), example.cloze_target, example.cloze_occurrence ?? 1);
   if (!split) return <FuriganaText markup={example.furigana} size={size} />;
@@ -112,7 +112,15 @@ export function ClozeSentence({ example, state, size = 24 }: { example: Example;
     blank = (
       <View style={styles.unit}>
         {show && <Text style={{ fontSize: size * 0.5, lineHeight: size * 0.5 + 3 }}> </Text>}
-        <View style={[styles.blank, { width, height: size * 1.35, borderBottomColor: colors.accentInk }]} />
+        {typed ? (
+          <View style={[styles.blank, { minWidth: width, height: size * 1.35, borderBottomColor: colors.accentInk, paddingHorizontal: 2, alignItems: 'center' }]}>
+            <Text style={{ fontSize: size, lineHeight: size * 1.35, color: colors.accentInk, fontFamily: FONTS.jpBold }} numberOfLines={1}>
+              {typed}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.blank, { width, height: size * 1.35, borderBottomColor: colors.accentInk }]} />
+        )}
       </View>
     );
   } else {
