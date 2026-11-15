@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { markKnown } from '../db/repo';
 import {
   answer,
@@ -21,6 +21,7 @@ import {
 import { useApp } from '../state/AppProvider';
 import { radius, spacing, TAP } from '../theme/colors';
 import { ClozeSentence } from './Furigana';
+import { Icon } from './Icon';
 import { Mascot } from './Mascot';
 import { Choice, ChoiceList, Heading } from './SetupChoice';
 import { Button, ProgressBar, T } from './ui';
@@ -40,8 +41,22 @@ const FEEDBACK_MS = 700;
  * "Find your place on the line": how much Japanese you know, then (unless brand new) an optional
  * placement quiz, then where you'll start. Everything before that station is marked as known.
  * Calls onFinish once the learner has a starting point (or keeps the beginning).
+ *
+ * Give it the whole screen below any header: it scrolls its own pages, and the quiz is laid
+ * out like a review (one progress bar at the top, the choices in a tray along the bottom).
+ * `onQuizChange` says when the quiz is showing, so a host can hide its own progress bar.
  */
-export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onLevel?: (level: Level) => void }) {
+export function PlacementFlow({
+  onFinish,
+  onLevel,
+  onQuizChange,
+  bottomInset = 0,
+}: {
+  onFinish: () => void;
+  onLevel?: (level: Level) => void;
+  onQuizChange?: (quizzing: boolean) => void;
+  bottomInset?: number;
+}) {
   const db = useSQLiteContext();
   const { colors, lines, refresh } = useApp();
   const units = useMemo(() => placementUnits(), []);
@@ -52,6 +67,21 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
   const [placed, setPlaced] = useState<Placement | null>(null);
   const [saving, setSaving] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const quizzing = !!(state && question);
+  useEffect(() => {
+    onQuizChange?.(quizzing);
+  }, [quizzing, onQuizChange]);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+  const page = (children: React.ReactNode) => (
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.page, { paddingBottom: bottomInset + spacing.xl }]}>
+      {children}
+    </ScrollView>
+  );
 
   const begin = () => {
     if (!level) return;
@@ -105,7 +135,7 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
 
   if (placed) {
     const start = describeStart(placed, units);
-    return (
+    return page(
       <View style={{ gap: spacing.xl }}>
         <View style={{ alignItems: 'center', gap: spacing.md }}>
           <Mascot size={96} mood="cheer" bounce />
@@ -133,30 +163,59 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
           {placed.known.length > 0 && <Button label="Start from the beginning instead" kind="ghost" onPress={onFinish} disabled={saving} />}
           <Button label="Take the quiz again" kind="ghost" onPress={restart} disabled={saving} />
         </View>
-      </View>
+      </View>,
     );
   }
 
   if (state && question) {
     const correct = picked != null && isCorrect(question, picked);
+    const wrongPick = picked != null && !correct && picked !== DONT_KNOW;
     // Roughly: a decided unit narrows the search by half.
     const progress = Math.min(0.95, state.questions / (2 * Math.ceil(Math.log2(units.length + 1))));
+    const line = lines[question.point.level] ?? lines.N5;
     return (
-      <View style={{ gap: 26 }}>
-        <View style={{ gap: spacing.sm }}>
-          <T variant="small" style={{ fontSize: 14, lineHeight: 20, fontWeight: '700' }}>
-            {`Question ${state.questions + 1} · `}
-            <T variant="small" color={lines[question.point.level]?.ink ?? colors.textMuted} style={{ fontSize: 14, lineHeight: 20, fontWeight: '700' }}>
-              {question.point.level}
+      <View style={{ flex: 1 }}>
+        <View style={styles.topRow}>
+          <Pressable onPress={restart} accessibilityRole="button" accessibilityLabel="Leave the quiz" hitSlop={8} style={styles.close}>
+            <Icon name="close" size={22} color={colors.textFaint} strokeWidth={2.4} />
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <ProgressBar value={progress} height={14} color={colors.accent} />
+          </View>
+          <View style={{ width: 20 }} />
+        </View>
+        <ScrollView contentContainerStyle={styles.body}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={[styles.levelChip, { backgroundColor: line.soft }]}>
+              <T variant="small" color={line.ink} style={{ fontSize: 12, lineHeight: 16, fontWeight: '800' }} jp={false}>
+                {question.point.level}
+              </T>
+            </View>
+            <T variant="small" style={{ fontSize: 14, lineHeight: 20 }}>
+              Question {state.questions + 1} · Fill the blank
             </T>
-          </T>
-          <ProgressBar value={progress} height={6} color={colors.accent} />
-        </View>
-        <Heading title="Fill the blank" body={question.example.english} />
-        <View style={styles.sentence}>
-          <ClozeSentence example={question.example} state={picked == null ? 'empty' : correct ? 'correct' : 'revealed'} size={28} />
-        </View>
-        <View style={{ gap: spacing.sm }}>
+          </View>
+          <View style={{ gap: 14, paddingTop: spacing.sm }}>
+            <ClozeSentence example={question.example} state={picked == null ? 'empty' : correct ? 'correct' : 'revealed'} size={30} />
+            <T variant="body" color={colors.textMuted}>
+              {question.example.english}
+            </T>
+          </View>
+        </ScrollView>
+        {/* The choices sit in a tray along the bottom, so a sentence that wraps doesn't move them. */}
+        <View
+          style={[
+            styles.dock,
+            {
+              backgroundColor: correct ? colors.correctSoft : wrongPick ? colors.wrongSoft : colors.bar,
+              borderColor: correct || wrongPick ? 'transparent' : colors.border,
+              paddingBottom: spacing.md + bottomInset,
+            },
+          ]}
+        >
+          <View style={styles.perch} pointerEvents="none">
+            <Mascot size={56} mood={picked == null ? 'think' : correct ? 'cheer' : 'sad'} />
+          </View>
           <View style={styles.grid}>
             {question.choices.map((c) => {
               const isRight = picked != null && question.example.accepted_answers.includes(c);
@@ -192,18 +251,15 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
             })}
           </View>
           <Button label="I don’t know" kind="ghost" onPress={() => choose(DONT_KNOW)} disabled={picked != null} />
-        </View>
-        <View style={styles.hint}>
-          <Mascot size={56} mood="think" />
-          <T variant="small" style={{ flex: 1, fontSize: 14, lineHeight: 20 }}>
-            Not sure? Say so: guessing puts you further along than you are.
+          <T variant="small" color={colors.textFaint} style={{ textAlign: 'center', fontSize: 13, lineHeight: 18 }}>
+            Not sure? Say so: a guess can place you too far along.
           </T>
         </View>
       </View>
     );
   }
 
-  return (
+  return page(
     <View style={{ gap: 26 }}>
       <Heading title="How much Japanese do you know?" body="Grammar is laid out like train lines, N5 to N1. Let’s find the station you should start at." />
       <ChoiceList>
@@ -232,14 +288,20 @@ export function PlacementFlow({ onFinish, onLevel }: { onFinish: () => void; onL
           </T>
         </View>
       )}
-    </View>
+    </View>,
   );
 }
 
 const styles = StyleSheet.create({
-  sentence: { paddingVertical: spacing.md },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  page: { flexGrow: 1, paddingHorizontal: 20, paddingTop: spacing.xl },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingLeft: spacing.sm, paddingTop: spacing.xs },
+  close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  levelChip: { height: 24, paddingHorizontal: 9, borderRadius: 999, justifyContent: 'center' },
+  // Bottom padding leaves room for the frog perched on the tray.
+  body: { flexGrow: 1, paddingHorizontal: 20, paddingTop: spacing.lg, paddingBottom: 56, gap: 22 },
+  dock: { paddingHorizontal: 16, paddingTop: 18, gap: 4, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: StyleSheet.hairlineWidth * 2, borderBottomWidth: 0 },
+  perch: { position: 'absolute', right: 22, top: -46 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 6 },
   option: { flexBasis: '45%', flexGrow: 1, minHeight: TAP + 8, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.md },
-  hint: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   sign: { paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, borderRadius: radius.lg, borderWidth: 3, borderBottomWidth: 6 },
 });
