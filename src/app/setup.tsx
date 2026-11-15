@@ -77,6 +77,8 @@ export default function Setup() {
   const [kana, setKana] = useState<KanaChoice | null>(null);
   const [decks, setDecks] = useState<DeckNode[]>([]);
   const [importing, setImporting] = useState<{ phase: ImportPhase; fraction: number } | null>(null);
+  /** While the placement quiz runs it has its own progress bar, so the step bar steps aside. */
+  const [quizzing, setQuizzing] = useState(false);
 
   const index = STEPS.indexOf(step);
   const next = () => setStep(STEPS[Math.min(STEPS.length - 1, index + 1)]);
@@ -133,164 +135,168 @@ export default function Setup() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top + spacing.md }}>
-      <View style={styles.header}>
-        <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Back" hitSlop={8} style={({ pressed }) => [styles.back, { opacity: pressed ? 0.6 : 1 }]}>
-          <Icon name="chevronLeft" size={22} color={colors.accentInk} strokeWidth={2.6} />
-        </Pressable>
-        <View style={{ flex: 1 }}>
-          <StepBar step={index + 1} count={STEPS.length} />
-        </View>
-        <View style={{ width: 32 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
-        {step === 'level' && (
-          <PlacementFlow
-            onLevel={(l) => {
-              setLevel(l);
-              if (!kana) setKana(l === 'new' ? 'yes' : null);
-            }}
-            onFinish={next}
-          />
-        )}
-
-        {step === 'kana' && (
-          <>
-            <Heading
-              title="Learn to read kana?"
-              body="Hiragana and katakana are the two Japanese alphabets, 46 sounds each. Everything else builds on them."
-            />
-            <ChoiceList>
-              {KANA_CHOICES.map((c) => (
-                <Choice
-                  key={c.value}
-                  title={c.title}
-                  detail={c.detail}
-                  note={c.value === 'yes' && level === 'new' ? 'Recommended' : undefined}
-                  selected={kana === c.value}
-                  onPress={() => {
-                    Haptics.selectionAsync().catch(() => undefined);
-                    setKana(c.value);
-                  }}
-                />
-              ))}
-            </ChoiceList>
-          </>
-        )}
-
-        {step === 'grammar' && (
-          <>
-            <Heading title="How much grammar a day?" body="Each day you get one short lesson and quiz on your new points, then reviews of the ones you’ve learned." />
-            <ChoiceList>
-              {GRAMMAR_CHOICES.map((c) => (
-                <Choice
-                  key={c.value}
-                  title={`${c.value} new point${c.value === 1 ? '' : 's'}`}
-                  detail={`${c.title} · all of N5 in about ${Math.ceil(N5_POINTS / c.value / 7)} weeks`}
-                  note={c.value === 2 ? c.note : undefined}
-                  selected={settings.dailyNewGrammar === c.value}
-                  onPress={() => pick({ dailyNewGrammar: c.value })}
-                />
-              ))}
-            </ChoiceList>
-          </>
-        )}
-
-        {step === 'time' && (
-          <>
-            <Heading title="Your daily time goal" body="Lessons, reviews and flashcards count, and so does time you log with the timer: reading, listening, watching." />
-            <ChoiceList>
-              {TIME_CHOICES.map((c) => (
-                <Choice
-                  key={c.value}
-                  title={c.value === 0 ? 'No goal' : `${minutes(c.value)} a day`}
-                  detail={c.value === 0 ? 'Just track your time' : `${c.title} · ${minutes(c.value * 7)} a week`}
-                  selected={everyDayPracticeMinutes(settings.timeGoals) === c.value}
-                  onPress={() => pick({ timeGoals: withDailyPractice(settings.timeGoals, c.value) })}
-                />
-              ))}
-            </ChoiceList>
-          </>
-        )}
-
-        {step === 'anki' && (
-          <>
-            <Heading
-              title="Want a deck of words to start with?"
-              body="Kaeru comes with one, or bring your own Anki decks with their progress. You can do either later from the Cards tab."
-            />
-            <ChoiceList radio={false}>
-              <Choice
-                title={STARTER_DECK}
-                detail={
-                  addingStarter
-                    ? 'Adding the words…'
-                    : hasStarter
-                      ? 'Added. A few new words a day.'
-                      : `The ${STARTER_WORDS.length} everyday words to learn first, with readings and example sentences`
-                }
-                note={hasStarter ? undefined : 'Beginners'}
-                selected={hasStarter}
-                onPress={() => !hasStarter && !addingStarter && addStarter()}
-              />
-              <Choice
-                title="Import my own Anki deck"
-                detail="An .apkg file: in Anki, File → Export → “Anki Deck Package”, with scheduling and media"
-                selected={decks.some((d) => d.path !== STARTER_DECK)}
-                onPress={() => !importing && importDeck()}
-              />
-            </ChoiceList>
-            {decks.some((d) => d.path !== STARTER_DECK) && (
-              <View>
-                {decks.filter((d) => d.path !== STARTER_DECK).map((d, i) => (
-                  <View key={d.path}>
-                    {i > 0 && <Rule />}
-                    <View style={styles.deck}>
-                      <IconTile icon="check" color={colors.correct} size={28} done />
-                      <T variant="body" style={{ flex: 1, fontWeight: '700' }} numberOfLines={1}>
-                        {d.name}
-                      </T>
-                      <T variant="small">{`${d.total.toLocaleString()} cards`}</T>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            )}
-            {importing && (
-              <View style={{ gap: spacing.sm }}>
-                <T variant="small">{IMPORT_LABEL[importing.phase]}</T>
-                <ProgressBar value={importing.fraction} />
-              </View>
-            )}
-          </>
-        )}
-
-        {step === 'account' && (
-          <>
-            <View style={{ alignItems: 'center' }}>
-              <Mascot size={96} mood="cheer" bounce />
-            </View>
-            <Heading title="Save your progress" body="Create an account to back up your progress and pick it up on another phone." />
-            <SignInOptions onSignedIn={finishOnboarding} newAccount />
-          </>
-        )}
-
-        <View style={{ flex: 1 }} />
-
-        {step === 'level' ? null : step === 'account' ? (
-          <View style={{ gap: spacing.md }}>
-            <NoAccountLink onPress={finishOnboarding} />
-            <LegalNote />
+      {!quizzing && (
+        <View style={styles.header}>
+          <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Back" hitSlop={8} style={({ pressed }) => [styles.back, { opacity: pressed ? 0.6 : 1 }]}>
+            <Icon name="chevronLeft" size={22} color={colors.accentInk} strokeWidth={2.6} />
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <StepBar step={index + 1} count={STEPS.length} />
           </View>
-        ) : (
-          <Button
-            label={step === 'anki' && decks.length === 0 ? 'Skip for now' : 'Continue'}
-            kind={step === 'anki' && decks.length === 0 ? 'ghost' : 'primary'}
-            onPress={step === 'kana' ? confirmKana : next}
-            disabled={!!importing || addingStarter || (step === 'kana' && !kana)}
-          />
-        )}
-      </ScrollView>
+          <View style={{ width: 32 }} />
+        </View>
+      )}
+
+      {step === 'level' ? (
+        <PlacementFlow
+          onLevel={(l) => {
+            setLevel(l);
+            if (!kana) setKana(l === 'new' ? 'yes' : null);
+          }}
+          onFinish={next}
+          onQuizChange={setQuizzing}
+          bottomInset={insets.bottom}
+        />
+      ) : (
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
+          {step === 'kana' && (
+            <>
+              <Heading
+                title="Learn to read kana?"
+                body="Hiragana and katakana are the two Japanese alphabets, 46 sounds each. Everything else builds on them."
+              />
+              <ChoiceList>
+                {KANA_CHOICES.map((c) => (
+                  <Choice
+                    key={c.value}
+                    title={c.title}
+                    detail={c.detail}
+                    note={c.value === 'yes' && level === 'new' ? 'Recommended' : undefined}
+                    selected={kana === c.value}
+                    onPress={() => {
+                      Haptics.selectionAsync().catch(() => undefined);
+                      setKana(c.value);
+                    }}
+                  />
+                ))}
+              </ChoiceList>
+            </>
+          )}
+
+          {step === 'grammar' && (
+            <>
+              <Heading title="How much grammar a day?" body="Each day you get one short lesson and quiz on your new points, then reviews of the ones you’ve learned." />
+              <ChoiceList>
+                {GRAMMAR_CHOICES.map((c) => (
+                  <Choice
+                    key={c.value}
+                    title={`${c.value} new point${c.value === 1 ? '' : 's'}`}
+                    detail={`${c.title} · all of N5 in about ${Math.ceil(N5_POINTS / c.value / 7)} weeks`}
+                    note={c.value === 2 ? c.note : undefined}
+                    selected={settings.dailyNewGrammar === c.value}
+                    onPress={() => pick({ dailyNewGrammar: c.value })}
+                  />
+                ))}
+              </ChoiceList>
+            </>
+          )}
+
+          {step === 'time' && (
+            <>
+              <Heading title="Your daily time goal" body="Lessons, reviews and flashcards count, and so does time you log with the timer: reading, listening, watching." />
+              <ChoiceList>
+                {TIME_CHOICES.map((c) => (
+                  <Choice
+                    key={c.value}
+                    title={c.value === 0 ? 'No goal' : `${minutes(c.value)} a day`}
+                    detail={c.value === 0 ? 'Just track your time' : `${c.title} · ${minutes(c.value * 7)} a week`}
+                    selected={everyDayPracticeMinutes(settings.timeGoals) === c.value}
+                    onPress={() => pick({ timeGoals: withDailyPractice(settings.timeGoals, c.value) })}
+                  />
+                ))}
+              </ChoiceList>
+            </>
+          )}
+
+          {step === 'anki' && (
+            <>
+              <Heading
+                title="Want a deck of words to start with?"
+                body="Kaeru comes with one, or bring your own Anki decks with their progress. You can do either later from the Cards tab."
+              />
+              <ChoiceList radio={false}>
+                <Choice
+                  title={STARTER_DECK}
+                  detail={
+                    addingStarter
+                      ? 'Adding the words…'
+                      : hasStarter
+                        ? 'Added. A few new words a day.'
+                        : `The ${STARTER_WORDS.length} everyday words to learn first, with readings and example sentences`
+                  }
+                  note={hasStarter ? undefined : 'Beginners'}
+                  selected={hasStarter}
+                  onPress={() => !hasStarter && !addingStarter && addStarter()}
+                />
+                <Choice
+                  title="Import my own Anki deck"
+                  detail="An .apkg file: in Anki, File → Export → “Anki Deck Package”, with scheduling and media"
+                  selected={decks.some((d) => d.path !== STARTER_DECK)}
+                  onPress={() => !importing && importDeck()}
+                />
+              </ChoiceList>
+              {decks.some((d) => d.path !== STARTER_DECK) && (
+                <View>
+                  {decks.filter((d) => d.path !== STARTER_DECK).map((d, i) => (
+                    <View key={d.path}>
+                      {i > 0 && <Rule />}
+                      <View style={styles.deck}>
+                        <IconTile icon="check" color={colors.correct} size={28} done />
+                        <T variant="body" style={{ flex: 1, fontWeight: '700' }} numberOfLines={1}>
+                          {d.name}
+                        </T>
+                        <T variant="small">{`${d.total.toLocaleString()} cards`}</T>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {importing && (
+                <View style={{ gap: spacing.sm }}>
+                  <T variant="small">{IMPORT_LABEL[importing.phase]}</T>
+                  <ProgressBar value={importing.fraction} />
+                </View>
+              )}
+            </>
+          )}
+
+          {step === 'account' && (
+            <>
+              <View style={{ alignItems: 'center' }}>
+                <Mascot size={96} mood="cheer" bounce />
+              </View>
+              <Heading title="Save your progress" body="Create an account to back up your progress and pick it up on another phone." />
+              <SignInOptions onSignedIn={finishOnboarding} newAccount />
+            </>
+          )}
+
+          <View style={{ flex: 1 }} />
+
+          {step === 'account' ? (
+            <View style={{ gap: spacing.md }}>
+              <NoAccountLink onPress={finishOnboarding} />
+              <LegalNote />
+            </View>
+          ) : (
+            <Button
+              label={step === 'anki' && decks.length === 0 ? 'Skip for now' : 'Continue'}
+              kind={step === 'anki' && decks.length === 0 ? 'ghost' : 'primary'}
+              onPress={step === 'kana' ? confirmKana : next}
+              disabled={!!importing || addingStarter || (step === 'kana' && !kana)}
+            />
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
