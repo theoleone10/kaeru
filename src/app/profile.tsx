@@ -23,7 +23,7 @@ const WEEK = 7 * 24 * 60 * 60 * 1000;
 /** Your corner of Kaeru: icon, streak and key numbers, the kana course and the placement quiz. */
 export default function Profile() {
   const insets = useSafeAreaInsets();
-  const { colors, lines, settings, updateSettings, cards } = useApp();
+  const { colors, lines, settings, updateSettings, cards, isDark } = useApp();
   const { user } = useAuth();
   const { streak } = useToday();
   const { entries } = useTime();
@@ -56,8 +56,16 @@ export default function Profile() {
       />
 
       <View style={{ alignItems: 'center', gap: 10 }}>
-        <Pressable onPress={() => setPicking((p) => !p)} accessibilityRole="button" accessibilityLabel="Change your icon" accessibilityState={{ expanded: picking }}>
-          <Avatar size={120} />
+        <Pressable
+          onPress={() => setPicking((p) => !p)}
+          accessibilityRole="button"
+          accessibilityLabel="Change your icon"
+          accessibilityState={{ expanded: picking }}
+          style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.97 : 1 }] })}
+        >
+          <View style={[styles.portrait, { borderColor: isDark ? colors.surfaceAlt : colors.surface, boxShadow: isDark ? undefined : '0px 4px 14px rgba(27,31,51,0.14)' }]}>
+            <Avatar size={128} />
+          </View>
           <View style={[styles.edit, { backgroundColor: colors.accent, borderColor: colors.background }]}>
             <Icon name={picking ? 'close' : 'pencil'} size={16} color={colors.accentText} strokeWidth={2.4} />
           </View>
@@ -70,18 +78,26 @@ export default function Profile() {
       {picking && (
         <Section label="Your icon">
           <View style={styles.grid}>
-            {AVATARS.map((a) => (
-              <Pressable
-                key={a}
-                onPress={() => pick({ avatar: a })}
-                accessibilityRole="button"
-                accessibilityLabel={AVATAR_NAMES[a]}
-                accessibilityState={{ selected: a === settings.avatar }}
-                style={({ pressed }) => [styles.cell, selectedRing(a === settings.avatar), { transform: [{ scale: pressed ? 0.94 : 1 }] }]}
-              >
-                <Avatar size={60} avatar={a} />
-              </Pressable>
-            ))}
+            {AVATARS.map((a) => {
+              const on = a === settings.avatar;
+              return (
+                <Pressable
+                  key={a}
+                  onPress={() => pick({ avatar: a })}
+                  accessibilityRole="button"
+                  accessibilityLabel={AVATAR_NAMES[a]}
+                  accessibilityState={{ selected: on }}
+                  style={({ pressed }) => [styles.cell, { transform: [{ scale: pressed ? 0.94 : 1 }] }]}
+                >
+                  <View style={[styles.cellRing, selectedRing(on)]}>
+                    <Avatar size={64} avatar={a} />
+                  </View>
+                  <T variant="small" color={on ? colors.accentInk : colors.textMuted} style={{ fontSize: 13, lineHeight: 18, fontWeight: on ? '800' : '600' }} numberOfLines={1}>
+                    {AVATAR_NAMES[a]}
+                  </T>
+                </Pressable>
+              );
+            })}
           </View>
           <View style={styles.colors} accessibilityRole="radiogroup" accessibilityLabel="Background colour">
             {(Object.keys(AVATAR_COLORS) as AvatarColor[]).map((c) => (
@@ -158,9 +174,11 @@ const WEB_THUMB = { activeThumbColor: '#FFFFFF' } as object;
 
 const styles = StyleSheet.create({
   headerButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  edit: { position: 'absolute', right: 0, bottom: 2, width: 36, height: 36, borderRadius: 18, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md, justifyContent: 'space-between', paddingHorizontal: spacing.sm },
-  cell: { padding: 3, borderRadius: 40, borderWidth: 2.5 },
+  portrait: { borderRadius: 70, borderWidth: 4 },
+  edit: { position: 'absolute', right: 2, bottom: 4, width: 36, height: 36, borderRadius: 18, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md },
+  cell: { width: '25%', alignItems: 'center', gap: 4 },
+  cellRing: { padding: 3, borderRadius: 40, borderWidth: 2.5 },
   colors: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.sm, marginTop: spacing.sm },
   swatchRing: { padding: 3, borderRadius: 26, borderWidth: 2.5 },
   swatch: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: 'rgba(0,0,0,0.06)' },
