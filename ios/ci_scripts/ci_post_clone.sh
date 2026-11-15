@@ -41,17 +41,19 @@ esac
   echo "EXPO_PUBLIC_SUPPORT_EMAIL=${EXPO_PUBLIC_SUPPORT_EMAIL:-}"
 } > .env
 
-# Every upload needs a new build number; 1000+ keeps it above builds uploaded earlier by EAS or
-# by hand from Xcode. The version (CFBundleShortVersionString) comes from app.json.
-BUILD=$((1000 + ${CI_BUILD_NUMBER:-0}))
-node -e "
+# The version (CFBundleShortVersionString) comes from app.json. The build number doesn't: Xcode
+# Cloud stamps its own (1, 2, 3, ...) on every build it uploads, whatever the project says. If an
+# upload fails with "The bundle version must be higher than the previously uploaded version", raise
+# it in App Store Connect: the app, Xcode Cloud, Settings, Build Number, Next Build Number.
+if [ -n "${APPLE_TEAM_ID:-}" ]; then
+  node -e "
 const fs = require('fs');
 const a = JSON.parse(fs.readFileSync('app.json'));
-a.expo.ios.buildNumber = '$BUILD';
-if (process.env.APPLE_TEAM_ID) a.expo.ios.appleTeamId = process.env.APPLE_TEAM_ID;
+a.expo.ios.appleTeamId = process.env.APPLE_TEAM_ID;
 fs.writeFileSync('app.json', JSON.stringify(a, null, 2) + '\n');
 "
-echo "Version $(node -p "require('./app.json').expo.version"), build $BUILD"
+fi
+echo "Version $(node -p "require('./app.json').expo.version"), Xcode Cloud build ${CI_BUILD_NUMBER:-?}"
 
 # Prebuild replaces ios/, this folder included: keep a copy and put it back afterwards.
 SAVED="$(mktemp -d)"
