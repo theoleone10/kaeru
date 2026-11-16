@@ -15,6 +15,18 @@ export const AVATAR_NAMES: Record<AvatarId, string> = {
   riceball: 'Rice ball',
 };
 
+/** The names shown in the picker, in Japanese. */
+export const AVATAR_NAMES_JA: Record<AvatarId, string> = {
+  frog: 'かえる',
+  cat: 'ねこ',
+  fox: 'きつね',
+  panda: 'パンダ',
+  owl: 'ふくろう',
+  rabbit: 'うさぎ',
+  tanuki: 'たぬき',
+  riceball: 'おにぎり',
+};
+
 /** Emoji icons from before the drawn set, mapped to the nearest character (anything else becomes the frog). */
 const LEGACY: Record<string, AvatarId> = {
   '🐸': 'frog',
