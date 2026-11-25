@@ -1,0 +1,29 @@
+name: Bug report (Claude fixes it)
+description: Describe a problem. Claude investigates it and opens a PR with a fix.
+labels: [bug, claude]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What's wrong?
+      description: What happened, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen
+      description: The steps, if you know them. "Not sure" is fine.
+      placeholder: |
+        1. Open a deck
+        2. Tap ...
+  - type: input
+    id: where
+    attributes:
+      label: Device and app version
+      description: e.g. iPhone 16, iOS 27.1, Kaeru 1.1.0 (TestFlight). Optional.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, error messages, when it started.
