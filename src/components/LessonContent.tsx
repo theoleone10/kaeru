@@ -61,7 +61,7 @@ function Structure({ point }: { point: GrammarPoint }) {
               const bare = part.trim().replace(/[〜～]/g, '');
               const isGrammar = KANA_ONLY.test(part.trim()) && bare.length > 0 && title.includes(bare);
               return (
-                <View key={j} style={styles.structureRow}>
+                <View key={j} style={styles.structurePart}>
                   {j > 0 && (
                     <T variant="body" color={colors.textFaint} style={{ fontSize: 18, fontWeight: '700' }} jp={false}>
                       +
@@ -184,6 +184,9 @@ export function LessonContent({ point, kicker = 'station', afterHeader }: { poin
 
 const styles = StyleSheet.create({
   structureRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm, flexShrink: 1 },
+  // One "+ chip" pair. It must not wrap internally, or the "+" and its chip split onto two lines;
+  // the outer row does the wrapping. maxWidth lets a very long chip wrap its own text instead.
+  structurePart: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, maxWidth: '100%' },
   chip: { minHeight: 34, paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.sm, justifyContent: 'center', flexShrink: 1 },
   example: { borderTopWidth: StyleSheet.hairlineWidth * 2, paddingVertical: 10, gap: 2 },
   link: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, minHeight: 52, borderTopWidth: StyleSheet.hairlineWidth * 2 },
