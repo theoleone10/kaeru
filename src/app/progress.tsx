@@ -1,7 +1,14 @@
 import { router, useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 import {
   ankiForecastInput,
@@ -9,6 +16,7 @@ import {
   type AnkiForecastInput,
   type DeckMaturity,
 } from "@/anki/repo";
+import { DateTimeField } from "@/components/DateTimeField";
 import { Flame } from "@/components/Flame";
 import { ForecastChart } from "@/components/ForecastChart";
 import { Icon } from "@/components/Icon";
@@ -18,15 +26,27 @@ import { useToday } from "@/daily/useToday";
 import { getReviewTimes } from "@/db/repo";
 import { addForecasts, applyDailyLimit, forecast } from "@/srs/forecast";
 import { levelProgress } from "@/stats/levelProgress";
+import {
+  bucketLabel,
+  bucketName,
+  bucketRange,
+  countInBuckets,
+  RANGE_PRESETS,
+  rangeLabel,
+  resolveRange,
+  type Bucket,
+  type BucketUnit,
+  type RangePreset,
+} from "@/stats/range";
 import { useApp, useNow } from "@/state/AppProvider";
 import { dailyPracticeMinutes } from "@/time/goals";
 import {
-  dailyTotals,
   entryDuration,
   formatClock,
   formatDuration,
   formatTimeOfDay,
   startOfDay,
+  totalsByActivity,
   type TimeEntry,
 } from "@/time/model";
 import { useTime } from "@/time/TimeProvider";
@@ -75,37 +95,46 @@ function Dot({ color, size = 10 }: { color: string; size?: number }) {
   );
 }
 
-/** The last 7 days (today last) as day starts. */
-function lastWeek(now: number): number[] {
-  return dailyTotals([], 7, now).map((d) => d.dayStart);
-}
-
-/** How many of `times` fall on each day. */
-function countByDay(times: number[], days: number[]): number[] {
-  return days.map((day) => times.filter((t) => startOfDay(t) === day).length);
+/** The chart's buckets for the selected range; the current one (containing now) is highlighted. */
+interface Chart {
+  unit: BucketUnit;
+  buckets: Bucket[];
+  /** "last 30 days", "all time", … */
+  label: string;
 }
 
 interface Bar {
-  dayStart: number;
+  bucket: Bucket;
   segments: { key: string | number; color: string; value: number }[];
 }
 
-/** A short weekday name ("Mo", "Tu") for a bar's label. */
-function weekdayShort(t: number): string {
-  return new Date(t).toLocaleDateString([], { weekday: "short" }).slice(0, 2);
+/** Time per activity in each bucket. */
+function timeBars(
+  entries: TimeEntry[],
+  buckets: Bucket[],
+  now: number,
+): { bucket: Bucket; byActivity: Map<number, number>; total: number }[] {
+  return buckets.map((bucket) => {
+    const byActivity = totalsByActivity(entries, bucket.start, bucket.end, now);
+    let total = 0;
+    for (const v of byActivity.values()) total += v;
+    return { bucket, byActivity, total };
+  });
 }
 
 /**
- * One bar per day for the last week, open (no boxes), the value over each bar, an optional dotted goal line.
- * Today's bar (when it's a single series) and label are in the accent colour.
+ * One bar per bucket (day, week, month…), open (no boxes), the value over each bar, an optional dotted goal line.
+ * The current bucket's bar (when it's a single series) and label are in the accent colour.
  */
-function WeekBars({
+function RangeBars({
   bars,
+  unit,
   now,
   format,
   goal,
 }: {
   bars: Bar[];
+  unit: BucketUnit;
   now: number;
   format: (v: number) => string;
   goal?: number;
@@ -113,7 +142,8 @@ function WeekBars({
   const { colors } = useApp();
   const totals = bars.map((b) => b.segments.reduce((s, x) => s + x.value, 0));
   const max = Math.max(1, (goal ?? 0) * 1.25, ...totals);
-  const today = startOfDay(now);
+  const isCurrent = (b: Bar) => now >= b.bucket.start && now < b.bucket.end;
+  const dense = bars.length > 7;
   const H = 110;
   const LABEL = 16; // room above the tallest bar for its value
   return (
@@ -147,18 +177,18 @@ function WeekBars({
           }}
         >
           {bars.map((b, i) => {
-            const isToday = b.dayStart === today;
+            const isToday = isCurrent(b);
             return (
               <View
-                key={b.dayStart}
+                key={b.bucket.start}
                 style={{ flex: 1, alignItems: "center", gap: 3 }}
-                accessibilityLabel={`${dayLabel(b.dayStart, now)}: ${format(totals[i]) || "nothing"}`}
+                accessibilityLabel={`${bucketName(b.bucket, unit)}: ${format(totals[i]) || "nothing"}`}
               >
                 <T
                   variant="small"
                   color={isToday ? colors.accentInk : colors.textFaint}
                   style={{
-                    fontSize: 10,
+                    fontSize: dense ? 9 : 10,
                     lineHeight: 13,
                     fontWeight: isToday ? "800" : "500",
                   }}
@@ -197,22 +227,24 @@ function WeekBars({
       </View>
       <View style={{ flexDirection: "row", gap: spacing.sm }}>
         {bars.map((b) => {
-          const isToday = b.dayStart === today;
+          const isToday = isCurrent(b);
           return (
             <T
-              key={b.dayStart}
+              key={b.bucket.start}
               variant="small"
               style={{
                 flex: 1,
                 textAlign: "center",
-                fontSize: 11,
+                fontSize: dense ? 10 : 11,
                 lineHeight: 14,
                 fontWeight: isToday ? "800" : "500",
               }}
               color={isToday ? colors.accentInk : colors.textFaint}
               numberOfLines={1}
             >
-              {isToday ? "Today" : weekdayShort(b.dayStart)}
+              {isToday && unit === "day" && !dense
+                ? "Today"
+                : bucketLabel(b.bucket, unit, bars.length)}
             </T>
           );
         })}
@@ -300,6 +332,200 @@ function Label({ title, sub }: { title: string; sub?: string }) {
 }
 
 const countLabel = (n: number) => (n > 0 ? String(n) : "");
+const sum = (xs: number[]) => xs.reduce((s, x) => s + x, 0);
+
+interface RangeState {
+  preset: RangePreset;
+  onPreset: (p: RangePreset) => void;
+  custom: { from: number; to: number };
+  onCustom: (c: { from: number; to: number }) => void;
+}
+
+/**
+ * A small "Last 7 days ▾" button for the top chart. It pops out a menu of ranges anchored under it;
+ * Custom range shows From/To day pickers in the menu.
+ */
+function RangeMenu({
+  range,
+  label,
+  now,
+}: {
+  range: RangeState;
+  label: string;
+  now: number;
+}) {
+  const { colors } = useApp();
+  const { width, height } = useWindowDimensions();
+  const [menuHeight, setMenuHeight] = useState(0);
+  const button = useRef<View>(null);
+  const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(
+    null,
+  );
+  const open = () =>
+    button.current?.measureInWindow((x, y, w, h) =>
+      setAnchor({ top: y + h + 6, right: Math.max(spacing.md, width - x - w) }),
+    );
+  const close = () => setAnchor(null);
+  const { preset, custom, onCustom } = range;
+  const title = label[0].toUpperCase() + label.slice(1);
+
+  return (
+    <>
+      <Pressable
+        ref={button}
+        onPress={open}
+        accessibilityRole="button"
+        accessibilityLabel={`Date range: ${title}`}
+        accessibilityHint="Choose another date range"
+        hitSlop={8}
+        style={({ pressed }) => [
+          styles.rangeButton,
+          { backgroundColor: colors.surfaceAlt, opacity: pressed ? 0.7 : 1 },
+        ]}
+      >
+        <T
+          variant="small"
+          color={colors.accentInk}
+          style={{ fontSize: 13, lineHeight: 18, fontWeight: "800" }}
+          numberOfLines={1}
+          jp={false}
+        >
+          {title}
+        </T>
+        <Icon
+          name="chevronDown"
+          size={14}
+          color={colors.accentInk}
+          strokeWidth={2.8}
+        />
+      </Pressable>
+      <Modal
+        visible={anchor !== null}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={close}
+      >
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={close}
+          accessibilityLabel="Close date ranges"
+        />
+        {anchor && (
+          <View
+            style={[
+              styles.menu,
+              {
+                // Under the button, but pushed up if it would run off the bottom of the screen.
+                top: Math.max(
+                  spacing.xl,
+                  Math.min(anchor.top, height - menuHeight - spacing.xl),
+                ),
+                right: anchor.right,
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+            accessibilityRole="menu"
+            onLayout={(e) => setMenuHeight(e.nativeEvent.layout.height)}
+          >
+            {RANGE_PRESETS.map((p) => {
+              const active = p.id === preset;
+              return (
+                <Pressable
+                  key={p.id}
+                  onPress={() => {
+                    range.onPreset(p.id);
+                    if (p.id !== "custom") close();
+                  }}
+                  accessibilityRole="menuitem"
+                  accessibilityState={{ selected: active }}
+                  style={({ pressed }) => [
+                    styles.menuItem,
+                    pressed && { backgroundColor: colors.surfaceAlt },
+                  ]}
+                >
+                  <T
+                    variant="body"
+                    color={active ? colors.accentInk : undefined}
+                    style={{
+                      flex: 1,
+                      fontSize: 15,
+                      fontWeight: active ? "800" : "600",
+                    }}
+                    jp={false}
+                  >
+                    {p.label}
+                  </T>
+                  {active && (
+                    <Icon
+                      name="check"
+                      size={16}
+                      color={colors.accentInk}
+                      strokeWidth={2.8}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+            {preset === "custom" && (
+              <View
+                style={{
+                  paddingHorizontal: spacing.md,
+                  borderTopWidth: StyleSheet.hairlineWidth * 2,
+                  borderTopColor: colors.border,
+                }}
+              >
+                <DateTimeField
+                  label="From"
+                  mode="date"
+                  value={custom.from}
+                  maximumDate={now}
+                  onChange={(t) =>
+                    onCustom({ from: t, to: Math.max(t, custom.to) })
+                  }
+                />
+                <DateTimeField
+                  label="To"
+                  mode="date"
+                  value={custom.to}
+                  maximumDate={now}
+                  onChange={(t) =>
+                    onCustom({ from: Math.min(t, custom.from), to: t })
+                  }
+                />
+              </View>
+            )}
+          </View>
+        )}
+      </Modal>
+    </>
+  );
+}
+
+/** A chart heading with the range button on the right. */
+function ChartHead({
+  title,
+  sub,
+  chart,
+  range,
+  now,
+}: {
+  title: string;
+  sub?: string;
+  chart: Chart;
+  range: RangeState;
+  now: number;
+}) {
+  return (
+    <View style={styles.rowBetween}>
+      <View style={{ flexShrink: 1 }}>
+        <Label title={title} sub={sub} />
+      </View>
+      <RangeMenu range={range} label={chart.label} now={now} />
+    </View>
+  );
+}
 
 /** A pie (donut) of parts, drawn clockwise from the top. */
 function Donut({
@@ -352,16 +578,19 @@ function Donut({
 /** Today's bar is what's left today (as on Today); reviews over the daily maximum roll to the next days. */
 function GrammarTab({
   reviews,
+  chart,
+  range,
   now,
   dueToday,
 }: {
   reviews: number[];
+  chart: Chart;
+  range: RangeState;
   now: number;
   dueToday: number;
 }) {
   const { colors, lines, cards, settings } = useApp();
-  const days = lastWeek(now);
-  const counts = countByDay(reviews, days);
+  const counts = countInBuckets(reviews, chart.buckets);
   const levels = levelProgress(curriculum, cards);
   const buckets = applyDailyLimit(
     forecast(
@@ -374,12 +603,19 @@ function GrammarTab({
   return (
     <>
       <Section>
-        <Label title="Reviews" sub="last 7 days" />
-        <WeekBars
-          bars={days.map((d, i) => ({
-            dayStart: d,
+        <ChartHead
+          title="Reviews"
+          sub={sum(counts).toLocaleString()}
+          chart={chart}
+          range={range}
+          now={now}
+        />
+        <RangeBars
+          bars={chart.buckets.map((bucket, i) => ({
+            bucket,
             segments: [{ key: "g", color: colors.correct, value: counts[i] }],
           }))}
+          unit={chart.unit}
           now={now}
           format={countLabel}
         />
@@ -453,16 +689,19 @@ function DecksTab({
   reviews,
   decks,
   cardForecast,
+  chart,
+  range,
   now,
 }: {
   reviews: number[];
   decks: DeckMaturity[];
   cardForecast: AnkiForecastInput;
+  chart: Chart;
+  range: RangeState;
   now: number;
 }) {
   const { colors } = useApp();
-  const days = lastWeek(now);
-  const counts = countByDay(reviews, days);
+  const counts = countInBuckets(reviews, chart.buckets);
   if (decks.length === 0) {
     return (
       <Section label="Decks">
@@ -481,12 +720,19 @@ function DecksTab({
   return (
     <>
       <Section>
-        <Label title="Reviews" sub="last 7 days" />
-        <WeekBars
-          bars={days.map((d, i) => ({
-            dayStart: d,
+        <ChartHead
+          title="Reviews"
+          sub={sum(counts).toLocaleString()}
+          chart={chart}
+          range={range}
+          now={now}
+        />
+        <RangeBars
+          bars={chart.buckets.map((bucket, i) => ({
+            bucket,
             segments: [{ key: "c", color: colors.blue, value: counts[i] }],
           }))}
+          unit={chart.unit}
           now={now}
           format={countLabel}
         />
@@ -578,14 +824,18 @@ function DecksTab({
   );
 }
 
-function TimeTab() {
+function TimeTab({ chart, range }: { chart: Chart; range: RangeState }) {
   const { colors, settings } = useApp();
   const { entries, running, activityById } = useTime();
   const now = useNow(running ? 1000 : 30_000);
 
-  const week = dailyTotals(entries, 7, now);
-  const todayMs = week[week.length - 1]?.total ?? 0;
-  const weekMs = week.reduce((s, d) => s + d.total, 0);
+  const bars = timeBars(entries, chart.buckets, now);
+  const todayStart = startOfDay(now);
+  let todayMs = 0;
+  const tomorrow = startOfDay(todayStart + DAY * 1.5); // DST-safe
+  for (const v of totalsByActivity(entries, todayStart, tomorrow, now).values())
+    todayMs += v;
+  const rangeMs = sum(bars.map((b) => b.total));
 
   // The latest entries of a minute or more (a running timer always shows), grouped by day.
   const byDay = useMemo(() => {
@@ -605,10 +855,11 @@ function TimeTab() {
   return (
     <>
       <Section>
-        <Label title="Time" sub="last 7 days" />
-        <WeekBars
-          bars={week.map((d) => ({
-            dayStart: d.dayStart,
+        <ChartHead title="Time" chart={chart} range={range} now={now} />
+        <RangeBars
+          unit={chart.unit}
+          bars={bars.map((d) => ({
+            bucket: d.bucket,
             segments: [...d.byActivity.entries()].map(([id, ms]) => ({
               key: id,
               color: activityById.get(id)?.color ?? colors.chartBar,
@@ -619,8 +870,13 @@ function TimeTab() {
           format={(ms) =>
             ms >= MIN_ENTRY_MS ? formatDuration(ms).replace(" ", "") : ""
           }
+          // The daily goal only makes sense against daily bars.
           goal={
-            (dailyPracticeMinutes(settings.timeGoals, now) || 30) * 60 * 1000
+            chart.unit === "day"
+              ? (dailyPracticeMinutes(settings.timeGoals, now) || 30) *
+                60 *
+                1000
+              : undefined
           }
         />
       </Section>
@@ -629,7 +885,10 @@ function TimeTab() {
         style={[styles.row, styles.statRow, { borderColor: colors.border }]}
       >
         <Stat value={formatDuration(todayMs)} label="Today" />
-        <Stat value={formatDuration(weekMs)} label="Past 7 days" />
+        <Stat
+          value={formatDuration(rangeMs)}
+          label={chart.label[0].toUpperCase() + chart.label.slice(1)}
+        />
       </View>
 
       <Section
@@ -738,6 +997,14 @@ export default function Progress() {
   const today = useToday();
   const { now, streak } = today;
   const [tab, setTab] = useState<TabId>("grammar");
+  const [preset, setPreset] = useState<RangePreset>("7d");
+  const [custom, setCustom] = useState(() => ({
+    from: startOfDay(Date.now()) - 29 * DAY,
+    to: Date.now(),
+  }));
+  // Reviews are loaded from here; "All" loads everything and starts at the oldest record.
+  const since =
+    preset === "all" ? 0 : resolveRange(preset, now, { custom }).from;
   const [loaded, setLoaded] = useState<Loaded>({
     reviews: { grammar: [], cards: [] },
     decks: [],
@@ -752,7 +1019,7 @@ export default function Progress() {
   const load = useCallback(async () => {
     const t = Date.now();
     const [reviews, decks, cardForecast] = await Promise.all([
-      getReviewTimes(db, startOfDay(t) - 7 * DAY),
+      getReviewTimes(db, since),
       deckMaturity(db),
       ankiForecastInput(db, t, {
         newPerDay: settings.ankiNewPerDay,
@@ -764,6 +1031,7 @@ export default function Progress() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     db,
+    since,
     cards,
     today.cardsReviewedToday,
     settings.ankiNewPerDay,
@@ -777,7 +1045,26 @@ export default function Progress() {
     }, [refresh, load]),
   );
 
-  const weekMs = dailyTotals(entries, 7, now).reduce((s, d) => s + d.total, 0);
+  const chart = useMemo((): Chart => {
+    let earliest = now;
+    for (const t of loaded.reviews.grammar) earliest = Math.min(earliest, t);
+    for (const t of loaded.reviews.cards) earliest = Math.min(earliest, t);
+    for (const e of entries) earliest = Math.min(earliest, e.started_at);
+    const range = resolveRange(preset, now, { earliest, custom });
+    return { ...bucketRange(range), label: rangeLabel(preset, range) };
+  }, [preset, custom, now, loaded.reviews, entries]);
+  const range: RangeState = {
+    preset,
+    onPreset: setPreset,
+    custom,
+    onCustom: setCustom,
+  };
+  // The header always shows the past week; the range button only changes the top chart.
+  const weekMs = sum(
+    timeBars(entries, bucketRange(resolveRange("7d", now)).buckets, now).map(
+      (b) => b.total,
+    ),
+  );
 
   return (
     <ScrollView
@@ -838,6 +1125,8 @@ export default function Progress() {
       {tab === "grammar" && (
         <GrammarTab
           reviews={loaded.reviews.grammar}
+          chart={chart}
+          range={range}
           now={now}
           dueToday={today.grammarDue}
         />
@@ -847,10 +1136,12 @@ export default function Progress() {
           reviews={loaded.reviews.cards}
           decks={loaded.decks}
           cardForecast={loaded.cardForecast}
+          chart={chart}
+          range={range}
           now={now}
         />
       )}
-      {tab === "time" && <TimeTab />}
+      {tab === "time" && <TimeTab chart={chart} range={range} />}
     </ScrollView>
   );
 }
@@ -923,6 +1214,34 @@ const styles = StyleSheet.create({
     marginBottom: -StyleSheet.hairlineWidth * 2,
   },
   legend: { flexDirection: "row", gap: spacing.lg },
+  rangeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    minHeight: 30,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+    flexShrink: 0,
+  },
+  menu: {
+    position: "absolute",
+    minWidth: 220,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth * 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+  },
   deckRow: {
     flexDirection: "row",
     alignItems: "center",
