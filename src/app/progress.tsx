@@ -1,7 +1,14 @@
 import { router, useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 import {
   ankiForecastInput,
@@ -327,79 +334,195 @@ function Label({ title, sub }: { title: string; sub?: string }) {
 const countLabel = (n: number) => (n > 0 ? String(n) : "");
 const sum = (xs: number[]) => xs.reduce((s, x) => s + x, 0);
 
-/** Preset chips (7D … All, Custom); Custom shows first/last day pickers below. */
-function RangeSelector({
-  preset,
-  onPreset,
-  custom,
-  onCustom,
-  now,
-}: {
+interface RangeState {
   preset: RangePreset;
   onPreset: (p: RangePreset) => void;
   custom: { from: number; to: number };
   onCustom: (c: { from: number; to: number }) => void;
+}
+
+/**
+ * A small "Last 7 days ▾" button for the top chart. It pops out a menu of ranges anchored under it;
+ * Custom range shows From/To day pickers in the menu.
+ */
+function RangeMenu({
+  range,
+  label,
+  now,
+}: {
+  range: RangeState;
+  label: string;
   now: number;
 }) {
   const { colors } = useApp();
+  const { width, height } = useWindowDimensions();
+  const [menuHeight, setMenuHeight] = useState(0);
+  const button = useRef<View>(null);
+  const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(
+    null,
+  );
+  const open = () =>
+    button.current?.measureInWindow((x, y, w, h) =>
+      setAnchor({ top: y + h + 6, right: Math.max(spacing.md, width - x - w) }),
+    );
+  const close = () => setAnchor(null);
+  const { preset, custom, onCustom } = range;
+  const title = label[0].toUpperCase() + label.slice(1);
+
   return (
-    <View style={{ gap: spacing.xs }}>
-      <View style={styles.chips} accessibilityRole="radiogroup">
-        {RANGE_PRESETS.map((p) => {
-          const active = p.id === preset;
-          return (
-            <Pressable
-              key={p.id}
-              onPress={() => onPreset(p.id)}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: active }}
-              accessibilityLabel={
-                p.id === "custom"
-                  ? "Custom range"
-                  : rangeLabel(p.id, { from: now, to: now })
-              }
-              hitSlop={4}
-              style={({ pressed }) => [
-                styles.chip,
-                {
-                  backgroundColor: active ? colors.accent : colors.surfaceAlt,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <T
-                variant="small"
-                color={active ? colors.accentText : colors.textMuted}
-                style={{ fontSize: 13, lineHeight: 18, fontWeight: "800" }}
-                jp={false}
+    <>
+      <Pressable
+        ref={button}
+        onPress={open}
+        accessibilityRole="button"
+        accessibilityLabel={`Date range: ${title}`}
+        accessibilityHint="Choose another date range"
+        hitSlop={8}
+        style={({ pressed }) => [
+          styles.rangeButton,
+          { backgroundColor: colors.surfaceAlt, opacity: pressed ? 0.7 : 1 },
+        ]}
+      >
+        <T
+          variant="small"
+          color={colors.accentInk}
+          style={{ fontSize: 13, lineHeight: 18, fontWeight: "800" }}
+          numberOfLines={1}
+          jp={false}
+        >
+          {title}
+        </T>
+        <Icon
+          name="chevronDown"
+          size={14}
+          color={colors.accentInk}
+          strokeWidth={2.8}
+        />
+      </Pressable>
+      <Modal
+        visible={anchor !== null}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={close}
+      >
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={close}
+          accessibilityLabel="Close date ranges"
+        />
+        {anchor && (
+          <View
+            style={[
+              styles.menu,
+              {
+                // Under the button, but pushed up if it would run off the bottom of the screen.
+                top: Math.max(
+                  spacing.xl,
+                  Math.min(anchor.top, height - menuHeight - spacing.xl),
+                ),
+                right: anchor.right,
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+            accessibilityRole="menu"
+            onLayout={(e) => setMenuHeight(e.nativeEvent.layout.height)}
+          >
+            {RANGE_PRESETS.map((p) => {
+              const active = p.id === preset;
+              return (
+                <Pressable
+                  key={p.id}
+                  onPress={() => {
+                    range.onPreset(p.id);
+                    if (p.id !== "custom") close();
+                  }}
+                  accessibilityRole="menuitem"
+                  accessibilityState={{ selected: active }}
+                  style={({ pressed }) => [
+                    styles.menuItem,
+                    pressed && { backgroundColor: colors.surfaceAlt },
+                  ]}
+                >
+                  <T
+                    variant="body"
+                    color={active ? colors.accentInk : undefined}
+                    style={{
+                      flex: 1,
+                      fontSize: 15,
+                      fontWeight: active ? "800" : "600",
+                    }}
+                    jp={false}
+                  >
+                    {p.label}
+                  </T>
+                  {active && (
+                    <Icon
+                      name="check"
+                      size={16}
+                      color={colors.accentInk}
+                      strokeWidth={2.8}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+            {preset === "custom" && (
+              <View
+                style={{
+                  paddingHorizontal: spacing.md,
+                  borderTopWidth: StyleSheet.hairlineWidth * 2,
+                  borderTopColor: colors.border,
+                }}
               >
-                {p.label}
-              </T>
-            </Pressable>
-          );
-        })}
+                <DateTimeField
+                  label="From"
+                  mode="date"
+                  value={custom.from}
+                  maximumDate={now}
+                  onChange={(t) =>
+                    onCustom({ from: t, to: Math.max(t, custom.to) })
+                  }
+                />
+                <DateTimeField
+                  label="To"
+                  mode="date"
+                  value={custom.to}
+                  maximumDate={now}
+                  onChange={(t) =>
+                    onCustom({ from: Math.min(t, custom.from), to: t })
+                  }
+                />
+              </View>
+            )}
+          </View>
+        )}
+      </Modal>
+    </>
+  );
+}
+
+/** A chart heading with the range button on the right. */
+function ChartHead({
+  title,
+  sub,
+  chart,
+  range,
+  now,
+}: {
+  title: string;
+  sub?: string;
+  chart: Chart;
+  range: RangeState;
+  now: number;
+}) {
+  return (
+    <View style={styles.rowBetween}>
+      <View style={{ flexShrink: 1 }}>
+        <Label title={title} sub={sub} />
       </View>
-      {preset === "custom" && (
-        <View>
-          <DateTimeField
-            label="From"
-            mode="date"
-            value={custom.from}
-            maximumDate={now}
-            onChange={(t) => onCustom({ from: t, to: Math.max(t, custom.to) })}
-          />
-          <Rule />
-          <DateTimeField
-            label="To"
-            mode="date"
-            value={custom.to}
-            maximumDate={now}
-            onChange={(t) =>
-              onCustom({ from: Math.min(t, custom.from), to: t })
-            }
-          />
-        </View>
-      )}
+      <RangeMenu range={range} label={chart.label} now={now} />
     </View>
   );
 }
@@ -456,11 +579,13 @@ function Donut({
 function GrammarTab({
   reviews,
   chart,
+  range,
   now,
   dueToday,
 }: {
   reviews: number[];
   chart: Chart;
+  range: RangeState;
   now: number;
   dueToday: number;
 }) {
@@ -478,9 +603,12 @@ function GrammarTab({
   return (
     <>
       <Section>
-        <Label
+        <ChartHead
           title="Reviews"
-          sub={`${chart.label} · ${sum(counts).toLocaleString()}`}
+          sub={sum(counts).toLocaleString()}
+          chart={chart}
+          range={range}
+          now={now}
         />
         <RangeBars
           bars={chart.buckets.map((bucket, i) => ({
@@ -562,12 +690,14 @@ function DecksTab({
   decks,
   cardForecast,
   chart,
+  range,
   now,
 }: {
   reviews: number[];
   decks: DeckMaturity[];
   cardForecast: AnkiForecastInput;
   chart: Chart;
+  range: RangeState;
   now: number;
 }) {
   const { colors } = useApp();
@@ -590,9 +720,12 @@ function DecksTab({
   return (
     <>
       <Section>
-        <Label
+        <ChartHead
           title="Reviews"
-          sub={`${chart.label} · ${sum(counts).toLocaleString()}`}
+          sub={sum(counts).toLocaleString()}
+          chart={chart}
+          range={range}
+          now={now}
         />
         <RangeBars
           bars={chart.buckets.map((bucket, i) => ({
@@ -691,7 +824,7 @@ function DecksTab({
   );
 }
 
-function TimeTab({ chart }: { chart: Chart }) {
+function TimeTab({ chart, range }: { chart: Chart; range: RangeState }) {
   const { colors, settings } = useApp();
   const { entries, running, activityById } = useTime();
   const now = useNow(running ? 1000 : 30_000);
@@ -722,7 +855,7 @@ function TimeTab({ chart }: { chart: Chart }) {
   return (
     <>
       <Section>
-        <Label title="Time" sub={chart.label} />
+        <ChartHead title="Time" chart={chart} range={range} now={now} />
         <RangeBars
           unit={chart.unit}
           bars={bars.map((d) => ({
@@ -920,8 +1053,17 @@ export default function Progress() {
     const range = resolveRange(preset, now, { earliest, custom });
     return { ...bucketRange(range), label: rangeLabel(preset, range) };
   }, [preset, custom, now, loaded.reviews, entries]);
-  const rangeMs = sum(
-    timeBars(entries, chart.buckets, now).map((b) => b.total),
+  const range: RangeState = {
+    preset,
+    onPreset: setPreset,
+    custom,
+    onCustom: setCustom,
+  };
+  // The header always shows the past week; the range button only changes the top chart.
+  const weekMs = sum(
+    timeBars(entries, bucketRange(resolveRange("7d", now)).buckets, now).map(
+      (b) => b.total,
+    ),
   );
 
   return (
@@ -944,16 +1086,8 @@ export default function Progress() {
           <T variant="small">day streak</T>
         </View>
         <Stat value={String(cards.length)} label="grammar learned" />
-        <Stat value={formatDuration(rangeMs)} label={chart.label} />
+        <Stat value={formatDuration(weekMs)} label="last 7 days" />
       </View>
-
-      <RangeSelector
-        preset={preset}
-        onPreset={setPreset}
-        custom={custom}
-        onCustom={setCustom}
-        now={now}
-      />
 
       <View
         style={[styles.tabs, { borderBottomColor: colors.border }]}
@@ -992,6 +1126,7 @@ export default function Progress() {
         <GrammarTab
           reviews={loaded.reviews.grammar}
           chart={chart}
+          range={range}
           now={now}
           dueToday={today.grammarDue}
         />
@@ -1002,10 +1137,11 @@ export default function Progress() {
           decks={loaded.decks}
           cardForecast={loaded.cardForecast}
           chart={chart}
+          range={range}
           now={now}
         />
       )}
-      {tab === "time" && <TimeTab chart={chart} />}
+      {tab === "time" && <TimeTab chart={chart} range={range} />}
     </ScrollView>
   );
 }
@@ -1078,14 +1214,33 @@ const styles = StyleSheet.create({
     marginBottom: -StyleSheet.hairlineWidth * 2,
   },
   legend: { flexDirection: "row", gap: spacing.lg },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  chip: {
-    minHeight: 34,
-    minWidth: 44,
-    paddingHorizontal: 12,
-    borderRadius: 17,
+  rangeButton: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 4,
+    minHeight: 30,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+    flexShrink: 0,
+  },
+  menu: {
+    position: "absolute",
+    minWidth: 220,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth * 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
   },
   deckRow: {
     flexDirection: "row",

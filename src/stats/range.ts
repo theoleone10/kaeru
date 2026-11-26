@@ -4,12 +4,12 @@ import { startOfLocalDay, startOfNextLocalDay } from './dates';
 export type RangePreset = '7d' | '30d' | '90d' | '1y' | 'all' | 'custom';
 
 export const RANGE_PRESETS: { id: RangePreset; label: string }[] = [
-  { id: '7d', label: '7D' },
-  { id: '30d', label: '30D' },
-  { id: '90d', label: '90D' },
-  { id: '1y', label: '1Y' },
-  { id: 'all', label: 'All' },
-  { id: 'custom', label: 'Custom' },
+  { id: '7d', label: 'Last 7 days' },
+  { id: '30d', label: 'Last 30 days' },
+  { id: '90d', label: 'Last 90 days' },
+  { id: '1y', label: 'Last year' },
+  { id: 'all', label: 'All time' },
+  { id: 'custom', label: 'Custom range' },
 ];
 
 /** Whole local days: `from` is the first day's midnight, `to` the midnight after the last day. */
