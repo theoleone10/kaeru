@@ -106,11 +106,10 @@ export function useToday(): Today {
     }),
   });
 
-  // Save goal days as they happen: today's once the plan shows the goal reached. Without a lesson
-  // to do, recent days whose time goal was met by time logged afterwards count too.
+  // Save goal days as they happen: today's once any task is done. Recent days whose time goal
+  // was met by time logged afterwards count too.
   const timeGoalMs = dailyPracticeMinutes(settings.timeGoals, now) * 60 * 1000;
-  const lessonDay = plan.steps.some((s) => s.id === 'learn');
-  const reached = [...(lessonDay ? [] : timeGoalDays(entries, timeGoalMs, now)), ...(loaded && plan.goalMet ? [dayKey(now)] : [])];
+  const reached = [...timeGoalDays(entries, timeGoalMs, now), ...(loaded && plan.goalMet ? [dayKey(now)] : [])];
   const missing = reached.filter((d) => !l.goalDays.includes(d));
   const missingKey = missing.join(',');
   useEffect(() => {

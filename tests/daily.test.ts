@@ -56,14 +56,17 @@ describe('dailyPlan', () => {
     expect(finished.steps.map((s) => s.id)).toEqual(['review', 'cards', 'time']);
   });
 
-  it('extends the streak only once today\'s grammar lessons are done', () => {
+  it('extends the streak once any of today\'s tasks is done', () => {
     expect(dailyPlan(base).goalMet).toBe(false);
-    // Other steps done don't count while lessons are left.
-    expect(dailyPlan({ ...base, grammarDue: 0, grammarReviewedToday: 3 }).goalMet).toBe(false);
-    expect(dailyPlan({ ...base, cardsDue: 0, cardsReviewedToday: 5 }).goalMet).toBe(false);
-    expect(dailyPlan({ ...base, timeGoals: practice(30 * MIN) }).goalMet).toBe(false);
     expect(dailyPlan({ ...base, learnedToday: 1 }).goalMet).toBe(false);
     expect(dailyPlan({ ...base, learnedToday: 2 }).goalMet).toBe(true);
+    // Other tasks count even with lessons left.
+    expect(dailyPlan({ ...base, grammarDue: 0, grammarReviewedToday: 3 }).goalMet).toBe(true);
+    expect(dailyPlan({ ...base, cardsDue: 0, cardsReviewedToday: 5 }).goalMet).toBe(true);
+    expect(dailyPlan({ ...base, timeGoals: practice(30 * MIN) }).goalMet).toBe(true);
+    // A weekly goal reached earlier in the week stays ticked, so it doesn't count.
+    const weekly = [{ id: 'week', activity: null, period: 'week' as const, goalMs: 60 * MIN, doneMs: 60 * MIN, daysLeft: 3 }];
+    expect(dailyPlan({ ...base, timeGoals: weekly }).goalMet).toBe(false);
   });
 
   it('counts any finished step when there is no lesson to do', () => {

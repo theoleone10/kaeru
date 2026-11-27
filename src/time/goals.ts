@@ -99,7 +99,7 @@ export function daysLeftInWeek(now: number): number {
 /**
  * The daily practice goal for all activities that applies on `now`'s day, in minutes (0 = none).
  * Used where one daily number is needed: the "goal reached" sound and notification, the week
- * chart's goal line, and the streak on days without a lesson.
+ * chart's goal line, and streak days for time logged afterwards.
  */
 export function dailyPracticeMinutes(goals: TimeGoal[], now: number): number {
   return goals.find((g) => g.activityId === null && g.period === 'day' && goalActiveOn(g, now))?.minutes ?? 0;
