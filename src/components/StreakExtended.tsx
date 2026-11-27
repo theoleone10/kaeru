@@ -6,7 +6,7 @@ import { spacing } from '../theme/colors';
 import { Flame } from './Flame';
 import { T } from './ui';
 
-/** "Streak extended!" badge for the end of the lesson that kept the streak going: pops in, flame and day count. */
+/** "Streak extended!" badge for the end of a lesson that kept the streak going: pops in, flame and day count. */
 export function StreakExtended({ days }: { days: number }) {
   const { colors } = useApp();
   const scale = useState(() => new Animated.Value(0))[0];

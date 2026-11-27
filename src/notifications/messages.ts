@@ -38,21 +38,21 @@ export function reviewsMessage(grammar: number, cards: number, seed: number): Me
   );
 }
 
-/** Evening warning: streak alive yesterday, today's lesson not done yet. Cheeky. */
+/** Evening warning: streak alive yesterday, no task done yet today. Cheeky. */
 export function streakMessage(days: number, seed: number): Message {
   const d = s(days, 'day');
   return pick<Message>(
     [
-      { title: `${d}... gone at midnight?? 👀`, body: 'Finish today’s lesson to keep it. The frog is watching.' },
+      { title: `${d}... gone at midnight?? 👀`, body: 'Finish one of today’s tasks to keep it. The frog is watching.' },
       { title: 'Your streak is sweating 💦', body: `${d} in a row, and it ends tonight unless you show up.` },
-      { title: 'えっ、今日はまだ？', body: `No lesson done yet today. Your ${d} streak is on the line.` },
+      { title: 'えっ、今日はまだ？', body: `Nothing done yet today. Your ${d} streak is on the line.` },
       { title: 'The frog is disappointed 🐸', body: `Not angry. Just disappointed. Save your ${d} streak?` },
-      { title: `Don't let ${d} croak`, body: 'One quick grammar lesson keeps it alive. Ribbit.' },
+      { title: `Don't let ${d} croak`, body: 'One quick task keeps it alive. Ribbit.' },
       { title: 'ケロ…さびしい', body: `Kaeru misses you. Also your ${d} streak does.` },
       { title: 'Streak emergency 🚨', body: `${d} streak, a few hours left. This is not a drill.` },
       { title: 'Hey. Psst. 👀', body: `Your ${d} streak resets at midnight. Just saying.` },
-      { title: 'まだ間に合う！', body: `There's still time to do today's lesson and keep your ${d} streak going.` },
-      { title: 'Plot twist: you study today', body: `One lesson keeps the ${d} streak alive. You've got this.` },
+      { title: 'まだ間に合う！', body: `There's still time to do one task and keep your ${d} streak going.` },
+      { title: 'Plot twist: you study today', body: `One task keeps the ${d} streak alive. You've got this.` },
     ],
     seed,
   );
@@ -63,10 +63,10 @@ export function comebackMessage(seed: number): Message {
   return pick<Message>(
     [
       { title: 'ケロ？どこ行ったの？', body: 'Kaeru has been staring at the door. Come say hi?' },
-      { title: 'The pond is quiet without you 🪷', body: 'Start a fresh streak: one grammar lesson today.' },
+      { title: 'The pond is quiet without you 🪷', body: 'Start a fresh streak: one task today.' },
       { title: 'No guilt, just frogs 🐸', body: "Pick up right where you left off. It's all saved." },
       { title: 'おかえりの準備できてるよ', body: 'Your reviews are waiting. Five minutes is plenty.' },
-      { title: 'New streak, who dis', body: 'Day 1 starts with one grammar lesson.' },
+      { title: 'New streak, who dis', body: 'Day 1 starts with one task.' },
       { title: 'Kaeru wrote you a haiku', body: 'Quiet little pond / a frog waits for its learner / please come back today' },
       { title: '一日一歩', body: 'One step a day. Today can be step one again.' },
       { title: "We kept your seat warm 🔥", body: 'Grammar, flashcards, a bit of immersion. Your pick.' },

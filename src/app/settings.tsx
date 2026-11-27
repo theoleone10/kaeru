@@ -351,7 +351,7 @@ export default function SettingsScreen() {
             <Row label="Reviews ready" detail="When grammar or flashcards come due">
               <Toggle value={settings.notifyReviews} onValueChange={(v) => updateSettings({ notifyReviews: v })} label="Reviews ready" />
             </Row>
-            <Row label="Streak saver" detail="An evening nudge if today’s lesson isn’t done yet">
+            <Row label="Streak saver" detail="An evening nudge if no task is done yet today">
               <Toggle value={settings.notifyStreak} onValueChange={(v) => updateSettings({ notifyStreak: v })} label="Streak saver" />
             </Row>
             <Row label="Daily plan" detail="What's on today, before you usually start">

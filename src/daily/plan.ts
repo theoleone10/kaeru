@@ -54,8 +54,8 @@ export interface DayPlan {
   doneCount: number;
   allDone: boolean;
   /**
-   * Today's grammar lessons are done: what extends the streak. When there's no lesson to do
-   * (curriculum finished, or a new-points goal of 0), any finished step counts instead.
+   * At least one of today's tasks is done: what extends the streak. Weekly goals don't count,
+   * since once reached they'd stay ticked for the rest of the week.
    */
   goalMet: boolean;
 }
@@ -129,7 +129,6 @@ export function dailyPlan(s: DayState): DayPlan {
   }
 
   const doneCount = steps.filter((x) => x.done).length;
-  const learn = steps.find((x) => x.id === 'learn');
   // An unfinished weekly goal doesn't keep the day open, unless weekly goals are all there is.
   const daily = steps.filter((x) => !x.weekly);
   const counted = daily.length > 0 ? daily : steps;
@@ -138,6 +137,6 @@ export function dailyPlan(s: DayState): DayPlan {
     next: daily.find((x) => !x.done) ?? steps.find((x) => !x.done) ?? null,
     doneCount,
     allDone: counted.length > 0 && counted.every((x) => x.done),
-    goalMet: learn ? learn.done : doneCount > 0,
+    goalMet: daily.some((x) => x.done),
   };
 }
