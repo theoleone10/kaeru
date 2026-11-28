@@ -49,6 +49,7 @@ export default function Lessons() {
   const [step, setStep] = useState<'learn' | 'quiz' | 'sentence'>('learn');
   /** Which point the sentence step is on; past the end means the sentences are over. */
   const [sentenceIndex, setSentenceIndex] = useState(0);
+  const [sentencesCorrect, setSentencesCorrect] = useState(0);
   const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
   const [passed, setPassed] = useState<Map<string, boolean> | null>(null);
   /** Whether today already counted for the streak when the quiz ended. */
@@ -149,6 +150,7 @@ export default function Lessons() {
                 stats={[
                   { label: 'Learned', value: String(batch.length), tone: 'accent' },
                   { label: 'Quiz', value: summary.reviewed ? `${summary.correct}/${summary.reviewed}` : '—', tone: 'green' },
+                  ...(step === 'sentence' ? [{ label: 'Sentences', value: `${sentencesCorrect}/${batch.length}`, tone: 'accent' as const }] : []),
                 ]}
               >
                 {metBefore === false && streak.goalMetToday && <StreakExtended days={streak.days} />}
@@ -168,7 +170,10 @@ export default function Lessons() {
           </T>
         </View>
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + spacing.xxl }} keyboardShouldPersistTaps="handled">
-          <SentenceWriter key={batch[sentenceIndex].id} point={batch[sentenceIndex]} source="lesson" onDone={() => setSentenceIndex((i) => i + 1)} />
+          <SentenceWriter key={batch[sentenceIndex].id} point={batch[sentenceIndex]} source="lesson" onDone={(r) => {
+            if (r?.verdict === 'correct') setSentencesCorrect((n) => n + 1);
+            setSentenceIndex((i) => i + 1);
+          }} />
         </ScrollView>
       </View>
         )}
