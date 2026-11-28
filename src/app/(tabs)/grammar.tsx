@@ -1,6 +1,6 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toKana } from 'wanakana';
@@ -12,6 +12,8 @@ import { LEVELS, type GrammarPoint, type JlptLevel } from '@/content/types';
 import { stationCode, unitsFor, type Station } from '@/content/units';
 import { markKnown } from '@/db/repo';
 import { katakanaToHiragana } from '@/review/normalize';
+import { sentencePracticeOn } from '@/sentence/grader';
+import { sentenceDoneIds } from '@/sentence/repo';
 import { isMastered } from '@/srs/scheduler';
 import { useApp } from '@/state/AppProvider';
 import { dark, radius, spacing, TAP, type LineColors } from '@/theme/colors';
@@ -93,7 +95,15 @@ function Track({ solid, color, dots, style }: { solid: boolean; color: string; d
 export default function GrammarMap() {
   const insets = useSafeAreaInsets();
   const db = useSQLiteContext();
-  const { colors, lines, cardsById, refresh } = useApp();
+  const { colors, lines, cardsById, refresh, settings } = useApp();
+  const sentencesOn = sentencePracticeOn(settings);
+  // Points with a correct practice sentence get a small pencil badge (beta).
+  const [sentenceDone, setSentenceDone] = useState<Set<string>>(new Set());
+  useFocusEffect(
+    useCallback(() => {
+      if (sentencesOn) sentenceDoneIds(db).then(setSentenceDone);
+    }, [db, sentencesOn]),
+  );
   const params = useLocalSearchParams<{ level?: string }>();
   const nextGlobal = useMemo(() => curriculum.find((p) => !cardsById.has(p.id)), [cardsById]);
   const [chosen, setLevel] = useState<JlptLevel | null>(null);
@@ -343,14 +353,21 @@ export default function GrammarMap() {
                     <StationMarker station={station} status={status} line={line} />
                   </View>
                   <View style={{ flex: 1, gap: 1 }}>
-                    <T
-                      variant="body"
-                      color={isCurrent ? colors.accentInk : status === 'ahead' ? colors.textMuted : colors.text}
-                      style={{ fontSize: isCurrent ? 18 : 17, lineHeight: 24, fontWeight: isCurrent ? '800' : '700' }}
-                      numberOfLines={1}
-                    >
-                      {station.point.title}
-                    </T>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <T
+                        variant="body"
+                        color={isCurrent ? colors.accentInk : status === 'ahead' ? colors.textMuted : colors.text}
+                        style={{ fontSize: isCurrent ? 18 : 17, lineHeight: 24, fontWeight: isCurrent ? '800' : '700', flexShrink: 1 }}
+                        numberOfLines={1}
+                      >
+                        {station.point.title}
+                      </T>
+                      {sentencesOn && sentenceDone.has(station.point.id) ? (
+                        <View accessibilityLabel="Sentence written">
+                          <Icon name="pencil" size={14} color={colors.correctText} strokeWidth={2.6} />
+                        </View>
+                      ) : null}
+                    </View>
                     <T variant="small" color={status === 'ahead' ? colors.textFaint : colors.textMuted} numberOfLines={1}>
                       {isCurrent ? 'You are here' : station.point.meaning}
                     </T>
