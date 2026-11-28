@@ -5,7 +5,7 @@ name: Claude
 # Comment "@claude ..." on the issue or the PR to steer it.
 #
 # Only users with write access to the repo can trigger it (checked by the action).
-# Needs the ANTHROPIC_API_KEY repo secret (or swap in claude_code_oauth_token).
+# Needs the CLAUDE_CODE_OAUTH_TOKEN repo secret (from `claude setup-token`, uses your Claude subscription).
 # Issue events only fire workflows from the default branch, so this file must be on dev.
 
 on:
@@ -54,7 +54,7 @@ jobs:
 
       - uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           trigger_phrase: "@claude"
           label_trigger: "claude"
           base_branch: dev
