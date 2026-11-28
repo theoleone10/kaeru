@@ -4,6 +4,7 @@ import { readAnkiForBackup, replaceAnki } from '../anki/backup';
 import type { BackupData, ExampleSeenRow } from '../backup/format';
 import { readKanaForBackup, replaceKana } from '../kana/repo';
 import type { ExampleSeen } from '../srs/exampleRotation';
+import { readSentencesForBackup, replaceSentences } from '../sentence/repo';
 import { QUIZ_ANSWER } from '../srs/quiz';
 import { cardBeforeLog, knownCard, type StoredCard, type StoredLog } from '../srs/scheduler';
 import { SEED_GOAL_DAYS_SQL } from '../stats/goalDays';
@@ -88,6 +89,7 @@ export async function resetPoint(db: SQLiteDatabase, grammarId: string): Promise
     await txn.runAsync('DELETE FROM cards WHERE grammar_id = ?', grammarId);
     await txn.runAsync('DELETE FROM review_logs WHERE grammar_id = ?', grammarId);
     await txn.runAsync('DELETE FROM example_seen WHERE grammar_id = ?', grammarId);
+    await txn.runAsync('DELETE FROM sentence_attempts WHERE grammar_id = ?', grammarId);
   });
 }
 
@@ -263,7 +265,7 @@ export async function setKv(db: Executor, table: 'settings' | 'meta', key: strin
 // ---------- backup ----------
 
 export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> {
-  const [cards, logs, seen, settings, activities, timeEntries, anki, goalDays, kana] = await Promise.all([
+  const [cards, logs, seen, settings, activities, timeEntries, anki, goalDays, kana, sentences] = await Promise.all([
     getAllCards(db),
     db.getAllAsync<StoredLog & { id?: number }>('SELECT * FROM review_logs ORDER BY id'),
     db.getAllAsync<ExampleSeenRow>('SELECT * FROM example_seen'),
@@ -273,6 +275,7 @@ export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> 
     readAnkiForBackup(db),
     db.getAllAsync<{ day: string }>('SELECT day FROM goal_days ORDER BY day'),
     readKanaForBackup(db),
+    readSentencesForBackup(db),
   ]);
   return {
     cards,
@@ -284,6 +287,7 @@ export async function readAllForBackup(db: SQLiteDatabase): Promise<BackupData> 
     anki,
     goal_days: goalDays.map((g) => g.day),
     kana,
+    sentence_attempts: sentences,
   };
 }
 
@@ -339,5 +343,7 @@ export async function replaceAllFromBackup(db: SQLiteDatabase, data: BackupData,
     }
     // Backups made before the kana course: keep the phone's own kana progress.
     if (data.kana) await replaceKana(txn, data.kana);
+    // Backups made before sentence practice: keep the phone's own attempts.
+    if (data.sentence_attempts) await replaceSentences(txn, data.sentence_attempts);
   });
 }

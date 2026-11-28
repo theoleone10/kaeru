@@ -1,6 +1,6 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LessonContent } from '@/components/LessonContent';
@@ -8,6 +8,8 @@ import { Mascot } from '@/components/Mascot';
 import { Button, Section, T } from '@/components/ui';
 import { getPoint } from '@/content/loader';
 import { getPointStats, resetPoint, setSuspended, type PointStats } from '@/db/repo';
+import { sentencePracticeOn } from '@/sentence/grader';
+import { getSentenceStatus, type SentenceStatus } from '@/sentence/repo';
 import { isMastered, retrievability, State } from '@/srs/scheduler';
 import { useApp, useNow } from '@/state/AppProvider';
 import { spacing } from '@/theme/colors';
@@ -43,7 +45,13 @@ export default function GrammarDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
-  const { cardsById, refresh, colors } = useApp();
+  const { cardsById, refresh, colors, settings } = useApp();
+  const [sentence, setSentence] = useState<SentenceStatus | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      getSentenceStatus(db, id).then(setSentence);
+    }, [db, id]),
+  );
   const point = getPoint(id);
   const card = cardsById.get(id);
   const [stats, setStats] = useState<PointStats | null>(null);
@@ -105,6 +113,25 @@ export default function GrammarDetail() {
                     <Stat label="Stability" value={card.stability ? `${card.stability.toFixed(1)} days` : '—'} />
                   </View>
                   {card.suspended ? <Button label="Add to reviews" kind="secondary" onPress={addToReviews} /> : null}
+                  {sentencePracticeOn(settings) && (
+                    <View style={{ gap: spacing.sm }}>
+                      <T variant="heading" style={{ fontSize: 18 }} jp={false}>
+                        {sentence?.done ? 'Use it in a sentence ✓' : 'Use it in a sentence'}
+                      </T>
+                      {sentence?.done && sentence.best ? (
+                        <T variant="body">{sentence.best.sentence}</T>
+                      ) : (
+                        <T variant="small" jp={false}>
+                          {sentence?.lastAttempt ? 'Last try: not quite. Write your own sentence to earn the ✓.' : 'Write your own sentence to earn the ✓.'}
+                        </T>
+                      )}
+                      <Button
+                        label={sentence?.done ? 'Write another' : 'Try a sentence'}
+                        kind={sentence?.done ? 'ghost' : 'secondary'}
+                        onPress={() => router.push(`/sentence/${point.id}`)}
+                      />
+                    </View>
+                  )}
                   <Pressable onPress={reset} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}>
                     <T variant="body" color={colors.wrongText} style={{ fontSize: 15, fontWeight: '700' }}>
                       Reset progress

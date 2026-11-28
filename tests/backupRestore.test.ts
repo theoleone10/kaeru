@@ -132,8 +132,8 @@ describe('backup with Anki decks', () => {
     expect(counts.points).toBe(1);
     expect(counts.timeEntries).toBe(2);
     expect(describeCounts(counts)).toMatch(/^1 grammar point, \d+ flashcards and 2 time entries$/);
-    expect(describeCounts({ points: 0, reviews: 0, flashcards: 0, timeEntries: 0, kanaLessons: 0 })).toBe('no progress');
-    expect(describeCounts({ points: 0, reviews: 0, flashcards: 0, timeEntries: 0, kanaLessons: 3 })).toBe('3 kana lessons');
+    expect(describeCounts({ points: 0, reviews: 0, flashcards: 0, timeEntries: 0, kanaLessons: 0, sentencesDone: 0 })).toBe('no progress');
+    expect(describeCounts({ points: 0, reviews: 0, flashcards: 0, timeEntries: 0, kanaLessons: 3, sentencesDone: 0 })).toBe('3 kana lessons');
   });
 });
 

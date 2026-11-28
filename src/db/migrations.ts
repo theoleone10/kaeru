@@ -222,6 +222,22 @@ const MIGRATIONS: string[] = [
   );
   ${bumpTriggers(['kana_lessons', 'kana_progress'])}
   `,
+  `
+  -- Sentence practice (beta): sentences the learner wrote with a grammar point, and how
+  -- each was graded. A point's sentence is "done" once any attempt is correct.
+  CREATE TABLE sentence_attempts (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    grammar_id    TEXT NOT NULL,
+    sentence      TEXT NOT NULL,
+    verdict       TEXT NOT NULL,
+    error_type    TEXT,
+    source        TEXT NOT NULL,
+    model_version TEXT NOT NULL,
+    created_at    INTEGER NOT NULL
+  );
+  CREATE INDEX sentence_attempts_point ON sentence_attempts (grammar_id, created_at);
+  ${bumpTriggers(['sentence_attempts'])}
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

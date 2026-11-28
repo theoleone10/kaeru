@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
 import { LessonContent } from '@/components/LessonContent';
 import { ReviewSession } from '@/components/ReviewSession';
+import { SentenceWriter } from '@/components/SentenceWriter';
 import { Celebration } from '@/components/Celebration';
 import { NextUp } from '@/components/DayPlan';
 import { StreakExtended } from '@/components/StreakExtended';
@@ -16,6 +17,7 @@ import { useToday } from '@/daily/useToday';
 import { saveQuizResults } from '@/db/repo';
 import { lessonsLearnedToday, nextLessonBatch } from '@/srs/lessons';
 import { buildQuiz, cardsFromQuiz, type QuizAnswer, type QuizItem } from '@/srs/quiz';
+import { sentencePracticeOn } from '@/sentence/grader';
 import { useApp } from '@/state/AppProvider';
 import { spacing } from '@/theme/colors';
 
@@ -44,7 +46,9 @@ export default function Lessons() {
   });
 
   const [index, setIndex] = useState(0);
-  const [step, setStep] = useState<'learn' | 'quiz'>('learn');
+  const [step, setStep] = useState<'learn' | 'quiz' | 'sentence'>('learn');
+  /** Which point the sentence step is on; past the end means the sentences are over. */
+  const [sentenceIndex, setSentenceIndex] = useState(0);
   const [quizItems, setQuizItems] = useState<QuizItem[]>([]);
   const [passed, setPassed] = useState<Map<string, boolean> | null>(null);
   /** Whether today already counted for the streak when the quiz ended. */
@@ -78,6 +82,8 @@ export default function Lessons() {
     await saveQuizResults(db, seeds, answers);
     setPassed(new Map(seeds.map((s) => [s.card.grammar_id, s.passed])));
     await refresh();
+    // The quiz is saved, so leaving during the sentence step loses nothing.
+    if (sentencePracticeOn(settings)) setStep('sentence');
   };
 
   const header = (
@@ -120,7 +126,7 @@ export default function Lessons() {
     );
   }
 
-  if (step === 'quiz') {
+  if (step === 'quiz' || step === 'sentence') {
     return (
       <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: colors.background }}>
         <ReviewSession
@@ -151,6 +157,21 @@ export default function Lessons() {
             );
           }}
         />
+        {step === 'sentence' && sentenceIndex < batch.length && (
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+          <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close lessons" hitSlop={8} style={styles.close}>
+            <Icon name="close" size={22} color={colors.textFaint} strokeWidth={2.4} />
+          </Pressable>
+          <T variant="small" style={{ flex: 1, fontWeight: '700' }} jp={false}>
+            {`Sentence ${sentenceIndex + 1} of ${batch.length}`}
+          </T>
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + spacing.xxl }} keyboardShouldPersistTaps="handled">
+          <SentenceWriter key={batch[sentenceIndex].id} point={batch[sentenceIndex]} source="lesson" onDone={() => setSentenceIndex((i) => i + 1)} />
+        </ScrollView>
+      </View>
+        )}
       </View>
     );
   }

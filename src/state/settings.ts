@@ -36,6 +36,10 @@ export interface Settings {
   /** Profile icon (an emoji from AVATARS) and its background colour. */
   avatar: AvatarId;
   avatarColor: AvatarColor;
+  /** Beta: write a sentence with each new point after the lesson quiz. */
+  sentencePracticeEnabled: boolean;
+  /** Beta: fetch the sentence checker model on Wi-Fi without asking. */
+  graderAutoDownload: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -61,6 +65,8 @@ export const DEFAULT_SETTINGS: Settings = {
   studyKana: false,
   avatar: 'frog',
   avatarColor: 'green',
+  sentencePracticeEnabled: false,
+  graderAutoDownload: true,
 };
 
 export const LIMITS = {
@@ -107,6 +113,8 @@ export function sanitizeSettings(raw: Record<string, unknown>): Settings {
     'autoTrackStudy',
     'soundEffects',
     'studyKana',
+    'sentencePracticeEnabled',
+    'graderAutoDownload',
   ] as const) {
     const b = bool(k);
     if (b !== undefined) s[k] = b;

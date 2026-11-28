@@ -69,6 +69,7 @@ function ThemedStack({ onReady }: { onReady: () => void }) {
           <Stack.Screen name="lessons" options={{ headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="review" options={{ headerShown: false }} />
           <Stack.Screen name="grammar/[id]" options={{ title: '' }} />
+          <Stack.Screen name="sentence/[id]" options={{ title: 'Use it in a sentence', presentation: 'modal' }} />
           <Stack.Screen name="settings" options={{ title: 'Settings' }} />
           <Stack.Screen name="progress" options={{ title: 'Progress' }} />
           <Stack.Screen name="sign-in" options={{ title: 'Sign in', presentation: 'modal' }} />

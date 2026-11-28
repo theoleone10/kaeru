@@ -15,6 +15,7 @@ import { getKv, setKv } from '@/db/repo';
 import { supportEmail } from '@/legal/text';
 import { formatMinuteOfDay } from '@/notifications/plan';
 import { requestNotificationPermission } from '@/notifications/schedule';
+import { graderAvailable } from '@/sentence/grader';
 import { useApp } from '@/state/AppProvider';
 import { LIMITS, sanitizeSettings, type ThemePreference } from '@/state/settings';
 import { ANKI_MEDIA_NOTE, uploadProgress } from '@/sync/cloud';
@@ -285,6 +286,19 @@ export default function SettingsScreen() {
         </Row>
         <LinkRow label="Edit time goals" onPress={() => router.push('/track/goals')} chevron />
       </Group>
+
+      {graderAvailable() && (
+        <Group label="Beta features">
+          <Row label="Sentence practice" detail="Write your own sentence after each lesson. Checked on your phone.">
+            <Toggle value={settings.sentencePracticeEnabled} onValueChange={(v) => updateSettings({ sentencePracticeEnabled: v })} label="Sentence practice" />
+          </Row>
+          {settings.sentencePracticeEnabled && (
+            <Row label="Download checker on Wi-Fi">
+              <Toggle value={settings.graderAutoDownload} onValueChange={(v) => updateSettings({ graderAutoDownload: v })} label="Download checker on Wi-Fi" />
+            </Row>
+          )}
+        </Group>
+      )}
 
       <Group label="Display & input">
         <Row label="Furigana">

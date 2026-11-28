@@ -1,0 +1,17 @@
+{
+  "_generic": {
+    "missing_target": "Use {title} somewhere in your sentence.",
+    "copied": "That's one of the lesson's examples. Try writing your own sentence.",
+    "too_short": "Write a whole sentence, a few words at least.",
+    "too_long": "Keep it to one shorter sentence.",
+    "not_japanese": "Write the sentence in Japanese. Romaji turns into kana as you type.",
+    "multiple": "One sentence at a time.",
+    "connection": "Check the form that comes right before or after {title}. Look at the structure in the lesson.",
+    "meaning": "{title} doesn't quite fit what this sentence is saying. Check its meaning in the lesson.",
+    "register": "The politeness doesn't match. {title} doesn't mix with the rest of the sentence's style.",
+    "particle": "A particle around {title} isn't right. Check the structure in the lesson.",
+    "lookalike": "This looks like a similar grammar point, not {title}. Check the comparison in the lesson.",
+    "ungrammatical": "Something else in the sentence isn't quite right. Try a shorter one.",
+    "unnatural": "Grammatically fine, but it sounds odd. Try a more everyday situation."
+  }
+}

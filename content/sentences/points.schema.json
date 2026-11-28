@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sentence practice: per-point settings",
+  "type": "object",
+  "required": ["points"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "points": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["target_forms"],
+        "properties": {
+          "target_forms": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Regex sources; a sentence must match one to use the point. Must match every example's cloze_target." },
+          "sentence_prompts": { "type": "array", "items": { "type": "string" }, "description": "English situations shown under 'Need an idea?'." },
+          "accept_note": { "type": "string", "description": "Shown when a sentence is correct." }
+        }
+      }
+    }
+  }
+}
