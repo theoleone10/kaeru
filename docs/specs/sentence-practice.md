@@ -43,7 +43,7 @@ How it's built (§7): correct sentences come from Kaeru's examples and Tatoeba, 
 |---|---|
 | Expo SDK 57 (`expo ~57.0.25`), RN 0.86.3 | `package.json` |
 | Effective iOS minimum is **16.4** | `expo-modules-core@57.0.19` podspec |
-| There are 427 grammar points and 2,106 example sentences, each point with `meaning`, `structure`, `explanation`, `nuances`, `common_mistakes`, `comparisons` and `examples[].accepted_answers` | `content/n*.json`, `content/grammar.schema.json` |
+| There are 421 grammar points and 2,106 example sentences, each point with `meaning`, `structure`, `explanation`, `nuances`, `common_mistakes`, `comparisons` and `examples[].accepted_answers` | `content/n*.json`, `content/grammar.schema.json` |
 | How lessons work: `src/app/lessons.tsx` has the steps `'learn' → 'quiz'`. `finishQuiz` calls `saveQuizResults` and then `ReviewSession`'s `emptyState` shows the "Lesson complete!" celebration | code |
 | How the grammar point screen works: `src/app/grammar/[id].tsx` shows "Your progress" for learned points and "Learn this now" otherwise | code |
 | The Grammar map (`src/app/(tabs)/grammar.tsx`) already uses ✓ for *learned* and ★ for *mastered* | code |
