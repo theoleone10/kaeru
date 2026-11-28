@@ -1,6 +1,6 @@
 # Sentence Practice (on-device AI) — spec
 
-Status: draft · Platform: iOS only · Owner: Kaeru
+Status: draft · Platform: iOS only · Launches as a **beta, off by default, switched on in Settings** (§3.6) · Owner: Kaeru
 
 ## 1. Summary
 
@@ -18,7 +18,7 @@ How it's checked:
 2. **A fine-tuned ModernBERT-Ja model** (Core ML, on the phone, downloaded once, ~70–140MB) gives a verdict and an error type.
 3. **The hint text** is written ahead of time for each grammar point and error type, then reviewed by a human. The phone never generates text, so a hint can't be made-up or wrong Japanese.
 
-How it's built (§7): correct sentences come from Kaeru's examples and Tatoeba, and most wrong sentences are made by code that breaks correct ones. Claude, through the owner's Claude Code subscription (or a small API run, about $2–20), writes the hints and the sentences that need judgment. Training runs on the owner's laptop. Users pay nothing.
+How it's built (§7): correct sentences come from Kaeru's examples and Tatoeba, and most wrong sentences are made by code that breaks correct ones. Claude, through the owner's Claude Code subscription (or a small API run, about $2–20), writes the hints and the sentences that need judgment. Training runs on the owner's Windows laptop (NVIDIA GPU), and the iPhone conversion runs on a GitHub Actions macOS runner. Users pay nothing.
 
 ### Goals
 - Practise *producing* grammar. The rest of the app trains recognition (cloze).
@@ -30,6 +30,7 @@ How it's built (§7): correct sentences come from Kaeru's examples and Tatoeba, 
 
 ### Non-goals (v1)
 - Android, web and Expo Go. The step and the button are hidden there (§9).
+- Being on for everyone. v1 is a beta that learners turn on themselves (§3.6).
 - Correcting the sentence or rewriting it for the learner.
 - Feeding results into FSRS. Sentence practice doesn't change scheduling, reviews or streaks.
 - Grading anything other than the target grammar point (vocabulary, kanji or spelling choices are ignored unless they make the target usage wrong).
@@ -101,6 +102,38 @@ Register `sentence/[id]` (modal, title "Use it in a sentence") and `sentence/dow
 - **Downloading:** Check is disabled, with "Getting ready… 43%".
 - **Load failed:** skip the step silently in the lesson. The point screen shows "Sentence checking isn't available on this device right now."
 
+### 3.6 Beta switch
+Sentence practice ships as a **beta**: **off by default**, and the learner can switch it on or off at any time.
+
+**In Settings,** add a **Beta features** section (on iOS only) with:
+- **Sentence practice**, an on/off switch. The caption reads: "Write your own sentence after each lesson. Checked on your phone. Needs a one-time 70MB download."
+- When it's on, two more rows appear:
+  - "Download automatically on Wi-Fi" (on by default)
+  - "Sentence checker (70MB) · Delete"
+
+**When it's off:**
+- The lesson ends after the quiz, exactly as today.
+- The point-screen section (§3.2), the map badge and the Progress counts (§3.3) are hidden.
+- Nothing downloads, and the model isn't loaded.
+
+**Turning it on:**
+- Opens `sentence/download` (§3.4) straight away. "Not now" keeps the switch on, and the download is offered again at the next Sentence step.
+- On Wi-Fi with auto-download on, the download starts without asking.
+
+**Turning it off:**
+- Keeps the learner's attempts and ✓s (they're progress, §10). They show again if it's turned back on.
+- Keeps the downloaded model, so turning it back on is instant. "Delete" in Settings frees the space.
+
+**Beta label:** every sentence screen shows a small **BETA** chip next to the title. The result card's "I think this is right" link (§10.4) reads "Report a wrong result" while in beta.
+
+**One-time invitation:** on the "Lesson complete!" screen, at most once (after the learner's 3rd finished lesson), a dismissible card: "New: practise writing sentences (beta)". It has two buttons:
+- **Try it** turns the switch on and opens the download.
+- **No thanks** hides the card for good (`meta.sentence_beta_invite_dismissed`).
+
+**Remote off switch:** `latest.json` (§8) may contain `"paused": true` with an optional `"message"`. While it's set, the app treats the feature as off even when the switch is on, and shows the message in Settings. This lets a bad model be pulled during the beta without an app update. Attempts are untouched.
+
+**Leaving beta** (a later release): flip the default to on for new installs, keep the switch, and drop the BETA chip. That decision follows §13 P7.
+
 ---
 
 ## 4. Architecture
@@ -128,7 +161,7 @@ text box ──► finalizeInput (kana) ──► normalize ──► pre-checks
 ### 5.1 `src/app/lessons.tsx`
 - `step` becomes `'learn' | 'quiz' | 'sentence'`.
 - `finishQuiz` stays the same: it saves first. Then:
-  - If `graderAvailable()` (§9) is true, call `setStep('sentence')`.
+  - If `sentencePracticeOn()` (§9) is true, call `setStep('sentence')`.
   - Otherwise show the existing celebration.
 - The celebration's `emptyState` is moved so it can be shown from the sentence step's last point too. Extract it into a `LessonDone` component that takes the `sentenceResults` map.
 - `close()` during `'sentence'` just goes back, with no alert (the progress is saved).
@@ -198,18 +231,19 @@ The plan in short:
 - **Correct sentences come from data that already exists**: Kaeru's own examples, plus Tatoeba.
 - **Most wrong sentences are made by code** that breaks correct sentences on purpose.
 - **Claude only does the parts that need judgment**, working through the owner's **Claude Code subscription**, or a cheap API run if the terms say no (§7.1).
-- **Training runs on the owner's laptop.**
+- **Training runs on the owner's Windows laptop (NVIDIA GPU)**, and the iPhone conversion runs on a GitHub Actions macOS runner.
 
 ### 7.0 Costs at a glance
 
 | Step | Where it runs | Cost |
 |---|---|---|
-| Correct sentences (Kaeru examples, Tatoeba) | Laptop | Free |
-| Wrong sentences made by code (§7.4) | Laptop | Free |
+| Correct sentences (Kaeru examples, Tatoeba) | Windows laptop (WSL2) | Free |
+| Wrong sentences made by code (§7.4) | Windows laptop (WSL2) | Free |
 | Patterns, hints and corruption config (§7.3, C1–C2) | Claude Code subscription | Subscription |
 | Judgment sentences and spot checks (§7.5, C3–C4) | Subscription; **or** the API with Haiku 5.5 / Sonnet 5.5 if the terms don't allow it | Subscription, or about **$2–20** |
 | Gold test set (§7.7) | Native speaker | Their time (~15h) |
-| Training, calibration, conversion (§7.8–7.11) | Laptop | Free (electricity) |
+| Training and calibration (§7.8–7.10) | Windows laptop, NVIDIA GPU | Free (electricity) |
+| Conversion to Core ML, parity check, Core ML evaluation (§7.11–7.12) | GitHub Actions **macOS** runner, started by hand | Free allowance (macOS minutes count extra; check current GitHub billing) |
 
 ### 7.1 Step 0: check the terms (before any data work)
 - Writing app content (C1–C2: patterns, hints, corruption rules) in Claude Code is ordinary software work.
@@ -237,7 +271,9 @@ ml/sentence-grader/
   data/                     gitignored: raw downloads, jsonl outputs
   reports/                  committed: dataset stats, eval reports per version
   tests/                    pytest + jest for the pipeline
+.github/workflows/grader-convert.yml   macOS job for §7.11–7.12 (manual trigger)
 ```
+- Everything under `ml/` runs inside **WSL2 (Ubuntu)** on the Windows laptop (§7.8). Keep the repo clone and `data/` in the WSL filesystem (`~/kaeru`), not under `/mnt/c`, because file access there is much slower.
 - Add `ml/` to `metro.config.js` `blockList` and to `tsconfig.json` `exclude`.
 - Add `ml/sentence-grader/data/` and `ml/sentence-grader/out/` to `.gitignore`.
 
@@ -353,32 +389,56 @@ The code can't make these two kinds of data:
 - `scripts/07_gold_sheet.py` writes a CSV for Google Sheets with the columns `id, point, meaning, sentence, verdict (correct/incorrect), error_type, natural (1–3), comment`. `scripts/08_gold_import.py` reads it back, and **rows the grader is unsure about are double-checked**.
 - About 15 hours of native-speaker time.
 
-### 7.8 Training on the laptop
-**Supported setups:**
+### 7.8 Training on the Windows laptop (NVIDIA)
+**Why WSL2:** the pipeline uses bash scripts, `fugashi`/UniDic and the pinned PyTorch build, which all run most smoothly in Linux. WSL2 gives Linux on Windows with full access to the NVIDIA GPU.
 
-| Laptop | Backend | Notes |
+**One-time setup:**
+1. Update the **Windows** NVIDIA driver (GeForce/Studio driver from NVIDIA). **Don't** install a Linux GPU driver inside WSL: WSL2 uses the Windows driver.
+2. In PowerShell (admin), run `wsl --install -d Ubuntu-24.04`, then restart.
+3. In Ubuntu, run `nvidia-smi`. It should list the GPU. If it doesn't, fix the driver before continuing.
+4. Install the tools:
+   ```bash
+   sudo apt update && sudo apt install -y python3.11 python3.11-venv git build-essential
+   # Node (for the tsx data scripts) via nvm, matching the repo's Node version
+   git clone <repo> ~/kaeru && cd ~/kaeru && npm ci
+   cd ml/sentence-grader
+   python3.11 -m venv .venv && source .venv/bin/activate
+   pip install torch==2.7.0 --index-url https://download.pytorch.org/whl/cu128
+   pip install -r requirements.txt      # transformers==4.48.3 coremltools==9.0 datasets
+                                        # scikit-learn fugashi unidic-lite pyyaml numpy
+   python scripts/00_check_device.py    # must print "cuda", the GPU name, VRAM and a 1-step timing
+   ```
+   - The `cu128` build covers current NVIDIA laptop GPUs, including RTX 50-series. For an older card where it fails, try `cu126`.
+5. Install Claude Code inside WSL as well, so the C1–C4 sessions (§7.3, §7.5) run against the same clone.
+
+**Pinned versions:** transformers 5.x produces an operation coremltools can't convert, and these are the versions known to convert ModernBERT correctly. `coremltools` installs on Linux for **converting**, but running a Core ML model needs macOS, so the parity check and Core ML evaluation run on the macOS runner (§7.11).
+
+**Model:**
+- `sbintuitions/modernbert-ja-70m` downloads from Hugging Face on the first run. Check the licence field on its card first.
+- Load it with `attn_implementation="sdpa"`. Don't install FlashAttention: the speed gain is small at this size, and its build is fragile.
+
+**GPU memory:**
+
+| Model | 8GB VRAM | 12GB+ VRAM |
 |---|---|---|
-| **Mac with Apple Silicon** (M1 Pro or newer, ≥16GB memory) | PyTorch **MPS** | Recommended. It can also convert to Core ML and run the parity check (§7.11), so one machine does everything |
-| Windows/Linux with an **NVIDIA GPU** (≥8GB VRAM) | **CUDA** | Fastest for training. Conversion **and** the parity check (§7.11) must run on a Mac or a macOS GitHub Actions runner (`.github/workflows/grader-convert.yml`, run manually; macOS minutes cost extra on private repos) |
-| CPU only | — | Too slow for the full set; fine for unit tests |
+| 70m | batch 32, seq 192, bf16 | same |
+| 130m | batch 16 × gradient accumulation 2 | batch 32 |
 
-**Setup** (`ml/sentence-grader/README.md`):
-```bash
-cd ml/sentence-grader
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt      # torch==2.7.0 transformers==4.48.3 coremltools==9.0
-                                     # datasets scikit-learn fugashi unidic-lite pyyaml
-python scripts/00_check_device.py    # prints mps / cuda / cpu and a 1-step timing
-```
-- Pin these versions: transformers 5.x produces an operation coremltools can't convert, and these are the versions known to convert ModernBERT correctly.
-- The base model downloads from Hugging Face on the first run (`sbintuitions/modernbert-ja-70m`; check the licence field on its card first).
-- Load it with `attn_implementation="sdpa"`. FlashAttention isn't available on MPS.
+`00_check_device.py` prints the largest batch that fits.
 
-**Timing:**
-- On an M-series Mac, one 4-epoch run on ~100k rows should take **about 1–3 hours**; on a laptop RTX 40-series GPU, under an hour.
-- `00_check_device.py` measures the real speed so this can be checked before the full run.
-- Running 3 seeds plus the 130m challenger is an overnight job.
-- Keep the laptop plugged in, and stop it from sleeping (`caffeinate -dims` on macOS).
+**Timing:** on a laptop RTX 40/50-series GPU, one 4-epoch run of 70m on ~100k rows should take **under an hour**; 130m about twice that. 3 seeds of each fit in one evening. `00_check_device.py` measures the real speed before the full run.
+
+**Running overnight:**
+- Plug the laptop in and set Windows to never sleep while plugged in (Settings → System → Power).
+- Run training inside `tmux`, so closing the terminal doesn't stop it.
+- Laptop GPUs slow down when hot. Raise the back of the laptop, and check `nvidia-smi` temperatures in the first 10 minutes.
+
+**Handing off to the macOS runner:** after calibration (§7.10), `scripts/10b_export.py` writes `out/<run>/handoff/` containing:
+- the best checkpoint (safetensors) and `thresholds.json`;
+- `parity_inputs.npz`: 2,000 tokenized validation inputs with their PyTorch logits;
+- `gold_inputs.npz`: the tokenized gold set and its labels.
+
+It uploads them to a **private** Supabase Storage bucket, `grader-handoff/<run>/`, using a service key kept in the laptop's environment only. The gold set holds learner sentences, so it never goes in the repo or a public bucket.
 
 ### 7.9 Model and training settings (`scripts/09_train.py`)
 - **Input:** `"[{level}] {title}：{meaning}" [SEP] "{sentence}"`, max **192** tokens, built with the tokenizer from the model repo.
@@ -412,7 +472,16 @@ python scripts/00_check_device.py    # prints mps / cuda / cpu and a 1-step timi
 - Per-level thresholds if a level has ≥150 validation rows, otherwise global.
 - Writes `out/<run>/thresholds.json`.
 
-### 7.11 Conversion and parity (`scripts/11_convert.py`, `12_parity.py`; macOS)
+### 7.11 Conversion and parity (`scripts/11_convert.py`, `12_parity.py`; GitHub Actions macOS runner)
+- **Runner:** `.github/workflows/grader-convert.yml`, `workflow_dispatch` with the inputs `run` (handoff id) and `publish` (false by default), on `runs-on: macos-latest`. The steps are:
+  1. Set up Python 3.11 and install `requirements.txt` with CPU-only torch.
+  2. Download `grader-handoff/<run>/` using the GitHub secrets `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`.
+  3. Run 11 → 12 → 13.
+  4. Upload `out/<version>/` and the eval report as workflow artifacts.
+  5. Run 14 (§7.13) only when `publish` is true **and** the gate passed.
+
+  Expect about 10–20 minutes per run.
+- The owner downloads the eval report artifact and commits it to `reports/`.
 - Trace the best checkpoint and convert it with `coremltools.convert`:
   - Fixed input shape `[1,192]` (int32 `input_ids`, `attention_mask`).
   - Outputs `p_logit [1]` and `err_logits [1,7]`.
@@ -427,7 +496,7 @@ python scripts/00_check_device.py    # prints mps / cuda / cpu and a 1-step timi
 - **Output files** go in `out/<version>/`: `KaeruGrader.mlpackage`, `tokenizer.json`, and `manifest.json` (format in §8), with sha256 hashes filled in.
 
 ### 7.12 Evaluation and release gate (`scripts/13_evaluate.py`)
-The script runs the **converted Core ML model** on the gold set and writes `reports/eval-<version>.md`, which is committed. The report includes:
+On the macOS runner, the script runs the **converted Core ML model** on the gold set (`gold_inputs.npz`) and writes `reports/eval-<version>.md`, which is committed. Only this report counts for the release gate. On the laptop, `scripts/13_evaluate.py --torch` gives the same report from PyTorch, for quick checks between runs. The report includes:
 - the confusion matrix,
 - per-level and per-source tables, with the learner-written subset reported separately,
 - the 50 worst false-rejects, for review.
@@ -454,11 +523,12 @@ The gate:
 ## 8. Model delivery
 - **Hosting:** Supabase Storage, public bucket `grader-models/<version>/…`, plus `latest.json`. Supabase is already a dependency, and the files contain no user data.
 - **When it downloads:**
-  - On Wi-Fi, automatically after the learner's **first finished lesson**, if the setting "Download sentence checker automatically on Wi-Fi" is on (the default).
+  - **Only while sentence practice is switched on** (§3.6). Never while it's off.
+  - On Wi-Fi, automatically when the switch is turned on or at the next app open, if "Download automatically on Wi-Fi" is on (the default).
   - On cellular, the in-lesson banner asks first (§3.5).
   - Settings shows "Sentence checker (70MB) · Delete".
 - **How:** `expo-file-system` download (check the SDK 57 API for resumable downloads) to Application Support, with `isExcludedFromBackup = true`. Then verify the `sha256`, call `loadModel`, and record `meta.grader_model_version`. Delete the old version only after the new one has loaded.
-- **Update check:** fetch `latest.json` when the app opens a sentence screen, at most once a day.
+- **Update check:** fetch `latest.json` when the app opens a sentence screen or Settings → Beta features, at most once a day, and only while the switch is on. It's also where the remote off switch lives (`paused`, §3.6).
 - **Compatibility:**
   - Keep the current model if `minAppVersion` is greater than the app version.
   - If `contentHash` doesn't match the bundled content, keep working but log it in dev builds.
@@ -488,7 +558,9 @@ predict(inputIds: number[], attentionMask: number[]): Promise<{ pLogit: number; 
 - `MLModelConfiguration.computeUnits = .all`. Run `prediction` off the main thread. Unload on a memory warning, and reload lazily on the next `predict`.
 - Throw a typed error on a wrong input length.
 
-**`graderAvailable()`** (TS) is `Platform.OS === 'ios' && KaeruGrader.isAvailable()`. When it's false, the sentence step and the point-screen section are **hidden**, not shown greyed out.
+**`graderAvailable()`** (TS) is `Platform.OS === 'ios' && KaeruGrader.isAvailable()`. It controls whether the Settings switch is shown at all.
+
+**`sentencePracticeOn()`** is `graderAvailable() && settings.sentencePracticeEnabled && !latest.paused`. When it's false, the sentence step, the point-screen section, the map badge and the Progress counts are **hidden**, not shown greyed out.
 
 **Developer mode:** in `__DEV__` on any platform, a fake grader (`grader.dev.ts`) that runs only the prechecks lets the UI be built in Expo Go or on Android. It's never used in release builds.
 
@@ -522,7 +594,8 @@ ${bumpTriggers(['sentence_attempts'])}
 - Model files are not backed up.
 
 ### 10.3 Settings and meta
-- `settings` (synced): `grader_auto_download` (default true).
+- `settings` (synced, so the choice follows the learner to a new phone): `sentence_practice_enabled` (default **false**), `grader_auto_download` (default true). Add both to `src/state/settings.ts` with defaults, so older backups without them still load.
+- `meta` (device only): `sentence_beta_invite_dismissed`, `grader_paused_message` (the last `latest.json` value).
 - `meta` (device only): `grader_model_version`, `grader_model_path`, `grader_reports` (§10.4).
 
 ### 10.4 "I think this is right"
@@ -544,6 +617,7 @@ Everything must pass `npm run test:zones`, and dates use local-time constructors
 | `tests/sentence/repo.test.ts` | Done = any correct; reset clears attempts; ordering by time |
 | `tests/backup*.test.ts` (extend) | v6 round-trip; v5 restore keeps the phone's attempts; counts include `sentencesDone` |
 | `tests/sentence/lessonFlow.test.ts` | The step order `learn → quiz → sentence → done`; the quiz is saved before the sentence step; skipping changes no cards |
+| `tests/sentence/betaSwitch.test.ts` | Off by default; when off, no sentence step, no downloads, sections hidden; turning off keeps attempts; `paused` in `latest.json` acts as off; the invitation shows at most once, after the 3rd lesson; older settings without the keys load with defaults |
 | `ml/sentence-grader/tests/` (pytest + jest) | Conjugator table (§7.4.1); every corruption op on fixture sentences; split leakage (no `source_id` or gold near-duplicate across splits); Claude output validator; threshold calibration; parity gate |
 | Manual, on device | 50 sentences typed in romaji and with a Japanese keyboard; airplane mode after download; oldest test iPhone: load <1.5s, predict <300ms, extra memory <200MB |
 
@@ -557,7 +631,9 @@ src/sentence/grader.dev.ts                                      dev-only fake
 src/components/SentenceWriter.tsx, LessonDone.tsx
 src/app/lessons.tsx                                             'sentence' step
 src/app/sentence/[id].tsx, sentence/download.tsx, _layout.tsx
-src/app/grammar/[id].tsx, (tabs)/grammar.tsx, progress.tsx, settings.tsx
+src/app/grammar/[id].tsx, (tabs)/grammar.tsx, progress.tsx, settings.tsx (Beta features section)
+src/state/settings.ts                                           sentence_practice_enabled, grader_auto_download
+.github/workflows/grader-convert.yml                            macOS convert/parity/eval job
 src/state/AppProvider.tsx                                       sentenceDone set
 src/db/migrations.ts (17), src/db/repo.ts, src/backup/format.ts (v6)
 src/legal/privacy.tsx                                           sentences stay on device / in your backup
@@ -572,13 +648,14 @@ CLAUDE.md
 ## 13. Milestones
 | Phase | Deliverable | Exit criterion |
 |---|---|---|
-| **P0: UI with the dev grader** | Lesson step, point-screen section, map badge, migration 17, backup v6, all with prechecks only | Flow tests and backup tests pass; works in Expo Go in `__DEV__` |
+| **P0: UI with the dev grader** | Beta switch (§3.6), lesson step, point-screen section, map badge, migration 17, backup v6, all with prechecks only | Flow tests and backup tests pass; works in Expo Go in `__DEV__` |
 | **P1: Terms and content** | Terms check (§7.1); C1–C2 for all levels, reviewed | Decision recorded; content tests pass (target_forms match every example) |
 | **P2: Pilot** | §7.6 on 40 points | Corruption rules kept or cut; subscription vs API decided; pilot model learns |
 | **P3: Data and gold** | D1–D6 and C3–C4 for all points; gold set (§7.7) | Dataset report written; gold set finished |
-| **P4: Model** | §7.8–7.12 on the laptop: 70m (and 130m) trained, calibrated, converted, parity-gated | Release gate §7.12 met on the converted model |
+| **P4: Model** | §7.8–7.10 on the Windows laptop, §7.11–7.12 on the macOS runner: 70m (and 130m) trained, calibrated, converted, parity-gated | Release gate §7.12 met on the converted model |
 | **P5: Native and delivery** | `modules/kaeru-grader`, tokenizer golden test, download flow | On-device targets met; works offline |
-| **P6: TestFlight** | Xcode Cloud build | Real learners write 200+ sentences; review the reports and false-rejects |
+| **P6: Beta release** | App Store release with the switch off by default, plus TestFlight testers | Real learners write 200+ sentences; review the reports and false-rejects |
+| **P7: Out of beta** | Default on for new installs, no BETA chip | Over 4+ weeks of beta: release gate still met on the learner-written gold subset, reports under 3% of checks, no `paused` needed |
 
 ---
 
@@ -590,5 +667,5 @@ CLAUDE.md
 5. **Core ML conversion of ModernBERT** may give silently wrong outputs. The parity gate and the pinned toolchain cover this.
 6. **Open: what the ✓ means.** This spec adds a *separate* sentence ✓ (on the point screen, plus a badge on the map) and leaves the map's learned ✓ alone. If the owner instead wants the station's ✓ to require a sentence, the current-station logic in `(tabs)/grammar.tsx` and the level progress counts need a separate design.
 7. **Open: richer feedback later.** On iPhones with Apple Intelligence, Apple's on-device Foundation Models could add a free-text explanation on top of this grader. Out of scope for v1; check Apple's adapter and toolkit requirements first.
-8. **Open: the laptop.** If it isn't an Apple Silicon Mac, conversion and the parity check need a Mac or a macOS CI runner (§7.8).
+8. **Windows training, macOS conversion.** The laptop can't run Core ML, so the release gate depends on the macOS runner (§7.11). If GitHub's macOS minutes become a problem, the fallback is borrowing any Mac for the 10–20 minute convert-and-check step.
 9. **Tatoeba coverage** of rare N1 points will be thin. C3 fill covers the gap, and its share per point is reported in the dataset report.
