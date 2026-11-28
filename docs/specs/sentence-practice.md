@@ -18,6 +18,8 @@ How it's checked:
 2. **A fine-tuned ModernBERT-Ja model** (Core ML, on the phone, downloaded once, ~70–140MB) gives a verdict and an error type.
 3. **The hint text** is written ahead of time for each grammar point and error type, then reviewed by a human. The phone never generates text, so a hint can't be made-up or wrong Japanese.
 
+How it's built (§7): correct sentences come from Kaeru's examples and Tatoeba, and most wrong sentences are made by code that breaks correct ones. Claude, through the owner's Claude Code subscription (or a small API run, about $2–20), writes the hints and the sentences that need judgment. Training runs on the owner's laptop. Users pay nothing.
+
 ### Goals
 - Practise *producing* grammar. The rest of the app trains recognition (cloze).
 - Free, offline and private. The sentence never leaves the phone except through the learner's own backup or sync.
@@ -139,7 +141,7 @@ text box ──► finalizeInput (kana) ──► normalize ──► pre-checks
 | `tokenizer.ts` | A SentencePiece unigram tokenizer (Viterbi with byte fallback) built from `tokenizer.json`. It must match Python `transformers==4.48.3` exactly (golden test, §11) |
 | `input.ts` | Builds the model input: `"[{level}] {title}：{meaning}" [SEP] "{sentence}"`, padded or cut to **192 tokens** |
 | `grader.ts` | `grade(pointId, text): Promise<GradeResult>`. Runs precheck, then the model, then calibration. Returns `{ verdict: 'correct' | 'incorrect' | 'unsure', errorType?, hintKey, modelVersion }` |
-| `calibrate.ts` | Uses the `manifest.thresholds` (§7.6):<br>• `p ≥ accept` gives `correct`<br>• `p ≤ reject` gives `incorrect`, with the top error type<br>• Anything in between gives `unsure` |
+| `calibrate.ts` | Uses the `manifest.thresholds` (§7.10):<br>• `p ≥ accept` gives `correct`<br>• `p ≤ reject` gives `incorrect`, with the top error type<br>• Anything in between gives `unsure` |
 | `hints.ts` | Turns `(pointId, errorType)` into hint text from `content/sentences/feedback.json`, falling back to the generic text for that error type |
 | `modelStore.ts` | Download, verification and versioning (§8) |
 | `repo.ts` | Attempt storage and queries (§10) |
@@ -190,113 +192,262 @@ These are the fixed **error types**. The model predicts one of them, and the lis
 
 ---
 
-## 7. The model: building it, and who does each task
+## 7. Training the model
 
-The offline pipeline lives in `ml/sentence-grader/` (Python plus Node scripts). It is never bundled: exclude it in `metro.config.js` and `tsconfig.json`.
+The plan in short:
+- **Correct sentences come from data that already exists**: Kaeru's own examples, plus Tatoeba.
+- **Most wrong sentences are made by code** that breaks correct sentences on purpose.
+- **Claude only does the parts that need judgment**, working through the owner's **Claude Code subscription**, or a cheap API run if the terms say no (§7.1).
+- **Training runs on the owner's laptop.**
 
-Pinned in `requirements.txt`: `torch==2.7.0`, `transformers==4.48.3`, `coremltools==9.0`, `anthropic`, `openai` (router client only), `datasets`, `scikit-learn`.
+### 7.0 Costs at a glance
 
-### 7.1 Who does what
+| Step | Where it runs | Cost |
+|---|---|---|
+| Correct sentences (Kaeru examples, Tatoeba) | Laptop | Free |
+| Wrong sentences made by code (§7.4) | Laptop | Free |
+| Patterns, hints and corruption config (§7.3, C1–C2) | Claude Code subscription | Subscription |
+| Judgment sentences and spot checks (§7.5, C3–C4) | Subscription; **or** the API with Haiku 5.5 / Sonnet 5.5 if the terms don't allow it | Subscription, or about **$2–20** |
+| Gold test set (§7.7) | Native speaker | Their time (~15h) |
+| Training, calibration, conversion (§7.8–7.11) | Laptop | Free (electricity) |
 
-| # | Task | Done by | Why | Rough cost |
-|---|---|---|---|---|
-| T1 | Write `points.json` (`target_forms`, prompts) and `feedback.json` hints for 427 points | **Claude Opus 5.5** in Claude Code, level by level; **human review** in PRs | Needs grammar judgment; this is shipped content, so a person checks it | Interactive |
-| T2 | Generate **learner-style sentences** per point:<br>• **correct**: ~100, across registers, including **kana-only** versions (learners typing romaji produce all-kana sentences)<br>• **incorrect**: ~150, ~20 for each error type, imitating real learner mistakes at that level<br>• **off-target**: ~30, lookalike points | **Claude Opus 5.5** via the **Message Batches API** (50% off), structured outputs, effort `medium` | Realistic wrong sentences decide how good the grader is | ~427 × 6 requests × ~3k output tokens ≈ 7.7M out → **≈$80** |
-| T3 | **Blind re-label**: grade each generated sentence without seeing what it was meant to be (`correct` / `incorrect` + error type + `natural` 1–3) | **Claude Opus 5.5**, Batches, structured outputs, effort `medium` | Generators make mistakes: an "intended wrong" sentence is sometimes right. Only keep rows where the intent and the blind label agree | ~120k × ~1.2k in / 80 out ≈ **$400** |
-| T4 | **Second opinion** on a 20% stratified sample plus every row where T2 and T3 disagree | **A non-Anthropic model through OmniRouter** (OpenAI-compatible), model set in config (`ROUTER_MODEL`) | Catches mistakes the main labeler makes consistently | ≈$50–150 |
-| T5 | Settle three-way disagreements | **Claude Opus 5.5**, effort `high`, sees all labels and reasons; anything still unclear goes to the **human queue** | Extra effort only where it matters | ≈$30 |
-| T6 | **Gold test set**: 2,500 sentences, including **≥500 written by real learners** (the owner, friends, beta testers who opt in), graded by a **native speaker** | **A human**; Opus 5.5 pre-labels, the human confirms | Gold must not be model-only. Real learner errors differ from synthetic ones | Human time (~20h) |
-| T7 | Fine-tune, calibrate, convert, check parity | `train.py` on **one rented GPU** (L4/A10, 2–4h per run) | **Base model: `sbintuitions/modernbert-ja-70m`.** Challenger: `modernbert-ja-130m`. 30m is too small to judge whether a sentence is grammatical | ≈$10–30 per run |
-| T8 | On the phone | **Core ML** | No generative model on the device | Free for users |
-| T9 | App code (TS, Swift module, UI, tests) | **Claude Code** sessions with reviewed PRs | — | — |
+### 7.1 Step 0: check the terms (before any data work)
+- Writing app content (C1–C2: patterns, hints, corruption rules) in Claude Code is ordinary software work.
+- Generating **training data** (C3–C4) with a consumer subscription (Pro/Max) is the part to check. Older versions of Anthropic's Consumer Terms banned using the service "to develop or train any artificial intelligence or machine learning algorithms or models". Read the *prohibited uses* section of the current Consumer Terms and record the decision in `ml/sentence-grader/DECISIONS.md`.
+  - **If it's allowed:** run C3–C4 in Claude Code sessions (§7.5).
+  - **If it's not, or it's unclear:** run the same prompts through the API with `api_runner.ts` (§7.5.3). The API falls under the Commercial Terms. At these volumes it costs about $2 with Haiku 5.5 or about $10–20 with Sonnet 5.5.
 
-**Routing rule:** call Claude models directly with the Anthropic SDK. The Batches API discount and native structured outputs need the first-party API. Use **OmniRouter** only for non-Claude models (T4), through `ROUTER_BASE_URL` and `ROUTER_API_KEY` from the environment, never committed.
+### 7.2 Folder layout (`ml/sentence-grader/`, never bundled)
+```
+ml/sentence-grader/
+  README.md                 how to run everything, start to finish
+  DECISIONS.md              terms check, labeler choice, model choice, with dates
+  DATA_LICENSES.md          Tatoeba attribution, tool licences
+  package.json              tsx scripts (data pipeline reuses src/sentence/*.ts)
+  requirements.txt          pinned Python deps (§7.8)
+  config/
+    corruptions.json        per-point corruption settings (C2)
+    pipeline.yaml           caps, ratios, seeds, paths
+  prompts/
+    C3-judgment.md          prompt for judgment sentences
+    C4-spotcheck.md         prompt for spot checks
+  queue/                    one line per work item; *.done files mark progress
+  scripts/                  numbered steps, see §7.3–7.11
+  src/conjugate.py          small verb/adjective conjugator (§7.4.1)
+  data/                     gitignored: raw downloads, jsonl outputs
+  reports/                  committed: dataset stats, eval reports per version
+  tests/                    pytest + jest for the pipeline
+```
+- Add `ml/` to `metro.config.js` `blockList` and to `tsconfig.json` `exclude`.
+- Add `ml/sentence-grader/data/` and `ml/sentence-grader/out/` to `.gitignore`.
 
-Costs are estimates at batch prices, using prompt caching for the shared rubric and point card. Re-estimate after the pilot (§7.4).
+### 7.3 Content and corruption config (Claude Code subscription)
+| Task | Output | Notes |
+|---|---|---|
+| **C1** | `content/sentences/points.json`, `feedback.json` (§6) | One PR per JLPT level, reviewed by the owner. Tests in §11 must pass |
+| **C2** | `ml/sentence-grader/config/corruptions.json` | Per point, which corruption operations apply and their parameters, e.g.:<br>`{ "n2-bakari-ni": { "connection": { "slot": "before", "from": ["V-ta","V-teiru"], "to": ["V-dict","V-masu-stem","V-te"] }, "lookalike": [{ "swap": "ばかりに", "with": "おかげで", "error": "meaning" }], "register": false } }` |
 
-**Data sources not used:** the NAIST Lang-8 learner corpus and similar sets are research or non-commercial only.
+Run them as normal Claude Code sessions in this repo, a level at a time ("Do C1 for N4 following docs/specs/sentence-practice.md §6 and §7.3").
 
-### 7.2 Prompts and schemas
-- **The point card**, cached in the system prompt, is built from the content: title, meaning, structure, explanation, nuances, common_mistakes, comparisons, and 3 examples. It also contains the error-type table from §6.2 with definitions.
-- **T2 output schema** (`output_config.format`, `additionalProperties: false`):
+### 7.4 Data pipeline (laptop, free)
+
+**D1: Point cards.** `scripts/01_cards.ts` reads `content/n*.json` and `content/sentences/*.json` and writes `data/cards.jsonl`, one per point.
+
+**D2: Correct sentences.** `scripts/02_positives.ts` collects them from:
+1. **Kaeru examples:** all 2,106, labelled with their own point.
+2. **Tatoeba:** download the Japanese sentence export (`jpn_sentences.tsv.bz2` from downloads.tatoeba.org/exports/per_language/jpn/; check the current path). Licence CC BY 2.0 FR, with some sentences CC0; credit it in `DATA_LICENSES.md`. No Tatoeba text ships in the app. Quality filter:
+   - Keep sentences whose owner is listed as a native Japanese speaker (`user_languages` export, level 5), or that are linked to an English translation.
+   - Keep 5–40 characters.
+   - Drop sentences with ASCII letters.
+3. **Matching:** run each sentence through the app's own `precheck.ts` target matching for every point. Each match becomes `{text, point_id, source}`, and one sentence can match several points.
+4. **Balance:**
+   - **Cap 400 positives per point** (common points like は and が would otherwise drown the rest).
+   - Points with **fewer than 60** go on `queue/C3-fill.txt` so Claude writes the missing ones (§7.5).
+
+**D3: Kana-only copies.** `scripts/03_kana.py` uses `fugashi` + `unidic-lite` (offline, BSD/MIT) to convert 30% of positives to all-hiragana. Learners who type romaji produce sentences like this. The copies keep their label.
+
+**D4: Wrong sentences by corruption.** `scripts/04_corrupt.py` runs **1–2 corruptions of different types** on each positive, using `corruptions.json` and `fugashi`:
+
+| Operation | Error type | What it does |
+|---|---|---|
+| `connection` | `connection` | Find the word right before (or after) the target. Re-conjugate it to one of the wrong forms in `to` with `src/conjugate.py` (§7.4.1). E.g. 言った**ばかりに** becomes 言う**ばかりに** / 言います**ばかりに** |
+| `particle` | `particle` | Swap a particle inside the target's frame (が↔を, に↔で, は↔が) only where the config marks it as required |
+| `register` | `register` | Put a casual target into a です/ます sentence, or the reverse, where the config marks the point's formality as strict |
+| `lookalike` | `lookalike` / `meaning` | Replace the target with a confusable point's form from `comparisons` or C2, where the swap makes the meaning wrong |
+| `drop` | `connection` | Remove a required piece (e.g. the の in のに, or the て in てしまう) |
+
+Each corruption records `{text, point_id, error_type, op, rule_id, source_id}`.
+
+Guards:
+- The corrupted sentence must still pass `precheck` target matching, except for `drop`. Otherwise it would be a `missing_target` case, which the prechecks already handle.
+- It must differ from the original.
+- A rule whose spot-check error rate (C4) is **above 10%** is turned off.
+
+**D5: Assemble.** `scripts/05_assemble.ts` merges D2–D4 with the C3 outputs, removes exact and near duplicates (character 5-gram Jaccard ≥0.9 within a point), and writes `data/dataset.jsonl`.
+- Target mix: **~40% correct / ~60% wrong**. Wrong rows have no error type over 30% of the total.
+- Expected size: **80k–120k rows**. `reports/dataset-<date>.md` records counts per level, point, source and error type.
+
+**D6: Split.** `scripts/06_split.ts`:
+- **Group by `source_id`**, so a correct sentence and its corruptions always land in the same split.
+- 90% train / 10% validation, stratified by level.
+- The gold set (§7.7) is excluded entirely: drop any row within 0.9 Jaccard of a gold sentence.
+
+#### 7.4.1 `src/conjugate.py`
+- A small, rule-based conjugator for verbs (godan, ichidan, する, 来る, 行く's irregular て-form) and i-/na-adjectives. It produces: dictionary, ます-stem, ます, ない, た, て, ている, volitional, potential, conditional (ば/たら), passive, causative.
+- It gets each word's verb class and dictionary form from UniDic (`fugashi`).
+- `tests/test_conjugate.py` checks it against a table of 200 verbs and adjectives × all forms.
+
+### 7.5 Judgment work by Claude (C3–C4)
+The code can't make these two kinds of data:
+
+| Task | Per point | Total | What |
+|---|---|---|---|
+| **C3** | 6 `meaning` + 4 `unnatural` + 3 `ungrammatical`, plus **fill** to 60 correct where D2 had too few | ~6k wrong + up to ~10k correct | Sentences in the point's level vocabulary, 5–30 characters, using the target |
+| **C4** | — | ~3,000 | Spot check a random 3% of D4 corruptions: "is this actually wrong, and is the error type right?" Gives an error rate per rule |
+
+#### 7.5.1 Formats
+- **C3 output**, `data/claude/C3/<pointId>.jsonl`, one line per sentence:
   ```json
-  { "sentences": [ { "text": "...", "intended": "correct|incorrect",
-                     "error_type": "connection|meaning|register|particle|lookalike|ungrammatical|unnatural|null",
-                     "kana_only": false, "register": "casual|polite|written" } ] }
+  {"text": "...", "label": "correct|incorrect", "error_type": "meaning|unnatural|ungrammatical|null", "register": "casual|polite|written", "note": "≤15 words"}
   ```
-  The prompt rules:
-  - The level's vocabulary only, for example N5 words for N5 points. This keeps sentences learner-like.
-  - 5–30 characters.
-  - The grammar must appear, except in lookalike rows.
-  - No copying of the content examples.
-- **T3 output schema:**
+- **C4 output**, `data/claude/C4/<batch>.jsonl`:
   ```json
-  { "verdict": "correct|incorrect", "error_type": "...|null", "natural": 1, "reason": "≤20 words" }
+  {"id": "...", "really_wrong": true, "error_type_ok": true, "note": "≤15 words"}
   ```
-- **Batch handling:**
-  - Key results by `custom_id = "<pointId>:<sha1(text)>"`, because results come back in any order.
-  - Retry `errored` and `expired` items once.
-  - Refusal fallbacks aren't available in Batches, so re-send `stop_reason: "refusal"` items one at a time.
-  - Write everything to `data/*.jsonl`.
-- Every generated row also goes through `precheck.ts` (run under Node). A row that fails the prechecks is labelled `missing_target`, or dropped if the precheck itself is wrong. A precheck bug goes back to T1 as a rule gap.
+- `scripts/validate_claude.ts` checks the schema, that the text passes the prechecks, the level vocabulary (warning only), and duplicates. Invalid lines go to `data/claude/rejects.jsonl` and their point returns to the queue.
 
-### 7.3 Training set rules
-- **Keep** a row only if T2's intent matches T3, or if T4/T5 settled it.
-- **Label "correct"** means verdict `correct` **and** `natural ≥ 2`. Natural = 1 is labelled `unnatural`.
-- **Balance:** about 40% correct and 60% incorrect overall, and at least 10% kana-only.
-- **Splits:** hold out 10% per point for validation, and split by **generation request** so near-duplicates never cross over. The gold set (T6) is never trained on.
+#### 7.5.2 Running them in Claude Code (subscription path)
+- The queues are `queue/C3.txt` (point ids) and `queue/C4.txt` (batch ids of 100 corruptions). A finished item writes `queue/<task>/<id>.done`.
+- **One session** works through a chunk and then stops. A prompt like: *"Follow `ml/sentence-grader/prompts/C3-judgment.md`. Take the next 10 undone ids from `queue/C3.txt`, write their outputs, run `npm --prefix ml/sentence-grader run validate`, fix rejects, and mark them done."* That's ~43 sessions for C3 and ~30 for C4, spread over days to stay inside usage limits.
+- Each prompt file includes the point card from D1, the error-type definitions from §6.2, five correct and five wrong examples, and the output format. Sessions must not see the gold set.
+- **Optional automation:** `scripts/run_queue.sh` runs Claude Code in headless mode (`claude -p`) in a loop, one chunk per call, and stops when a call fails (usage limit reached). Check the current headless flags in the Claude Code docs before relying on it.
 
-### 7.4 Pilot before the full run
-1. Run T1–T3 for 40 points (20 from N5, 20 from N2) with **both** Opus 5.5 and **Sonnet 5.5** doing the T3 labels.
-2. The native speaker grades 400 of those sentences.
-3. Report each labeler's agreement with the human. Pick the labeler for the full T3 run. Choosing Sonnet would save about half of T3's cost; **that's the owner's call**.
-4. Train a quick 70m model on the pilot data to check the setup learns at all before spending on the full run.
+#### 7.5.3 API path (if the terms check says no)
+- `scripts/api_runner.ts` reads the same prompts and queues and sends them through the **Message Batches API** (50% off) with structured outputs (`output_config.format` set to the schemas above). Default **Claude Haiku 5.5**; `--model claude-sonnet-5-5` for higher quality.
+- Results come back in any order, so key them by `custom_id = "<task>:<id>"`. Retry `errored`/`expired` items once, and re-send `refusal` items individually.
+- **Estimate:**
+  - C3 is ~430 requests × ~3k output tokens.
+  - C4 is ~30 requests × ~2k output tokens.
+  - The prompts are cached.
 
-### 7.5 Model and training
-- `AutoModel` encoder with **two heads** on the [CLS] / mean-pooled output:
-  - **Head A:** `p_correct`, a sigmoid trained with BCE.
-  - **Head B:** the error type, a softmax over the 7 model-predicted types (everything except `missing_target`), trained only on incorrect rows.
-- **Loss:** `BCE + 0.5 × CE`. Start with learning rate 3e-5, 4 epochs, batch 32, max length 192, warmup 6%, bf16. Seeds {1, 2, 3}; report the mean.
-- **Augmentation:** for each correct row, add its kana-only version with probability 0.3 (via `pykakasi`, or have T2 output both). Randomly swap full-width and half-width punctuation.
+  That's **about $1–3 with Haiku 5.5, about $10–20 with Sonnet 5.5**. `api_runner.ts --dry-run` prints a token estimate before spending anything.
 
-### 7.6 Calibration
+### 7.6 Pilot (do this before the full run)
+1. C1–C2 for **40 points** (20 from N5, 20 from N2). Then D1–D4 and C3–C4 for those points only.
+2. The native speaker grades **400** of the pilot rows: 200 corruptions and 200 C3 rows.
+3. Measure:
+   - The corruption error rate for each rule (from the native speaker, compared with C4's Claude spot check).
+   - C3 agreement with the native speaker.
+   - How many sessions C3/C4 actually took.
+4. Decide, and write in `DECISIONS.md`:
+   - Which rules to keep.
+   - Whether C4 by Claude is trustworthy enough to replace the human for the remaining rules (agreement ≥90%).
+   - Subscription or API.
+5. Train a quick 70m model on the pilot data (§7.9, 1 epoch) to confirm the setup learns.
+
+### 7.7 Gold test set (native speaker)
+- **2,000 sentences**, never trained on:
+  - **500 written by real learners**: the owner, friends, opt-in beta testers. Collect them through the app's dev build, which can export attempts as a file.
+  - **900 from the pipeline:** 300 Kaeru-style positives, 300 corruptions, 300 C3.
+  - **600 Tatoeba positives, plus their corruptions**, from points not in the pilot.
+- `scripts/07_gold_sheet.py` writes a CSV for Google Sheets with the columns `id, point, meaning, sentence, verdict (correct/incorrect), error_type, natural (1–3), comment`. `scripts/08_gold_import.py` reads it back, and **rows the grader is unsure about are double-checked**.
+- About 15 hours of native-speaker time.
+
+### 7.8 Training on the laptop
+**Supported setups:**
+
+| Laptop | Backend | Notes |
+|---|---|---|
+| **Mac with Apple Silicon** (M1 Pro or newer, ≥16GB memory) | PyTorch **MPS** | Recommended. It can also convert to Core ML and run the parity check (§7.11), so one machine does everything |
+| Windows/Linux with an **NVIDIA GPU** (≥8GB VRAM) | **CUDA** | Fastest for training. Conversion **and** the parity check (§7.11) must run on a Mac or a macOS GitHub Actions runner (`.github/workflows/grader-convert.yml`, run manually; macOS minutes cost extra on private repos) |
+| CPU only | — | Too slow for the full set; fine for unit tests |
+
+**Setup** (`ml/sentence-grader/README.md`):
+```bash
+cd ml/sentence-grader
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt      # torch==2.7.0 transformers==4.48.3 coremltools==9.0
+                                     # datasets scikit-learn fugashi unidic-lite pyyaml
+python scripts/00_check_device.py    # prints mps / cuda / cpu and a 1-step timing
+```
+- Pin these versions: transformers 5.x produces an operation coremltools can't convert, and these are the versions known to convert ModernBERT correctly.
+- The base model downloads from Hugging Face on the first run (`sbintuitions/modernbert-ja-70m`; check the licence field on its card first).
+- Load it with `attn_implementation="sdpa"`. FlashAttention isn't available on MPS.
+
+**Timing:**
+- On an M-series Mac, one 4-epoch run on ~100k rows should take **about 1–3 hours**; on a laptop RTX 40-series GPU, under an hour.
+- `00_check_device.py` measures the real speed so this can be checked before the full run.
+- Running 3 seeds plus the 130m challenger is an overnight job.
+- Keep the laptop plugged in, and stop it from sleeping (`caffeinate -dims` on macOS).
+
+### 7.9 Model and training settings (`scripts/09_train.py`)
+- **Input:** `"[{level}] {title}：{meaning}" [SEP] "{sentence}"`, max **192** tokens, built with the tokenizer from the model repo.
+- **Model:** the ModernBERT-Ja encoder with **two heads** on the mean-pooled output:
+  - **Head A:** `p_correct`, a sigmoid with BCE loss.
+  - **Head B:** the error type, a 7-way softmax with CE loss, computed only on incorrect rows.
+
+  Loss = `BCE + 0.5 × CE`.
+- **Hyperparameters to start with:**
+
+  | Setting | Value |
+  |---|---|
+  | learning rate | 3e-5 (heads 1e-4) |
+  | epochs | 4, early stop on validation balanced accuracy |
+  | batch | 32 (use gradient accumulation if memory runs short) |
+  | warmup | 6% |
+  | weight decay | 0.01 |
+  | seeds | 1, 2, 3 |
+
+- **Precision:** bf16 on CUDA. On MPS start with fp32, and try `torch.autocast("mps", dtype=torch.float16)` if the speed test says it helps without NaNs.
+- **Augmentation, applied on the fly:** swap full-width and half-width punctuation (p=0.2), drop the final 。 (p=0.3), and swap between 、 and no comma (p=0.1).
+- **Logging:** each epoch writes validation metrics to `out/<run>/metrics.jsonl`, and the best checkpoint is saved to `out/<run>/best/`.
+- **Choosing 70m vs 130m:** train `modernbert-ja-130m` with the same settings as the challenger. Ship it only if it beats 70m by **≥3 points of balanced accuracy on gold** and its int8 Core ML file is ≤150MB.
+
+### 7.10 Calibration (`scripts/10_calibrate.py`)
 - Temperature-scale Head A on validation.
 - Set the thresholds:
-  - **`accept`**: the lowest `p` where the false-accept rate is ≤10% on validation.
-  - **`reject`**: the highest `p` where the false-reject rate is ≤5%.
+  - **`accept`**: the lowest `p` where false-accepts are ≤10% on validation.
+  - **`reject`**: the highest `p` where false-rejects are ≤5%.
   - The gap between them is `unsure`. It must be ≤15% of validation rows; otherwise the model isn't good enough yet.
-- Per-level thresholds, if there are ≥150 validation rows per level, otherwise global. Store them as `thresholds: { "_default": {...}, "N1": {...} }`.
+- Per-level thresholds if a level has ≥150 validation rows, otherwise global.
+- Writes `out/<run>/thresholds.json`.
 
-### 7.7 Conversion and parity (release-blocking)
-- `coremltools.convert` on the traced model:
-  - Fixed input shape `[1,192]`, int32 `input_ids` and `attention_mask`.
-  - Outputs: `p_logit [1]`, `err_logits [1,7]`.
+### 7.11 Conversion and parity (`scripts/11_convert.py`, `12_parity.py`; macOS)
+- Trace the best checkpoint and convert it with `coremltools.convert`:
+  - Fixed input shape `[1,192]` (int32 `input_ids`, `attention_mask`).
+  - Outputs `p_logit [1]` and `err_logits [1,7]`.
   - `compute_precision=FLOAT16`, `minimum_deployment_target=iOS16`.
-- **Parity gate:** on 2,000 held-out inputs, PyTorch and Core ML (on a Mac) must give:
-  - logits within 0.02 (max absolute difference),
+- Try int8 weight quantization (`coremltools.optimize`). Keep it if it passes parity. Latency doesn't matter for one sentence, and int8 brings 70m to about 70MB.
+- **Parity gate** (the build fails otherwise): on 2,000 validation inputs, PyTorch and Core ML must give:
+  - logits within 0.02,
   - the same verdict ≥99.9% of the time,
   - the same error type ≥99.5% of the time.
 
-  The build fails otherwise.
-- **Size:** about 140MB at fp16 for 70m. Try int8 weight quantization (`coremltools.optimize`); ship it if it passes parity. For a single sentence, the extra latency doesn't matter, and int8 brings it to about 70MB.
-- Pick 70m vs 130m: ship 130m only if it beats 70m by ≥3 points of balanced accuracy on gold **and** its int8 size is ≤150MB.
-- **Output files:** `KaeruGrader.mlpackage`, `tokenizer.json`, and `manifest.json`:
-  ```json
-  { "version": "2027.01.1", "base": "modernbert-ja-70m", "seq": 192,
-    "errorTypes": ["connection","meaning","register","particle","lookalike","ungrammatical","unnatural"],
-    "files": { "model": {"url": "...", "sha256": "...", "bytes": 0},
-               "tokenizer": {"url": "...", "sha256": "...", "bytes": 0} },
-    "thresholds": { "_default": {"accept": 0.78, "reject": 0.35} },
-    "minAppVersion": "1.3.0", "contentHash": "sha256 of points.json + feedback.json" }
-  ```
+  This guards against conversions that silently give wrong outputs.
+- **Output files** go in `out/<version>/`: `KaeruGrader.mlpackage`, `tokenizer.json`, and `manifest.json` (format in §8), with sha256 hashes filled in.
 
-### 7.8 Release gate (gold set, on the converted model)
+### 7.12 Evaluation and release gate (`scripts/13_evaluate.py`)
+The script runs the **converted Core ML model** on the gold set and writes `reports/eval-<version>.md`, which is committed. The report includes:
+- the confusion matrix,
+- per-level and per-source tables, with the learner-written subset reported separately,
+- the 50 worst false-rejects, for review.
+
+The gate:
 - Correct sentences accepted ≥92%.
 - Wrong sentences caught ≥85%.
 - `unsure` ≤12%.
-- The right error type, when caught, ≥70%. It's shown as a hint, so a near-miss is tolerable.
+- The right error type, when caught, ≥70%.
 - No JLPT level more than 5 points below the overall figures.
-- Learner-written subset reported separately, and accepted ≥88%.
+- Learner-written correct sentences accepted ≥88%.
+
+### 7.13 Publish (`scripts/14_publish.ts`)
+- Upload `out/<version>/*` to Supabase Storage `grader-models/<version>/` and update `latest.json`. This needs a service key in the **local environment only**, never committed.
+- Tag the commit `grader-<version>`, so the data config, thresholds and report can always be traced.
+
+### 7.14 Retraining later
+1. Add the reports from §10.4 and new learner sentences to the gold candidates.
+2. Re-run D2–D6, plus C3 for any changed points.
+3. Retrain, compare with the last `reports/eval-*.md`, and publish only if the gate passes **and** the scores aren't worse.
 
 ---
 
@@ -376,7 +527,7 @@ ${bumpTriggers(['sentence_attempts'])}
 
 ### 10.4 "I think this is right"
 - Under a *Not quite* result, a small link stores `{pointId, sentence, p, errorType, modelVersion}` in `meta.grader_reports` (at most 200, local only). It does **not** award the ✓.
-- Later (v1.1, opt-in), Settings could export these reports as a file through `expo-sharing`, so they can feed T6 and the next training round.
+- Later (v1.1, opt-in), Settings could export these reports as a file through `expo-sharing`, so they can feed the gold set (§7.7) and the next training round (§7.14).
 
 ---
 
@@ -393,7 +544,7 @@ Everything must pass `npm run test:zones`, and dates use local-time constructors
 | `tests/sentence/repo.test.ts` | Done = any correct; reset clears attempts; ordering by time |
 | `tests/backup*.test.ts` (extend) | v6 round-trip; v5 restore keeps the phone's attempts; counts include `sentencesDone` |
 | `tests/sentence/lessonFlow.test.ts` | The step order `learn → quiz → sentence → done`; the quiz is saved before the sentence step; skipping changes no cards |
-| `ml/sentence-grader/tests/` (pytest) | Parity gate, threshold calibration, split leakage |
+| `ml/sentence-grader/tests/` (pytest + jest) | Conjugator table (§7.4.1); every corruption op on fixture sentences; split leakage (no `source_id` or gold near-duplicate across splits); Claude output validator; threshold calibration; parity gate |
 | Manual, on device | 50 sentences typed in romaji and with a Japanese keyboard; airplane mode after download; oldest test iPhone: load <1.5s, predict <300ms, extra memory <200MB |
 
 ---
@@ -422,10 +573,10 @@ CLAUDE.md
 | Phase | Deliverable | Exit criterion |
 |---|---|---|
 | **P0: UI with the dev grader** | Lesson step, point-screen section, map badge, migration 17, backup v6, all with prechecks only | Flow tests and backup tests pass; works in Expo Go in `__DEV__` |
-| **P1: Content** | T1 for all levels, reviewed | Content tests pass (target_forms match every example) |
-| **P2: Pilot** | §7.4 | Labeler chosen; the pilot model learns |
-| **P3: Data and gold** | T2–T6 at full scale | Gold set finished |
-| **P4: Model** | T7: 70m (and 130m) trained, calibrated, converted, parity-gated | Release gate §7.8 met on the converted model |
+| **P1: Terms and content** | Terms check (§7.1); C1–C2 for all levels, reviewed | Decision recorded; content tests pass (target_forms match every example) |
+| **P2: Pilot** | §7.6 on 40 points | Corruption rules kept or cut; subscription vs API decided; pilot model learns |
+| **P3: Data and gold** | D1–D6 and C3–C4 for all points; gold set (§7.7) | Dataset report written; gold set finished |
+| **P4: Model** | §7.8–7.12 on the laptop: 70m (and 130m) trained, calibrated, converted, parity-gated | Release gate §7.12 met on the converted model |
 | **P5: Native and delivery** | `modules/kaeru-grader`, tokenizer golden test, download flow | On-device targets met; works offline |
 | **P6: TestFlight** | Xcode Cloud build | Real learners write 200+ sentences; review the reports and false-rejects |
 
@@ -433,9 +584,11 @@ CLAUDE.md
 
 ## 14. Risks and open questions
 1. **False "not quite" on good sentences** is the worst failure for motivation. *Mitigations:* the `unsure` band, the accept target of 92% or more, and "I think this is right" reports. If the learner-written gold subset misses the target, widen the unsure band before release.
-2. **Synthetic errors don't look like real learner errors.** *Mitigations:* ≥500 real learner sentences in the gold set, and opt-in reports feeding the next round.
-3. **Kana-only sentences** (from romaji typing) are ambiguous. They're trained on explicitly and reported separately.
-4. **Core ML conversion of ModernBERT** may give silently wrong outputs. The parity gate and the pinned toolchain cover this.
-5. **Open: what the ✓ means.** This spec adds a *separate* sentence ✓ (on the point screen, plus a badge on the map) and leaves the map's learned ✓ alone. If the owner instead wants the station's ✓ to require a sentence, the current-station logic in `(tabs)/grammar.tsx` and the level progress counts need a separate design.
-6. **Open: richer feedback later.** On iPhones with Apple Intelligence, Apple's on-device Foundation Models could add a free-text explanation on top of this grader. Out of scope for v1; check Apple's adapter and toolkit requirements first.
-7. **Open:** choose the OmniRouter model for T4 at pilot time.
+2. **Code-made errors don't look like real learner errors.** Corruptions are cleaner and more regular than real mistakes. *Mitigations:* the C3 judgment sentences, ≥500 real learner sentences in the gold set (reported separately), and opt-in reports feeding retraining (§7.14).
+3. **Some corruptions are accidentally still correct** (e.g. a particle swap that also works). *Mitigations:* config-limited swaps, the C4 spot check, and turning off any rule above a 10% error rate.
+4. **Kana-only sentences** (from romaji typing) are ambiguous. They're trained on explicitly and reported separately.
+5. **Core ML conversion of ModernBERT** may give silently wrong outputs. The parity gate and the pinned toolchain cover this.
+6. **Open: what the ✓ means.** This spec adds a *separate* sentence ✓ (on the point screen, plus a badge on the map) and leaves the map's learned ✓ alone. If the owner instead wants the station's ✓ to require a sentence, the current-station logic in `(tabs)/grammar.tsx` and the level progress counts need a separate design.
+7. **Open: richer feedback later.** On iPhones with Apple Intelligence, Apple's on-device Foundation Models could add a free-text explanation on top of this grader. Out of scope for v1; check Apple's adapter and toolkit requirements first.
+8. **Open: the laptop.** If it isn't an Apple Silicon Mac, conversion and the parity check need a Mac or a macOS CI runner (§7.8).
+9. **Tatoeba coverage** of rare N1 points will be thin. C3 fill covers the gap, and its share per point is reported in the dataset report.
